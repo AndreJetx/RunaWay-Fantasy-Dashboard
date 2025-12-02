@@ -1,0 +1,228 @@
+Crie um projeto completo chamado “Runway Fantasy Dashboard” usando Node.js no backend e Next.js + Shadcn UI no frontend. O projeto deve ter o tema visual inspirado em fantasia medieval, com cores vivas, partículas mágicas, bordas místicas, animações suaves e atmosfera épica. Use TailwindCSS, Framer Motion, Shadcn UI e Recharts.
+
+Funcionalidades do Sistema
+
+Crie um dashboard com autenticação JWT ou NextAuth contendo 5 módulos principais:
+
+1. Personagens
+
+CRUD completo para:
+
+nome
+
+classe (guerreiro, ladrão, mago…)
+
+nível
+
+atributos (força, destreza, inteligência, vida)
+
+habilidades
+
+imagem/avatar
+
+alinhamento
+
+histórico do personagem
+
+Interface:
+
+cards estilizados com bordas mágicas
+
+listagem com busca
+
+formulário moderno shadcn
+
+animação ao abrir modais
+
+2. Inventário
+
+CRUD completo para:
+
+itens
+
+tipo (arma, armadura, consumível…)
+
+raridade (com cores)
+
+peso
+
+quantidade
+
+imagem do item
+
+Extras:
+
+grid visual com ícones
+
+efeito glow em itens raros
+
+drag & drop opcional
+
+3. Campanhas
+
+CRUD completo para campanhas contendo:
+
+título
+
+descrição longa
+
+NPCs envolvidos
+
+status
+
+sessão atual
+
+data da próxima sessão
+
+Extras:
+
+timeline mágico com animação
+
+cards com imagens grandes
+
+páginas individuais para cada campanha
+
+4. Mapas
+
+Funcionalidades:
+
+upload de imagens de mapas
+
+visualização ampliada
+
+tags ou marcadores
+
+notas anexadas ao mapa
+
+UI:
+
+área para arrastar e soltar
+
+pré-visualização com zoom animado
+
+bordas brilhantes no hover
+
+5. Notas do Mestre
+
+Um bloco de notas avançado com:
+
+rich text editor
+
+categorias
+
+filtros
+
+modo noturno mágico (dark mode com neon azul/roxo)
+
+📊 Gráficos
+
+Use Recharts ou outro pacote suportado pelo shadcn para mostrar:
+
+distribuição de classes dos personagens
+
+itens por raridade
+
+progresso das campanhas
+
+Gráficos devem ter:
+
+transições suaves
+
+bordas arredondadas
+
+estilo fantasia (cores vibrantes)
+
+🔐 Autenticação
+
+Use NextAuth ou JWT com:
+
+login
+
+registro
+
+recuperação de senha
+
+Tema da UI:
+
+formulários com efeitos arcane (glow leve)
+
+cards com sombras dramáticas
+
+✨ Estilo e Animações (Runway Fantasy Style)
+
+A estética deve seguir:
+
+fantasia medieval luminosa
+
+partículas flutuando (Framer Motion)
+
+transições suaves ao trocar rotas
+
+títulos com tipografia épica
+
+ícones mágicos
+
+fundo com névoa ou luz difusa
+
+botões com hover brilhante
+
+🌌 Requisitos Técnicos
+
+Frontend
+
+Next.js 14 (App Router)
+
+Shadcn UI (com componentes customizados)
+
+TailwindCSS
+
+Framer Motion
+
+Recharts
+
+Upload de imagens (drag & drop + preview)
+
+Backend
+
+Node.js
+
+API REST ou server actions
+
+Banco recomendado: PostgreSQL + Prisma
+
+Upload de arquivos usando Cloudinary ou supabase
+
+Estrutura recomendada
+
+/characters
+
+/inventory
+
+/campaigns
+
+/maps
+
+/notes
+
+/auth
+
+/dashboard (home com gráficos)
+
+🎨 Extras
+
+Peça para a IA gerar:
+
+ícones personalizados no estilo RPG
+
+paleta de cores temática
+
+animações personalizadas
+
+placeholders de imagens mágicas
+
+bordas decorativas (SVG)
+
+📌 Objetivo Final
+
+Gerar um painel completo, funcional, estiloso e totalmente imersivo, ideal para jogadores de RPG, mestres e criadores de mundos.
+O design deve parecer um dashboard mágico profissional, com a identidade visual de um universo de fantasia cinematográfica.
