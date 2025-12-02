@@ -20,59 +20,20 @@ async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
 export const api = {
   // Auth
   async getUser() {
-    return fetchApi<{ user: { id: string; username: string } }>("/api/auth/user");
+    return fetchApi<{ user: { id: string; username: string; role: string } }>("/api/auth/user");
   },
   
   async logout() {
     return fetchApi<{ success: boolean }>("/api/auth/logout", { method: "POST" });
   },
 
-  // Characters
-  async getCharacters() {
-    return fetchApi<Character[]>("/api/characters");
-  },
-
-  async createCharacter(data: Partial<Character>) {
-    return fetchApi<Character>("/api/characters", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-  },
-
-  async updateCharacter(id: string, data: Partial<Character>) {
-    return fetchApi<Character>(`/api/characters/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    });
-  },
-
-  async deleteCharacter(id: string) {
-    return fetchApi<{ success: boolean }>(`/api/characters/${id}`, {
-      method: "DELETE",
-    });
-  },
-
-  // Items
-  async getItems() {
-    return fetchApi<Item[]>("/api/items");
-  },
-
-  async createItem(data: Partial<Item>) {
-    return fetchApi<Item>("/api/items", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-  },
-
-  async deleteItem(id: string) {
-    return fetchApi<{ success: boolean }>(`/api/items/${id}`, {
-      method: "DELETE",
-    });
-  },
-
   // Campaigns
   async getCampaigns() {
     return fetchApi<Campaign[]>("/api/campaigns");
+  },
+
+  async getCampaign(id: string) {
+    return fetchApi<Campaign>(`/api/campaigns/${id}`);
   },
 
   async createCampaign(data: Partial<Campaign>) {
@@ -95,9 +56,95 @@ export const api = {
     });
   },
 
+  async joinCampaign(inviteCode: string) {
+    return fetchApi<{ campaign: Campaign }>("/api/campaigns/join", {
+      method: "POST",
+      body: JSON.stringify({ inviteCode }),
+    });
+  },
+
+  async getCampaignMembers(campaignId: string) {
+    return fetchApi<Array<{ id: string; username: string; joinedAt: string }>>(`/api/campaigns/${campaignId}/members`);
+  },
+
+  // Characters
+  async getCharactersByCampaign(campaignId: string) {
+    return fetchApi<Character[]>(`/api/campaigns/${campaignId}/characters`);
+  },
+
+  async getMyCharacters() {
+    return fetchApi<Character[]>("/api/characters");
+  },
+
+  async getCharacter(id: string) {
+    return fetchApi<Character>(`/api/characters/${id}`);
+  },
+
+  async createCharacter(data: Partial<Character>) {
+    return fetchApi<Character>("/api/characters", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateCharacter(id: string, data: Partial<Character>) {
+    return fetchApi<Character>(`/api/characters/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteCharacter(id: string) {
+    return fetchApi<{ success: boolean }>(`/api/characters/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  // Change Logs (DM only)
+  async getChangeLogs(campaignId: string, unseenOnly = false) {
+    const url = `/api/campaigns/${campaignId}/changelog${unseenOnly ? "?unseen=true" : ""}`;
+    return fetchApi<Array<{
+      id: string;
+      characterId: string;
+      playerId: string;
+      changeType: string;
+      fieldChanged?: string;
+      oldValue?: string;
+      newValue?: string;
+      description?: string;
+      seenByDm: boolean;
+      createdAt: string;
+    }>>(url);
+  },
+
+  async markChangeLogsSeen(campaignId: string) {
+    return fetchApi<{ success: boolean }>(`/api/campaigns/${campaignId}/changelog/mark-seen`, {
+      method: "POST",
+    });
+  },
+
+  // Items
+  async getItems(campaignId?: string) {
+    const url = campaignId ? `/api/items?campaignId=${campaignId}` : "/api/items";
+    return fetchApi<Item[]>(url);
+  },
+
+  async createItem(data: Partial<Item>) {
+    return fetchApi<Item>("/api/items", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteItem(id: string) {
+    return fetchApi<{ success: boolean }>(`/api/items/${id}`, {
+      method: "DELETE",
+    });
+  },
+
   // Maps
-  async getMaps() {
-    return fetchApi<Map[]>("/api/maps");
+  async getMaps(campaignId: string) {
+    return fetchApi<Map[]>(`/api/campaigns/${campaignId}/maps`);
   },
 
   async createMap(data: Partial<Map>) {
@@ -114,8 +161,8 @@ export const api = {
   },
 
   // Notes
-  async getNotes() {
-    return fetchApi<Note[]>("/api/notes");
+  async getNotes(campaignId: string) {
+    return fetchApi<Note[]>(`/api/campaigns/${campaignId}/notes`);
   },
 
   async createNote(data: Partial<Note>) {

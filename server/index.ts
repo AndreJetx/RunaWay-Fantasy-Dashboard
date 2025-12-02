@@ -23,6 +23,7 @@ declare global {
     interface User {
       id: string;
       username: string;
+      role: string;
     }
   }
 }
@@ -64,7 +65,7 @@ passport.use(
         return done(null, false, { message: "Invalid credentials" });
       }
 
-      return done(null, { id: user.id, username: user.username });
+      return done(null, { id: user.id, username: user.username, role: user.role });
     } catch (error) {
       return done(error);
     }
@@ -81,7 +82,7 @@ passport.deserializeUser(async (id: string, done) => {
     if (!user) {
       return done(null, false);
     }
-    done(null, { id: user.id, username: user.username });
+    done(null, { id: user.id, username: user.username, role: user.role });
   } catch (error) {
     done(error);
   }

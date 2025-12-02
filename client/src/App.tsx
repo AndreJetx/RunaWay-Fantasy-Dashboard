@@ -6,11 +6,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
-import Characters from "@/pages/characters";
-import Inventory from "@/pages/inventory";
 import Campaigns from "@/pages/campaigns";
-import Maps from "@/pages/maps";
-import Notes from "@/pages/notes";
+import CampaignDetail from "@/pages/campaign-detail";
+import CharacterSheet from "@/pages/character-sheet";
+import MyCharacters from "@/pages/my-characters";
 import Login from "@/pages/login";
 import { useEffect } from "react";
 
@@ -29,7 +28,7 @@ function ProtectedRoute({ component: Component }: { component: () => JSX.Element
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground font-cinzel">Loading realm...</p>
+          <p className="text-muted-foreground font-cinzel">Carregando...</p>
         </div>
       </div>
     );
@@ -47,11 +46,10 @@ function Router() {
     <Switch>
       <Route path="/login" component={Login} />
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
-      <Route path="/characters" component={() => <ProtectedRoute component={Characters} />} />
-      <Route path="/inventory" component={() => <ProtectedRoute component={Inventory} />} />
       <Route path="/campaigns" component={() => <ProtectedRoute component={Campaigns} />} />
-      <Route path="/maps" component={() => <ProtectedRoute component={Maps} />} />
-      <Route path="/notes" component={() => <ProtectedRoute component={Notes} />} />
+      <Route path="/campaign/:id" component={() => <ProtectedRoute component={CampaignDetail} />} />
+      <Route path="/character/:id" component={() => <ProtectedRoute component={CharacterSheet} />} />
+      <Route path="/my-characters" component={() => <ProtectedRoute component={MyCharacters} />} />
       <Route component={NotFound} />
     </Switch>
   );
