@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/use-auth";
 import sidebarBg from "@assets/generated_images/mystical_dark_fantasy_background_texture.png";
 
 const navItems = [
@@ -30,6 +31,7 @@ const navItems = [
 export function FantasyLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <div className="min-h-screen flex bg-background font-sans text-foreground overflow-hidden relative">
@@ -73,9 +75,9 @@ export function FantasyLayout({ children }: { children: React.ReactNode }) {
               const isActive = location === item.href;
               return (
                 <Link key={item.href} href={item.href}>
-                  <a 
+                  <div 
                     className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 group relative overflow-hidden",
+                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 group relative overflow-hidden cursor-pointer",
                       isActive 
                         ? "text-primary-foreground font-medium shadow-[0_0_20px_rgba(var(--primary),0.3)]" 
                         : "text-muted-foreground hover:text-foreground hover:bg-white/5"
@@ -95,7 +97,7 @@ export function FantasyLayout({ children }: { children: React.ReactNode }) {
                     
                     {/* Hover glow effect */}
                     <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </a>
+                  </div>
                 </Link>
               );
             })}
@@ -104,19 +106,26 @@ export function FantasyLayout({ children }: { children: React.ReactNode }) {
           <div className="p-4 border-t border-border z-10 bg-black/20">
             <div className="flex items-center gap-3 mb-4">
                <Avatar className="border-2 border-primary/30 shadow-[0_0_10px_rgba(var(--primary),0.2)]">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>DM</AvatarFallback>
+                  <AvatarFallback className="bg-primary/20 text-primary font-bold">
+                    {user?.username?.charAt(0).toUpperCase() || "DM"}
+                  </AvatarFallback>
                </Avatar>
                <div className="overflow-hidden">
-                  <p className="text-sm font-medium truncate font-cinzel text-primary">Dungeon Master</p>
-                  <p className="text-xs text-muted-foreground truncate">Level 20 Creator</p>
+                  <p className="text-sm font-medium truncate font-cinzel text-primary">{user?.username || "Guest"}</p>
+                  <p className="text-xs text-muted-foreground truncate">Dungeon Master</p>
                </div>
             </div>
             <div className="flex gap-2">
                <Button variant="outline" size="sm" className="w-full border-border/50 hover:border-primary/50 hover:bg-primary/10">
                   <Settings className="w-4 h-4 mr-2" /> Settings
                </Button>
-               <Button variant="ghost" size="icon" className="shrink-0 hover:text-destructive">
+               <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="shrink-0 hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => logout()}
+                  data-testid="button-logout"
+               >
                   <LogOut className="w-4 h-4" />
                </Button>
             </div>
