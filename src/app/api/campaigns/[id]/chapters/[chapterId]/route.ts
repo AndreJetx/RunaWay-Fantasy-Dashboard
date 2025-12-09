@@ -19,7 +19,7 @@ export async function PUT(
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
+    // Authenticate user
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
