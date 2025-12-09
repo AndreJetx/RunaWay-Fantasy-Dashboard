@@ -226,7 +226,7 @@ export async function POST(
         
         if (!character) continue;
         
-        const currentSpellcasting = character.spellcasting || {};
+        const currentSpellcasting = (character.spellcasting as { knownSpells?: string[] } | null) || {};
         const knownSpells = currentSpellcasting.knownSpells || [];
         
         // Verificar se a magia já está na lista
