@@ -1,0 +1,313 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { db, schema } from "@/lib/db";
+import { createClient } from "@/lib/supabase/server";
+import { eq, and } from "drizzle-orm";
+import { getDbUser } from "@/lib/user-helper";
+
+const jsonSchema = z.record(z.string(), z.any()).or(z.array(z.any()));
+
+const createCharacterSchema = z.object({
+  campaignId: z.string().uuid(),
+  playerId: z.string().uuid(),
+  system: z.string().optional(),
+  name: z.string().min(1),
+  race: z.string().optional(),
+  characterClass: z.string().min(1),
+  subclass: z.string().optional(),
+  level: z.coerce.number().int().min(1).max(20).optional(),
+  experiencePoints: z.coerce.number().int().min(0).optional(),
+  background: z.string().optional(),
+  alignment: z.string().optional(),
+  image: z.union([z.string().url(), z.string().length(0), z.undefined()]).optional(),
+  armorClass: z.coerce.number().int().min(0).optional(),
+  initiative: z.coerce.number().int().optional(),
+  speed: z.coerce.number().int().min(0).optional(),
+  currentHp: z.coerce.number().int().min(0).optional(),
+  maxHp: z.coerce.number().int().min(0).optional(),
+  tempHp: z.coerce.number().int().min(0).optional(),
+  hitDice: z.string().optional(),
+  attributes: jsonSchema.optional(),
+  savingThrows: jsonSchema.optional(),
+  skills: jsonSchema.optional(),
+  proficiencyBonus: z.coerce.number().int().optional(),
+  proficiencies: z.array(z.string()).optional(),
+  languages: z.array(z.string()).optional(),
+  equipment: jsonSchema.optional(),
+  currency: jsonSchema.optional(),
+  inventory: z.array(z.any()).optional(),
+  features: jsonSchema.optional(),
+  spellcasting: jsonSchema.optional(),
+  mana: z.coerce.number().int().min(0).optional(),
+  maxMana: z.coerce.number().int().min(0).optional(),
+  divindade: z.string().optional(),
+  origem: z.string().optional(),
+  poderes: jsonSchema.optional(),
+  personalityTraits: z.string().optional(),
+  ideals: z.string().optional(),
+  bonds: z.string().optional(),
+  flaws: z.string().optional(),
+  backstory: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export async function GET(request: Request) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Buscar role do usuário otimizado
+    const dbUser = await getDbUser(user.id, user.email);
+    const isDM = dbUser?.role === "dm" || dbUser?.role === "admin";
+
+    // Buscar personagens - apenas campos necessários
+    if (!isDM) {
+      const characters = await db
+        .select({
+          id: schema.characters.id,
+          name: schema.characters.name,
+          race: schema.characters.race,
+          characterClass: schema.characters.characterClass,
+          level: schema.characters.level,
+          currentHp: schema.characters.currentHp,
+          maxHp: schema.characters.maxHp,
+          armorClass: schema.characters.armorClass,
+          alignment: schema.characters.alignment,
+          image: schema.characters.image,
+          attributes: schema.characters.attributes,
+          campaignId: schema.characters.campaignId,
+          playerId: schema.characters.playerId,
+        })
+        .from(schema.characters)
+        .where(eq(schema.characters.playerId, user.id))
+        .limit(50);
+
+      return NextResponse.json(characters);
+    }
+
+    // Se for DM, mostrar todos os personagens
+    const characters = await db
+      .select({
+        id: schema.characters.id,
+        name: schema.characters.name,
+        race: schema.characters.race,
+        characterClass: schema.characters.characterClass,
+        level: schema.characters.level,
+        currentHp: schema.characters.currentHp,
+        maxHp: schema.characters.maxHp,
+        armorClass: schema.characters.armorClass,
+        alignment: schema.characters.alignment,
+        image: schema.characters.image,
+        attributes: schema.characters.attributes,
+        campaignId: schema.characters.campaignId,
+        playerId: schema.characters.playerId,
+      })
+      .from(schema.characters)
+      .limit(50);
+
+    return NextResponse.json(characters);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const payload = await request.json();
+    const parsed = createCharacterSchema.parse(payload);
+
+    // Buscar campanha e usuário em paralelo
+    const [campaignResult, dbUser] = await Promise.all([
+      db
+        .select()
+        .from(schema.campaigns)
+        .where(eq(schema.campaigns.id, parsed.campaignId))
+        .limit(1),
+      getDbUser(user.id, user.email),
+    ]);
+
+    const [campaign] = campaignResult;
+    if (!campaign) {
+      return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
+    }
+
+    // Verificar acesso em paralelo
+    const [memberBySupabaseId, memberByDbId] = await Promise.all([
+      db
+        .select()
+        .from(schema.campaignMembers)
+        .where(
+          and(
+            eq(schema.campaignMembers.campaignId, parsed.campaignId),
+            eq(schema.campaignMembers.userId, user.id)
+          )
+        )
+        .limit(1),
+      // Buscar por DB ID se diferente
+      dbUser && dbUser.id !== user.id
+        ? db
+            .select()
+            .from(schema.campaignMembers)
+            .where(
+              and(
+                eq(schema.campaignMembers.campaignId, parsed.campaignId),
+                eq(schema.campaignMembers.userId, dbUser.id)
+              )
+            )
+            .limit(1)
+        : Promise.resolve([]),
+    ]);
+
+    const isDM = campaign.dmId === user.id || (dbUser && campaign.dmId === dbUser.id);
+    const member = memberBySupabaseId[0] || (memberByDbId.length > 0 ? memberByDbId[0] : null);
+
+    if (!isDM && !member) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    // Usar o ID do banco de dados se disponível, senão usar o ID do Supabase
+    const finalPlayerId = dbUser?.id || user.id;
+    
+    // Verificar se o playerId corresponde ao usuário autenticado (aceitar ambos os IDs)
+    if (parsed.playerId !== user.id && parsed.playerId !== finalPlayerId) {
+      return NextResponse.json({ error: "Player ID must match authenticated user" }, { status: 403 });
+    }
+
+    // Verificar se o usuário já tem um personagem nesta campanha - buscar em paralelo
+    const userIdToCheck = dbUser?.id || user.id;
+    
+    const [existingCharactersBySupabaseId, existingCharactersByDbId] = await Promise.all([
+      db
+        .select()
+        .from(schema.characters)
+        .where(
+          and(
+            eq(schema.characters.campaignId, parsed.campaignId),
+            eq(schema.characters.playerId, user.id)
+          )
+        )
+        .limit(10),
+      userIdToCheck !== user.id
+        ? db
+            .select()
+            .from(schema.characters)
+            .where(
+              and(
+                eq(schema.characters.campaignId, parsed.campaignId),
+                eq(schema.characters.playerId, userIdToCheck)
+              )
+            )
+            .limit(10)
+        : Promise.resolve([]),
+    ]);
+
+    // Combinar e remover duplicatas
+    const allExistingCharacters = [...existingCharactersBySupabaseId, ...existingCharactersByDbId];
+    const existingCharacters = Array.from(
+      new Map(allExistingCharacters.map((c) => [c.id, c])).values()
+    );
+
+    // Se for DM, pode criar múltiplos personagens
+    // Se for jogador, só pode ter um personagem vivo por campanha
+    if (!isDM && existingCharacters.length > 0) {
+      // Verificar se algum personagem está vivo (currentHp > 0)
+      const aliveCharacters = existingCharacters.filter(
+        (char) => (char.currentHp ?? 0) > 0
+      );
+
+      if (aliveCharacters.length > 0) {
+        return NextResponse.json(
+          { 
+            error: "Você já possui um personagem vivo nesta campanha. Apenas é permitido criar um novo personagem se o anterior estiver morto (PV <= 0).",
+            existingCharacter: {
+              id: aliveCharacters[0].id,
+              name: aliveCharacters[0].name,
+              currentHp: aliveCharacters[0].currentHp,
+            }
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    const [character] = await db
+      .insert(schema.characters)
+      .values({
+        campaignId: parsed.campaignId,
+        playerId: finalPlayerId, // Usar o ID do banco de dados
+        system: parsed.system ?? "dnd5e",
+        name: parsed.name,
+        race: parsed.race,
+        characterClass: parsed.characterClass,
+        subclass: parsed.subclass,
+        level: parsed.level ?? 1,
+        experiencePoints: parsed.experiencePoints ?? 0,
+        background: parsed.background,
+        alignment: parsed.alignment,
+        image: parsed.image,
+        armorClass: parsed.armorClass ?? 10,
+        initiative: parsed.initiative ?? 0,
+        speed: parsed.speed ?? 30,
+        currentHp: parsed.currentHp ?? 10,
+        maxHp: parsed.maxHp ?? 10,
+        tempHp: parsed.tempHp ?? 0,
+        hitDice: parsed.hitDice,
+        attributes: parsed.attributes,
+        savingThrows: parsed.savingThrows,
+        skills: parsed.skills,
+        proficiencyBonus: parsed.proficiencyBonus ?? 2,
+        proficiencies: parsed.proficiencies,
+        languages: parsed.languages,
+        equipment: parsed.equipment,
+        currency: parsed.currency,
+        inventory: parsed.inventory || [],
+        features: parsed.features,
+        spellcasting: parsed.spellcasting,
+        mana: parsed.mana ?? 0,
+        maxMana: parsed.maxMana ?? 0,
+        divindade: parsed.divindade,
+        origem: parsed.origem,
+        poderes: parsed.poderes,
+        personalityTraits: parsed.personalityTraits,
+        ideals: parsed.ideals,
+        bonds: parsed.bonds,
+        flaws: parsed.flaws,
+        backstory: parsed.backstory,
+        notes: parsed.notes,
+      })
+      .returning();
+
+    return NextResponse.json(character, { status: 201 });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Invalid payload", message: "Validation failed", issues: error.flatten() },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Internal Server Error", message: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
+    );
+  }
+}
+

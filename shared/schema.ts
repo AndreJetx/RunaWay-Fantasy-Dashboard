@@ -1,121 +1,142 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  jsonb,
+  numeric,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Users with roles
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email"),
-  role: text("role").notNull().default("player"), // 'dm' or 'player'
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const userRoleEnum = pgEnum("user_role", ["player", "dm", "admin"]);
+export const campaignStatusEnum = pgEnum("campaign_status", [
+  "Active",
+  "Paused",
+  "Completed",
+  "Archived",
+]);
+export const itemRarityEnum = pgEnum("item_rarity", [
+  "Common",
+  "Uncommon",
+  "Rare",
+  "Epic",
+  "Legendary",
+  "Artifact",
+]);
+export const itemTypeEnum = pgEnum("item_type", [
+  "Weapon",
+  "Armor",
+  "Consumable",
+  "Gem",
+  "Material",
+  "Tool",
+  "Quest",
+  "Other",
+]);
+export const changeTypeEnum = pgEnum("change_type", [
+  "level_up",
+  "stat_update",
+  "equipment",
+  "story",
+  "misc",
+]);
+export const noteCategoryEnum = pgEnum("note_category", [
+  "Sessions",
+  "NPCs",
+  "Loot",
+  "Quests",
+  "World",
+  "Misc",
+]);
+export const tokenTypeEnum = pgEnum("token_type", ["reset", "refresh"]);
 
-// Campaigns
-export const campaigns = pgTable("campaigns", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  dmId: varchar("dm_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+const userColumns = {
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  username: text("username").notNull(),
+  email: text("email").notNull(),
+  password: text("password").notNull(),
+  role: userRoleEnum("role").notNull().default("player"),
+  avatarUrl: text("avatar_url"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+  lastLogin: timestamp("last_login", { withTimezone: true }),
+};
+
+export const users = pgTable("users", userColumns, (table) => ({
+  usernameUnique: uniqueIndex("users_username_unique").on(table.username),
+  emailUnique: uniqueIndex("users_email_unique").on(table.email),
+}));
+
+const campaignColumns = {
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  dmId: uuid("dm_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   description: text("description"),
-  system: text("system").notNull().default("dnd5e"), // 'dnd5e' or 'tormenta20'
-  status: text("status").notNull().default("Active"),
-  nextSession: text("next_session"),
+  system: text("system").notNull().default("dnd5e"),
+  status: campaignStatusEnum("status").notNull().default("Active"),
+  currentSession: text("current_session"),
+  nextSession: timestamp("next_session", { withTimezone: true }),
+  progress: integer("progress").notNull().default(0),
+  totalChapters: integer("total_chapters").default(10), // Número total de capítulos da campanha
   image: text("image"),
-  inviteCode: varchar("invite_code").unique(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+  inviteCode: varchar("invite_code"),
+  attributeSystem: text("attribute_system").default("fixed"), // "fixed", "point_buy", "roll_4d6"
+  initialMoney: text("initial_money").default("0"), // Quantidade de dinheiro inicial em nível 1
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+};
 
-// Campaign Members (players in a campaign)
-export const campaignMembers = pgTable("campaign_members", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  campaignId: varchar("campaign_id").notNull().references(() => campaigns.id, { onDelete: "cascade" }),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  joinedAt: timestamp("joined_at").defaultNow().notNull(),
-});
+export const campaigns = pgTable("campaigns", campaignColumns, (table) => ({
+  inviteCodeUnique: uniqueIndex("campaigns_invite_code_unique").on(
+    table.inviteCode,
+  ),
+}));
 
-// D&D 5e Character Sheet
-export const dnd5eAttributes = z.object({
-  strength: z.number().min(1).max(30).default(10),
-  dexterity: z.number().min(1).max(30).default(10),
-  constitution: z.number().min(1).max(30).default(10),
-  intelligence: z.number().min(1).max(30).default(10),
-  wisdom: z.number().min(1).max(30).default(10),
-  charisma: z.number().min(1).max(30).default(10),
-});
+const campaignMemberColumns = {
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  campaignId: uuid("campaign_id")
+    .notNull()
+    .references(() => campaigns.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  role: userRoleEnum("role").notNull().default("player"),
+  joinedAt: timestamp("joined_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+};
 
-export const dnd5eSkills = z.object({
-  acrobatics: z.number().default(0),
-  animalHandling: z.number().default(0),
-  arcana: z.number().default(0),
-  athletics: z.number().default(0),
-  deception: z.number().default(0),
-  history: z.number().default(0),
-  insight: z.number().default(0),
-  intimidation: z.number().default(0),
-  investigation: z.number().default(0),
-  medicine: z.number().default(0),
-  nature: z.number().default(0),
-  perception: z.number().default(0),
-  performance: z.number().default(0),
-  persuasion: z.number().default(0),
-  religion: z.number().default(0),
-  sleightOfHand: z.number().default(0),
-  stealth: z.number().default(0),
-  survival: z.number().default(0),
-});
+export const campaignMembers = pgTable(
+  "campaign_members",
+  campaignMemberColumns,
+  (table) => ({
+    memberUnique: uniqueIndex("campaign_members_campaign_user_unique").on(
+      table.campaignId,
+      table.userId,
+    ),
+  }),
+);
 
-// Tormenta 20 Character Sheet
-export const tormenta20Attributes = z.object({
-  forca: z.number().min(1).max(30).default(10),
-  destreza: z.number().min(1).max(30).default(10),
-  constituicao: z.number().min(1).max(30).default(10),
-  inteligencia: z.number().min(1).max(30).default(10),
-  sabedoria: z.number().min(1).max(30).default(10),
-  carisma: z.number().min(1).max(30).default(10),
-});
-
-export const tormenta20Pericias = z.object({
-  acrobacia: z.number().default(0),
-  adestramento: z.number().default(0),
-  atletismo: z.number().default(0),
-  atuacao: z.number().default(0),
-  cavalgar: z.number().default(0),
-  conhecimento: z.number().default(0),
-  cura: z.number().default(0),
-  diplomacia: z.number().default(0),
-  enganacao: z.number().default(0),
-  fortitude: z.number().default(0),
-  furtividade: z.number().default(0),
-  guerra: z.number().default(0),
-  iniciativa: z.number().default(0),
-  intimidacao: z.number().default(0),
-  intuicao: z.number().default(0),
-  investigacao: z.number().default(0),
-  jogatina: z.number().default(0),
-  ladinagem: z.number().default(0),
-  luta: z.number().default(0),
-  misticismo: z.number().default(0),
-  nobreza: z.number().default(0),
-  oficio: z.number().default(0),
-  percepcao: z.number().default(0),
-  pilotagem: z.number().default(0),
-  pontaria: z.number().default(0),
-  reflexos: z.number().default(0),
-  religiao: z.number().default(0),
-  sobrevivencia: z.number().default(0),
-  vontade: z.number().default(0),
-});
-
-// Character Sheets (supports both systems)
-export const characters = pgTable("characters", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  campaignId: varchar("campaign_id").notNull().references(() => campaigns.id, { onDelete: "cascade" }),
-  playerId: varchar("player_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  system: text("system").notNull().default("dnd5e"), // 'dnd5e' or 'tormenta20'
-  
-  // Basic Info
+const characterColumns = {
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  campaignId: uuid("campaign_id")
+    .notNull()
+    .references(() => campaigns.id, { onDelete: "cascade" }),
+  playerId: uuid("player_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  system: text("system").notNull().default("dnd5e"),
   name: text("name").notNull(),
   race: text("race"),
   characterClass: text("character_class").notNull(),
@@ -125,8 +146,6 @@ export const characters = pgTable("characters", {
   background: text("background"),
   alignment: text("alignment"),
   image: text("image"),
-  
-  // Combat Stats
   armorClass: integer("armor_class").default(10),
   initiative: integer("initiative").default(0),
   speed: integer("speed").default(30),
@@ -134,165 +153,276 @@ export const characters = pgTable("characters", {
   maxHp: integer("max_hp").default(10),
   tempHp: integer("temp_hp").default(0),
   hitDice: text("hit_dice"),
-  
-  // Attributes (JSON - depends on system)
-  attributes: jsonb("attributes").$type<Record<string, number>>(),
-  savingThrows: jsonb("saving_throws").$type<Record<string, number>>(),
-  skills: jsonb("skills").$type<Record<string, number>>(),
-  
-  // Proficiencies
+  attributes: jsonb("attributes").default(sql`'{}'::jsonb`),
+  savingThrows: jsonb("saving_throws").default(sql`'{}'::jsonb`),
+  skills: jsonb("skills").default(sql`'{}'::jsonb`),
   proficiencyBonus: integer("proficiency_bonus").default(2),
   proficiencies: text("proficiencies").array(),
   languages: text("languages").array(),
-  
-  // Equipment & Inventory
-  equipment: jsonb("equipment").$type<Array<{name: string; quantity: number; weight?: number}>>(),
-  currency: jsonb("currency").$type<{gold?: number; silver?: number; copper?: number; platinum?: number; electrum?: number}>(),
-  
-  // Features & Abilities
-  features: jsonb("features").$type<Array<{name: string; description: string; source?: string}>>(),
-  spellcasting: jsonb("spellcasting").$type<{
-    spellcastingAbility?: string;
-    spellSaveDC?: number;
-    spellAttackBonus?: number;
-    spellSlots?: Record<string, number>;
-    spellsKnown?: Array<{name: string; level: number; prepared?: boolean}>;
-  }>(),
-  
-  // Tormenta 20 Specific
+  equipment: jsonb("equipment").default(sql`'{}'::jsonb`),
+  currency: jsonb("currency").default(sql`'{}'::jsonb`),
+  inventory: jsonb("inventory").default(sql`'[]'::jsonb`),
+  features: jsonb("features").default(sql`'{}'::jsonb`),
+  spellcasting: jsonb("spellcasting").default(sql`'{}'::jsonb`),
   mana: integer("mana").default(0),
   maxMana: integer("max_mana").default(0),
   divindade: text("divindade"),
   origem: text("origem"),
-  poderes: jsonb("poderes").$type<Array<{name: string; description: string; type?: string}>>(),
-  
-  // Notes
+  poderes: jsonb("poderes").default(sql`'{}'::jsonb`),
   personalityTraits: text("personality_traits"),
   ideals: text("ideals"),
   bonds: text("bonds"),
   flaws: text("flaws"),
   backstory: text("backstory"),
   notes: text("notes"),
-  
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+  needsLevelUp: boolean("needs_level_up").default(false),
+  pendingHitDiceRoll: integer("pending_hit_dice_roll"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+};
 
-// Character Change Log (for DM to track changes)
+export const characters = pgTable("characters", characterColumns, (table) => ({
+  uniqueNamePerCampaign: uniqueIndex("characters_campaign_id_name_unique").on(
+    table.campaignId,
+    table.name,
+  ),
+}));
+
 export const characterChangeLogs = pgTable("character_change_logs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  characterId: varchar("character_id").notNull().references(() => characters.id, { onDelete: "cascade" }),
-  playerId: varchar("player_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  campaignId: varchar("campaign_id").notNull().references(() => campaigns.id, { onDelete: "cascade" }),
-  changeType: text("change_type").notNull(), // 'create', 'update', 'hp_change', 'level_up', 'item_add', etc.
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  characterId: uuid("character_id")
+    .notNull()
+    .references(() => characters.id, { onDelete: "cascade" }),
+  playerId: uuid("player_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  campaignId: uuid("campaign_id")
+    .notNull()
+    .references(() => campaigns.id, { onDelete: "cascade" }),
+  changeType: changeTypeEnum("change_type").notNull(),
   fieldChanged: text("field_changed"),
-  oldValue: text("old_value"),
-  newValue: text("new_value"),
+  oldValue: jsonb("old_value"),
+  newValue: jsonb("new_value"),
   description: text("description"),
   seenByDm: boolean("seen_by_dm").default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
 });
 
-// Items (shared inventory for campaign)
-export const items = pgTable("items", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  campaignId: varchar("campaign_id").references(() => campaigns.id, { onDelete: "cascade" }),
-  ownerId: varchar("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+const campaignSessionColumns = {
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  campaignId: uuid("campaign_id")
+    .notNull()
+    .references(() => campaigns.id, { onDelete: "cascade" }),
+  sequence: integer("sequence").notNull(),
+  title: text("title").notNull(),
+  summary: text("summary"),
+  sessionDate: timestamp("session_date", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+};
+
+export const campaignSessions = pgTable(
+  "campaign_sessions",
+  campaignSessionColumns,
+  (table) => ({
+    uniqueSequence: uniqueIndex("campaign_sessions_campaign_sequence_unique").on(
+      table.campaignId,
+      table.sequence,
+    ),
+  }),
+);
+
+// Campaign Chapters - para organizar progresso da campanha
+export const campaignChapters = pgTable("campaign_chapters", {
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  campaignId: uuid("campaign_id")
+    .notNull()
+    .references(() => campaigns.id, { onDelete: "cascade" }),
+  chapterNumber: integer("chapter_number").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  isCompleted: boolean("is_completed").default(false),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+}, (table) => ({
+  uniqueChapterNumber: uniqueIndex("campaign_chapters_campaign_number_unique").on(
+    table.campaignId,
+    table.chapterNumber,
+  ),
+}));
+
+// NPCs/Inimigos com ficha D&D completa
+const npcColumns = {
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  campaignId: uuid("campaign_id")
+    .notNull()
+    .references(() => campaigns.id, { onDelete: "cascade" }),
+  chapterId: uuid("chapter_id")
+    .references(() => campaignChapters.id, { onDelete: "set null" }),
   name: text("name").notNull(),
-  type: text("type").notNull(),
-  rarity: text("rarity").notNull(),
-  weight: integer("weight").notNull().default(1),
+  race: text("race"),
+  characterClass: text("character_class"),
+  subclass: text("subclass"),
+  level: integer("level").default(1),
+  challengeRating: text("challenge_rating"), // CR para monstros
+  type: text("type"), // "npc", "enemy", "boss", etc
+  alignment: text("alignment"),
+  image: text("image"),
+  // Atributos D&D
+  armorClass: integer("armor_class").default(10),
+  initiative: integer("initiative").default(0),
+  speed: integer("speed").default(30),
+  currentHp: integer("current_hp").default(10),
+  maxHp: integer("max_hp").default(10),
+  tempHp: integer("temp_hp").default(0),
+  hitDice: text("hit_dice"),
+  attributes: jsonb("attributes").default(sql`'{}'::jsonb`), // {strength, dexterity, constitution, intelligence, wisdom, charisma}
+  savingThrows: jsonb("saving_throws").default(sql`'{}'::jsonb`),
+  skills: jsonb("skills").default(sql`'{}'::jsonb`),
+  proficiencyBonus: integer("proficiency_bonus").default(2),
+  // Ataques e habilidades
+  attacks: jsonb("attacks").default(sql`'[]'::jsonb`), // Array de ataques
+  abilities: jsonb("abilities").default(sql`'[]'::jsonb`), // Habilidades especiais
+  resistances: text("resistances").array(),
+  immunities: text("immunities").array(),
+  vulnerabilities: text("vulnerabilities").array(),
+  // Informações adicionais
+  role: text("role"), // Roleplay: "merchant", "guard", "villain", etc
+  attitude: text("attitude"), // "friendly", "neutral", "hostile"
+  description: text("description"),
+  backstory: text("backstory"),
+  notes: text("notes"),
+  isHostile: boolean("is_hostile").default(false),
+  lastSeen: text("last_seen"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+};
+
+export const campaignNpcs = pgTable("campaign_npcs", npcColumns, (table) => ({
+  uniqueNamePerCampaign: uniqueIndex("campaign_npcs_campaign_id_name_unique").on(
+    table.campaignId,
+    table.name,
+  ),
+}));
+
+export const items = pgTable("items", {
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  campaignId: uuid("campaign_id")
+    .notNull()
+    .references(() => campaigns.id, { onDelete: "cascade" }),
+  ownerId: uuid("owner_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  type: itemTypeEnum("type").notNull(),
+  rarity: itemRarityEnum("rarity").notNull(),
+  weight: numeric("weight", { precision: 10, scale: 2 }).notNull().default("1"),
   quantity: integer("quantity").notNull().default(1),
   image: text("image"),
   description: text("description"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  attunementRequired: boolean("attunement_required").default(false),
+  equipped: boolean("equipped").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
 });
 
-// Maps
 export const maps = pgTable("maps", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  campaignId: varchar("campaign_id").references(() => campaigns.id, { onDelete: "cascade" }),
-  dmId: varchar("dm_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  campaignId: uuid("campaign_id")
+    .notNull()
+    .references(() => campaigns.id, { onDelete: "cascade" }),
+  chapterId: uuid("chapter_id")
+    .references(() => campaignChapters.id, { onDelete: "set null" }),
+  dmId: uuid("dm_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   imageUrl: text("image_url").notNull(),
-  markers: jsonb("markers").$type<Array<{
-    id: string;
-    x: number;
-    y: number;
-    label: string;
-    visibleToPlayers?: boolean;
-  }>>(),
+  markers: jsonb("markers").default(sql`'[]'::jsonb`),
   notes: text("notes"),
+  isInitialMap: boolean("is_initial_map").default(false), // Mapa inicial da campanha
   visibleToPlayers: boolean("visible_to_players").default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
 });
 
-// DM Notes
 export const notes = pgTable("notes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  campaignId: varchar("campaign_id").references(() => campaigns.id, { onDelete: "cascade" }),
-  dmId: varchar("dm_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  campaignId: uuid("campaign_id")
+    .notNull()
+    .references(() => campaigns.id, { onDelete: "cascade" }),
+  dmId: uuid("dm_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   content: text("content"),
-  category: text("category").notNull(),
+  category: noteCategoryEnum("category").notNull().default("Misc"),
+  tags: text("tags").array(),
   isPrivate: boolean("is_private").default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
 });
 
-// Insert Schemas
-export const insertUserSchema = createInsertSchema(users).pick({
+const authTokenColumns = {
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull(),
+  type: tokenTypeEnum("type").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+};
+
+export const authTokens = pgTable("auth_tokens", authTokenColumns, (table) => ({
+  tokenUnique: uniqueIndex("auth_tokens_token_unique").on(table.token),
+}));
+
+export const insertUserSchema = createInsertSchema(users, {
+  email: z.string().email(),
+  role: z.enum(["player", "dm", "admin"]).optional(),
+}).pick({
   username: true,
+  email: true,
   password: true,
-}).extend({
-  role: z.enum(["dm", "player"]).optional(),
+  role: true,
 });
 
-export const insertCampaignSchema = createInsertSchema(campaigns).omit({ 
-  id: true, 
-  createdAt: true, 
-  dmId: true,
-  inviteCode: true,
-});
-
-export const insertCharacterSchema = createInsertSchema(characters).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true,
-  playerId: true,
-});
-
-export const insertItemSchema = createInsertSchema(items).omit({ 
-  id: true, 
-  createdAt: true, 
-  ownerId: true 
-});
-
-export const insertMapSchema = createInsertSchema(maps).omit({ 
-  id: true, 
-  createdAt: true, 
-  dmId: true 
-});
-
-export const insertNoteSchema = createInsertSchema(notes).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true, 
-  dmId: true 
-});
-
-// Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
-export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 export type Campaign = typeof campaigns.$inferSelect;
 export type CampaignMember = typeof campaignMembers.$inferSelect;
-export type InsertCharacter = z.infer<typeof insertCharacterSchema>;
 export type Character = typeof characters.$inferSelect;
 export type CharacterChangeLog = typeof characterChangeLogs.$inferSelect;
-export type InsertItem = z.infer<typeof insertItemSchema>;
+export type CampaignSession = typeof campaignSessions.$inferSelect;
+export type CampaignChapter = typeof campaignChapters.$inferSelect;
+export type CampaignNpc = typeof campaignNpcs.$inferSelect;
 export type Item = typeof items.$inferSelect;
-export type InsertMap = z.infer<typeof insertMapSchema>;
 export type Map = typeof maps.$inferSelect;
-export type InsertNote = z.infer<typeof insertNoteSchema>;
 export type Note = typeof notes.$inferSelect;
+export type AuthToken = typeof authTokens.$inferSelect;
