@@ -48,6 +48,8 @@ interface SpellSelectionDialogProps {
   maxCantrips?: number;
   characterClass: string;
   characterLevel: number;
+  knownSpells?: string[]; // Magias já conhecidas pelo personagem
+  allowSwap?: boolean; // Permite trocar magias conhecidas
 }
 
 export function SpellSelectionDialog({
@@ -60,6 +62,8 @@ export function SpellSelectionDialog({
   maxCantrips = 0,
   characterClass,
   characterLevel,
+  knownSpells = [],
+  allowSwap = false,
 }: SpellSelectionDialogProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [spellDetails, setSpellDetails] = useState<Record<string, SpellDetail>>({});
@@ -67,6 +71,7 @@ export function SpellSelectionDialog({
   const [selectedLevel, setSelectedLevel] = useState<number | "all">(
     maxCantrips > 0 ? 0 : "all"
   );
+  const [spellsToRemove, setSpellsToRemove] = useState<string[]>([]); // Magias conhecidas marcadas para remoção
 
   const maxSpellLevel = getSpellcastingLevel(characterClass, characterLevel);
   const { t, translateDnd5e, translateSpell } = useTranslation();
@@ -97,25 +102,25 @@ export function SpellSelectionDialog({
   // Separar truques de magias de nível 1+
   const cantrips = availableSpells.filter(s => s.level === 0);
   const spellsLevel1Plus = availableSpells.filter(s => s.level !== undefined && s.level > 0);
-  
+
   const filteredSpells = (selectedLevel === 0 ? cantrips : selectedLevel === "all" ? availableSpells : spellsLevel1Plus).filter((spell) => {
     const matchesSearch = spell.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLevel = selectedLevel === "all" || spell.level === selectedLevel;
     const matchesMaxLevel = spell.level !== undefined && spell.level <= maxSpellLevel;
     return matchesSearch && matchesLevel && matchesMaxLevel;
   });
-  
+
   // Contar selecionados separadamente
   const selectedCantrips = selectedSpells.filter(idx => {
     const spell = availableSpells.find(s => s.index === idx);
     return spell?.level === 0;
   });
-  
+
   const selectedSpellsLevel1Plus = selectedSpells.filter(idx => {
     const spell = availableSpells.find(s => s.index === idx);
     return spell?.level !== undefined && spell.level > 0;
   });
-  
+
   // Determinar qual tipo está sendo selecionado
   const isSelectingCantrips = maxCantrips > 0 && selectedLevel === 0;
   const currentMax = isSelectingCantrips ? maxCantrips : maxSpells;
@@ -145,14 +150,20 @@ export function SpellSelectionDialog({
     const isCantrip = spell?.level === 0;
     const currentMaxForType = isCantrip ? maxCantrips : maxSpells;
     const currentSelectedForType = isCantrip ? selectedCantrips.length : selectedSpellsLevel1Plus.length;
-    
+    const isAlreadyKnown = knownSpells.includes(spellIndex);
+
     if (selectedSpells.includes(spellIndex)) {
       onSpellsChange(selectedSpells.filter(s => s !== spellIndex));
     } else {
+      // Se já conhece a magia e não está no modo de troca, não fazer nada
+      if (isAlreadyKnown && !allowSwap) {
+        return;
+      }
+
       if (currentSelectedForType < currentMaxForType) {
         onSpellsChange([...selectedSpells, spellIndex]);
-      } else {
-        // Substituir a última magia/truque do mesmo tipo
+      } else if (allowSwap) {
+        // No modo de troca, substituir a última magia/truque do mesmo tipo
         const sameTypeSpells = selectedSpells.filter(idx => {
           const s = availableSpells.find(sp => sp.index === idx);
           return (s?.level === 0) === isCantrip;
@@ -161,11 +172,19 @@ export function SpellSelectionDialog({
           const s = availableSpells.find(sp => sp.index === idx);
           return (s?.level === 0) !== isCantrip;
         });
-        
+
         const newSameType = [...sameTypeSpells];
         newSameType[newSameType.length - 1] = spellIndex;
         onSpellsChange([...otherTypeSpells, ...newSameType]);
       }
+    }
+  };
+
+  const toggleKnownSpellForRemoval = (spellIndex: string) => {
+    if (spellsToRemove.includes(spellIndex)) {
+      setSpellsToRemove(spellsToRemove.filter(s => s !== spellIndex));
+    } else {
+      setSpellsToRemove([...spellsToRemove, spellIndex]);
     }
   };
 
@@ -178,15 +197,15 @@ export function SpellSelectionDialog({
             {t("spell.select")}
           </DialogTitle>
           <DialogDescription>
-            {maxCantrips > 0 && maxSpells > 0 
+            {maxCantrips > 0 && maxSpells > 0
               ? `Selecione ${maxCantrips} truque(s) e ${maxSpells} magia(s) de nível 1+`
               : maxCantrips > 0
-              ? `Selecione ${maxCantrips} truque(s)`
-              : `Selecione ${maxSpells} magia(s)`
+                ? `Selecione ${maxCantrips} truque(s)`
+                : `Selecione ${maxSpells} magia(s)`
             }. {t("spell.level")} {maxSpellLevel}º.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
           {/* Filtros */}
           <div className="flex gap-4">
@@ -249,19 +268,28 @@ export function SpellSelectionDialog({
             ) : (
               filteredSpells.map((spell) => {
                 const isSelected = selectedSpells.includes(spell.index);
+                const isAlreadyKnown = knownSpells.includes(spell.index);
+                const isMarkedForRemoval = spellsToRemove.includes(spell.index);
                 const detail = spellDetails[spell.index];
                 const isLoading = loadingDetails.includes(spell.index);
 
                 return (
                   <Card
                     key={spell.index}
-                    className={`cursor-pointer transition-colors ${
-                      isSelected
+                    className={`cursor-pointer transition-colors ${isSelected
                         ? "bg-primary/20 border-primary"
-                        : "bg-card/60 border-white/10 hover:border-primary/50"
-                    }`}
+                        : isAlreadyKnown && !isMarkedForRemoval
+                          ? "bg-blue-500/10 border-blue-500/30"
+                          : isMarkedForRemoval
+                            ? "bg-red-500/10 border-red-500/30"
+                            : "bg-card/60 border-white/10 hover:border-primary/50"
+                      }`}
                     onClick={() => {
-                      toggleSpell(spell.index);
+                      if (isAlreadyKnown && allowSwap) {
+                        toggleKnownSpellForRemoval(spell.index);
+                      } else {
+                        toggleSpell(spell.index);
+                      }
                       if (!detail && !isLoading) {
                         loadSpellDetails(spell);
                       }
@@ -285,6 +313,12 @@ export function SpellSelectionDialog({
                             {isSelected && (
                               <Badge className="bg-primary">{t("spell.selected")}</Badge>
                             )}
+                            {isAlreadyKnown && !isMarkedForRemoval && (
+                              <Badge className="bg-blue-500">Conhecida</Badge>
+                            )}
+                            {isMarkedForRemoval && (
+                              <Badge className="bg-red-500">Remover</Badge>
+                            )}
                           </div>
                           {detail && detail.desc && (
                             <p className="text-sm text-muted-foreground line-clamp-2">
@@ -304,6 +338,19 @@ export function SpellSelectionDialog({
                             >
                               <X className="h-4 w-4" />
                             </Button>
+                          ) : isAlreadyKnown && allowSwap ? (
+                            <Button
+                              variant={isMarkedForRemoval ? "destructive" : "outline"}
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleKnownSpellForRemoval(spell.index);
+                              }}
+                            >
+                              {isMarkedForRemoval ? "Cancelar" : "Trocar"}
+                            </Button>
+                          ) : isAlreadyKnown ? (
+                            <Badge variant="outline">Conhecida</Badge>
                           ) : (
                             <Button
                               variant={selectedSpells.length >= maxSpells ? "ghost" : "outline"}
@@ -315,7 +362,7 @@ export function SpellSelectionDialog({
                                   loadSpellDetails(spell);
                                 }
                               }}
-                              disabled={selectedSpells.length >= maxSpells}
+                              disabled={!allowSwap && selectedSpells.length >= maxSpells}
                             >
                               {t("common.select")}
                             </Button>
@@ -341,12 +388,12 @@ export function SpellSelectionDialog({
               (maxSpells > 0 && selectedSpellsLevel1Plus.length < maxSpells)
             }
           >
-            {t("common.confirm")} 
-            {maxCantrips > 0 && maxSpells > 0 
+            {t("common.confirm")}
+            {maxCantrips > 0 && maxSpells > 0
               ? ` (${selectedCantrips.length}/${maxCantrips} truques, ${selectedSpellsLevel1Plus.length}/${maxSpells} magias)`
               : maxCantrips > 0
-              ? ` (${selectedCantrips.length}/${maxCantrips})`
-              : ` (${selectedSpellsLevel1Plus.length}/${maxSpells})`
+                ? ` (${selectedCantrips.length}/${maxCantrips})`
+                : ` (${selectedSpellsLevel1Plus.length}/${maxSpells})`
             }
           </Button>
         </div>

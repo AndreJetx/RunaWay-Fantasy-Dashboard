@@ -14,9 +14,18 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ArrowLeft, Save, RotateCcw, Sparkles, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { SpellSelectionDialog } from "@/components/characters/SpellSelectionDialog";
+import { SubclassSelector } from "@/components/characters/SubclassSelector";
+import { BackgroundSelector } from "@/components/characters/BackgroundSelector";
+import { DragonTypeSelector } from "@/components/characters/DragonTypeSelector";
 import { ShopDialog } from "@/components/characters/ShopDialog";
 import { canCastSpells, getSpellSlots, getSpellcastingLevel, getCantripsCount, getSpellsCount, getSpellType } from "@/lib/spell-slots";
 import { getClassFeatures } from "@/lib/class-features";
+import { getSubclassLevel, needsSubclassSelection } from "@/lib/subclasses";
+import { applySubclassBenefits, applyBackgroundBenefits } from "@/lib/benefit-application";
+import type { Subclass } from "@/lib/subclasses";
+import type { Background } from "@/lib/backgrounds";
+import type { DragonType } from "@/lib/dragon-types";
+
 
 // Atributos D&D 5e
 const ATTRIBUTES = [
@@ -640,7 +649,10 @@ function NewCharacterPageContent() {
   const [availableSpells, setAvailableSpells] = useState<any[]>([]);
   const [showSpellDialog, setShowSpellDialog] = useState(false);
   const [showShopDialog, setShowShopDialog] = useState(false);
-  
+  const [showSubclassSelector, setShowSubclassSelector] = useState(false);
+  const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
+  const [showDragonTypeSelector, setShowDragonTypeSelector] = useState(false);
+
   const [formData, setFormData] = useState({
     // Informações Básicas
     name: "",
@@ -649,6 +661,7 @@ function NewCharacterPageContent() {
     subrace: "",
     characterClass: "",
     subclass: "",
+    dragonType: "", // Para Linhagem Dracônica
     level: 1,
     background: "",
     alignment: "",
@@ -766,7 +779,7 @@ function NewCharacterPageContent() {
               };
               setCampaignData(newCampaignData);
               console.log("✅ campaignData setado:", newCampaignData);
-              
+
               // Aplicar dinheiro inicial se houver
               if (campaign.initialMoney && campaign.initialMoney !== "0") {
                 const initialMoneyValue = calculateInitialMoney(campaign.initialMoney);
@@ -797,9 +810,9 @@ function NewCharacterPageContent() {
           const savedRolls = localStorage.getItem(storageKey);
           // Usar o valor da campanha recém-buscada
           const currentSystem = campaignAttributeSystem;
-          
+
           console.log("🔍 Verificando rolagem salva. Sistema atual:", currentSystem, "campaignAttributeSystem:", campaignAttributeSystem);
-          
+
           if (savedRolls) {
             try {
               const parsed = JSON.parse(savedRolls);
@@ -858,7 +871,7 @@ function NewCharacterPageContent() {
                     wisdom: null,
                     charisma: null,
                   });
-                  
+
                   // Restaurar valores nos atributos se houver atribuições
                   const restoredAttributes: any = {};
                   if (parsed.assignments) {
@@ -867,7 +880,7 @@ function NewCharacterPageContent() {
                         restoredAttributes[key] = value;
                       }
                     });
-                    
+
                     if (Object.keys(restoredAttributes).length > 0) {
                       setFormData(prev => ({
                         ...prev,
@@ -900,16 +913,16 @@ function NewCharacterPageContent() {
             const characters = await charactersRes.json();
             // Verificar por ambos os IDs possíveis
             const campaignCharacters = characters.filter(
-              (char: any) => 
-                char.campaignId === campaignId && 
+              (char: any) =>
+                char.campaignId === campaignId &&
                 (char.playerId === userData.user.id || char.playerId === dbUserId)
             );
-            
+
             // Verificar se há personagem vivo
             const aliveCharacter = campaignCharacters.find(
               (char: any) => (char.currentHp ?? 0) > 0
             );
-            
+
             if (aliveCharacter) {
               setExistingCharacter(aliveCharacter);
             }
@@ -941,20 +954,20 @@ function NewCharacterPageContent() {
   // Recalcular PV e CA quando atributos ou classe mudarem
   useEffect(() => {
     if (!formData.characterClass) return;
-    
+
     const charClass = CHARACTER_CLASSES.find(c => c.name === formData.characterClass);
     if (!charClass) return;
 
     setFormData(prev => {
       const bonuses = charClass.bonuses;
       const conModifier = calculateModifier(prev.attributes.constitution || 0);
-      
+
       // HP base é sempre hitPoints da classe + CON (nível 1)
       const newMaxHp = bonuses.hitPoints + conModifier;
-      
+
       // Atualizar dado de vida baseado na classe
       const hitDiceValue = `1d${bonuses.hitDie}`;
-      
+
       // Calcular CA se tiver defesa sem armadura
       let newArmorClass = prev.armorClass;
       if (bonuses.unarmoredDefense) {
@@ -992,27 +1005,27 @@ function NewCharacterPageContent() {
   // Função para calcular dinheiro de uma fórmula (ex: "100" ou "2d4x10")
   const calculateInitialMoney = (formula: string): number => {
     if (!formula || formula.trim() === "") return 0;
-    
+
     // Se for apenas um número, retornar direto
     const numMatch = formula.match(/^\d+$/);
     if (numMatch) {
       return parseInt(numMatch[0]);
     }
-    
+
     // Tentar parsear fórmulas de dados (ex: "2d4x10", "1d6x100")
     const diceMatch = formula.match(/(\d+)d(\d+)(?:x(\d+))?/i);
     if (diceMatch) {
       const numDice = parseInt(diceMatch[1]);
       const diceSize = parseInt(diceMatch[2]);
       const multiplier = diceMatch[3] ? parseInt(diceMatch[3]) : 1;
-      
+
       let total = 0;
       for (let i = 0; i < numDice; i++) {
         total += Math.floor(Math.random() * diceSize) + 1;
       }
       return total * multiplier;
     }
-    
+
     // Se não conseguir parsear, retornar 0
     console.warn(`Não foi possível parsear fórmula de dinheiro: ${formula}`);
     return 0;
@@ -1056,7 +1069,7 @@ function NewCharacterPageContent() {
 
     setFormData(prev => {
       const bonuses = charClass.bonuses;
-      
+
       // Remover testes de resistência anteriores da classe
       const newSavingThrows = { ...prev.savingThrows };
       previousClassSavingThrows.forEach(attrKey => {
@@ -1136,11 +1149,11 @@ function NewCharacterPageContent() {
     try {
       const spellsRes = await fetch(`https://www.dnd5eapi.co/api/2014/spells`);
       if (!spellsRes.ok) return;
-      
+
       const spellsData = await spellsRes.json();
       const allSpells: any[] = spellsData.results || [];
       const maxSpellLevel = getSpellcastingLevel(className, level);
-      
+
       // Filtrar magias por nível máximo
       const filteredSpells: any[] = [];
       const spellPromises = allSpells.slice(0, 200).map(async (spell: any) => {
@@ -1160,9 +1173,9 @@ function NewCharacterPageContent() {
 
       const results = await Promise.all(spellPromises);
       const validSpells = results.filter((s): s is any => s !== null && s.level !== undefined);
-      
+
       setAvailableSpells(validSpells);
-      
+
       // Resetar seleção quando mudar de classe
       setSelectedSpells([]);
     } catch (error) {
@@ -1192,7 +1205,7 @@ function NewCharacterPageContent() {
           if (baseValue !== null && baseValue !== undefined) {
             newAttributes[attrKey as keyof typeof newAttributes] = baseValue;
           } else {
-            newAttributes[attrKey as keyof typeof newAttributes] = Math.max(0, 
+            newAttributes[attrKey as keyof typeof newAttributes] = Math.max(0,
               (newAttributes[attrKey as keyof typeof newAttributes] || 0) - (previousRaceBonuses[attrKey] || 0)
             );
           }
@@ -1206,8 +1219,8 @@ function NewCharacterPageContent() {
         if (baseBonuses[attrKey]) {
           // Se há um valor atribuído (valor base), usar ele; senão, usar valor atual
           const baseValue = attributeAssignments[attrKey];
-          const currentBase = baseValue !== null && baseValue !== undefined 
-            ? baseValue 
+          const currentBase = baseValue !== null && baseValue !== undefined
+            ? baseValue
             : (newAttributes[attrKey as keyof typeof newAttributes] || 0);
           newAttributes[attrKey as keyof typeof newAttributes] = currentBase + (baseBonuses[attrKey] || 0);
         }
@@ -1223,7 +1236,7 @@ function NewCharacterPageContent() {
             const attrKey = key as keyof RaceBonus;
             if (subraceBonuses[attrKey]) {
               // Usar o valor atual (que já tem bônus da raça base) e somar bônus da sub-raça
-              newAttributes[attrKey as keyof typeof newAttributes] = 
+              newAttributes[attrKey as keyof typeof newAttributes] =
                 (newAttributes[attrKey as keyof typeof newAttributes] || 0) + (subraceBonuses[attrKey] || 0);
             }
           });
@@ -1237,7 +1250,7 @@ function NewCharacterPageContent() {
         attributesToUse.forEach((attrKey) => {
           const key = attrKey as keyof RaceBonus;
           if (key in newAttributes) {
-            newAttributes[key as keyof typeof newAttributes] = 
+            newAttributes[key as keyof typeof newAttributes] =
               (newAttributes[key as keyof typeof newAttributes] || 0) + 1;
           }
         });
@@ -1267,7 +1280,7 @@ function NewCharacterPageContent() {
       if (race.advantages && race.advantages.length > 0) {
         advantagesText += `\n\n=== VANTAGENS RACIAIS (${raceName}) ===\n`;
         advantagesText += race.advantages.join("\n");
-        
+
         // Adicionar informações sobre atributos escolhidos
         if (race.chooseableAttributes && attributesToUse.length > 0) {
           const attributeNames: Record<string, string> = {
@@ -1335,7 +1348,7 @@ function NewCharacterPageContent() {
       const storageKey = `character_rolls_${campaignId}_${userId}`;
       const savedRolls = localStorage.getItem(storageKey);
       const currentSystem = campaignData?.attributeSystem || "fixed";
-      
+
       if (savedRolls) {
         try {
           const parsed = JSON.parse(savedRolls);
@@ -1361,7 +1374,7 @@ function NewCharacterPageContent() {
               wisdom: null,
               charisma: null,
             });
-            
+
             // Restaurar valores nos atributos
             if (parsed.assignments) {
               const restoredAttributes: any = {};
@@ -1370,7 +1383,7 @@ function NewCharacterPageContent() {
                   restoredAttributes[key] = value;
                 }
               });
-              
+
               if (Object.keys(restoredAttributes).length > 0) {
                 setFormData(prev => ({
                   ...prev,
@@ -1385,13 +1398,13 @@ function NewCharacterPageContent() {
                 }));
               }
             }
-            
+
             // Restaurar point buy se aplicável
             if (currentSystem === "point_buy" && parsed.pointBuyAttributes) {
               setPointBuyAttributes(parsed.pointBuyAttributes);
               setPointBuyPointsUsed(parsed.pointBuyPointsUsed || 0);
             }
-            
+
             toast.info("Rolagem anterior restaurada. Você não pode rolar novamente para este personagem.");
             return;
           } else {
@@ -1435,13 +1448,13 @@ function NewCharacterPageContent() {
       }
       return;
     }
-    
+
     const attributeSystem = campaignData.attributeSystem || "fixed";
-    
+
     // Debug: verificar qual sistema está sendo usado
     console.log("🎲 Rolando atributos com sistema:", attributeSystem, "campaignData:", campaignData);
     let rolls: number[] = [];
-    
+
     if (attributeSystem === "fixed") {
       // Valores fixos: 15, 14, 13, 12, 10, 8
       rolls = [15, 14, 13, 12, 10, 8];
@@ -1517,12 +1530,12 @@ function NewCharacterPageContent() {
       }
       return;
     }
-    
+
     // Salvar no localStorage
     if (campaignId && userId) {
       const storageKey = `character_rolls_${campaignId}_${userId}`;
       const attributeSystem = campaignData?.attributeSystem || "fixed";
-      
+
       const saveData: any = {
         attributeSystem,
         assignments: {
@@ -1543,7 +1556,7 @@ function NewCharacterPageContent() {
         },
         timestamp: Date.now(),
       };
-      
+
       if (attributeSystem === "point_buy") {
         saveData.pointBuyAttributes = pointBuyAttributes;
         saveData.pointBuyPointsUsed = pointBuyPointsUsed;
@@ -1557,7 +1570,7 @@ function NewCharacterPageContent() {
           saveData.rollDetails = [];
         }
       }
-      
+
       localStorage.setItem(storageKey, JSON.stringify(saveData));
       toast.success("Rolagem realizada! Os valores foram salvos e não podem ser alterados.");
     }
@@ -1601,7 +1614,7 @@ function NewCharacterPageContent() {
         const raceBonus = previousRaceBonuses[attr.key as keyof RaceBonus] || 0;
         newAttributes[attr.key as keyof typeof newAttributes] = raceBonus; // Manter apenas bônus de raça
       });
-      
+
       return {
         ...prev,
         attributes: newAttributes,
@@ -1629,10 +1642,10 @@ function NewCharacterPageContent() {
     const currentAssignment = Object.entries(assignedRollIndices).find(
       ([_, idx]) => idx === rollIndex
     );
-    
+
     let newAssignments: Record<string, number | null>;
     let newAssignedIndices: Record<string, number | null>;
-    
+
     if (currentAssignment && currentAssignment[0] !== attributeKey) {
       // Remover atribuição anterior
       newAssignments = {
@@ -1655,7 +1668,7 @@ function NewCharacterPageContent() {
         [attributeKey]: rollIndex,
       };
     }
-    
+
     setAttributeAssignments(newAssignments);
     setAssignedRollIndices(newAssignedIndices);
 
@@ -1672,7 +1685,7 @@ function NewCharacterPageContent() {
     const finalValue = value + raceBonus;
     const dexModifier = attributeKey === "dexterity" ? calculateModifier(finalValue) : undefined;
     const conModifier = attributeKey === "constitution" ? calculateModifier(finalValue) : undefined;
-    
+
     setFormData(prev => ({
       ...prev,
       attributes: {
@@ -1705,20 +1718,20 @@ function NewCharacterPageContent() {
       ...attributeAssignments,
       [attributeKey]: null,
     };
-    
+
     const newAssignedIndices = {
       ...assignedRollIndices,
       [attributeKey]: null,
     };
-    
+
     setAttributeAssignments(newAssignments);
     setAssignedRollIndices(newAssignedIndices);
-    
+
     // Resetar para 0 + bônus de raça (se houver)
     const raceBonus = previousRaceBonuses[attributeKey as keyof RaceBonus] || 0;
     const newValue = 0 + raceBonus;
     const conModifier = attributeKey === "constitution" ? calculateModifier(newValue) : undefined;
-    
+
     setFormData(prev => ({
       ...prev,
       attributes: {
@@ -1792,7 +1805,7 @@ function NewCharacterPageContent() {
 
     // Validar atributos baseado no sistema escolhido
     const attributeSystem = campaignData?.attributeSystem || "fixed";
-    
+
     if (attributeSystem === "point_buy") {
       // Validar se usou exatamente 27 pontos
       if (pointBuyPointsUsed !== 27) {
@@ -1837,15 +1850,15 @@ function NewCharacterPageContent() {
       }
       toast.error(errorMessage);
       // Scroll para o primeiro erro (apenas campos obrigatórios, não moedas)
-      const firstErrorField = Object.keys(errors).find(key => 
-        !key.includes('currency') && !key.includes('pp') && !key.includes('gp') && 
+      const firstErrorField = Object.keys(errors).find(key =>
+        !key.includes('currency') && !key.includes('pp') && !key.includes('gp') &&
         !key.includes('ep') && !key.includes('sp') && !key.includes('cp')
       );
       if (firstErrorField) {
         const fieldId = firstErrorField.replace('attribute_', '');
-        const errorElement = document.getElementById(fieldId) || 
-                           document.querySelector(`[name="${fieldId}"]`) ||
-                           document.querySelector(`#${fieldId}`);
+        const errorElement = document.getElementById(fieldId) ||
+          document.querySelector(`[name="${fieldId}"]`) ||
+          document.querySelector(`#${fieldId}`);
         if (errorElement) {
           errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
           // Se for um input, focar nele
@@ -1969,7 +1982,7 @@ function NewCharacterPageContent() {
       if (!Array.isArray(payload.inventory)) {
         payload.inventory = [];
       }
-      
+
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1979,17 +1992,17 @@ function NewCharacterPageContent() {
       if (!res.ok) {
         const error = await res.json();
         console.error("API Error:", error);
-        
+
         // Se o erro for sobre personagem existente, mostrar mensagem específica
         if (error.error && error.error.includes("personagem vivo")) {
           throw new Error(error.error);
         }
-        
+
         throw new Error(error.error || error.message || "Erro ao criar personagem");
       }
 
       const character = await res.json();
-      
+
       // Limpar rolagem salva após criar personagem com sucesso
       if (campaignId && userId) {
         const storageKey = `character_rolls_${campaignId}_${userId}`;
@@ -2182,7 +2195,7 @@ function NewCharacterPageContent() {
                     setFormData(prev => {
                       const newAttributes = { ...prev.attributes };
                       const newSkills = { ...prev.skills };
-                      
+
                       // Remover bônus de atributos anteriores
                       if (Object.keys(previousRaceBonuses).length > 0) {
                         Object.keys(previousRaceBonuses).forEach((key) => {
@@ -2195,7 +2208,7 @@ function NewCharacterPageContent() {
                         });
                         setPreviousRaceBonuses({});
                       }
-                      
+
                       // Remover perícias anteriores (garantidas e escolhidas)
                       [...previousRaceSkills, ...chosenRaceSkills].forEach(skillKey => {
                         delete newSkills[skillKey];
@@ -2203,7 +2216,7 @@ function NewCharacterPageContent() {
                       setPreviousRaceSkills([]);
                       setChosenRaceSkills([]);
                       setChosenRaceAttributes([]);
-                      
+
                       return {
                         ...prev,
                         expansion: e.target.value,
@@ -2265,9 +2278,9 @@ function NewCharacterPageContent() {
               {selectedRace && selectedExpansion && (() => {
                 const expansion = RACE_EXPANSIONS.find(exp => exp.name === selectedExpansion);
                 const race = expansion?.races.find(r => r.name === selectedRace);
-                
+
                 if (!race) return null;
-                
+
                 return (
                   <>
                     {race.subraces && race.subraces.length > 0 && (
@@ -2310,7 +2323,7 @@ function NewCharacterPageContent() {
                             const chosenCount = chosenRaceAttributes.length;
                             const maxChoices = race.chooseableAttributes || 0;
                             const canSelect = !isChosen && chosenCount < maxChoices;
-                            
+
                             return (
                               <button
                                 key={attr.key}
@@ -2318,7 +2331,7 @@ function NewCharacterPageContent() {
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  
+
                                   if (canSelect) {
                                     const newChosen = [...chosenRaceAttributes, attr.key];
                                     setChosenRaceAttributes(newChosen);
@@ -2340,20 +2353,18 @@ function NewCharacterPageContent() {
                                   }
                                 }}
                                 disabled={!canSelect && !isChosen}
-                                className={`flex items-center gap-2 p-2 rounded border transition-colors ${
-                                  isChosen
-                                    ? "bg-primary/20 border-primary cursor-pointer"
-                                    : canSelect
+                                className={`flex items-center gap-2 p-2 rounded border transition-colors ${isChosen
+                                  ? "bg-primary/20 border-primary cursor-pointer"
+                                  : canSelect
                                     ? "bg-card/40 border-border hover:bg-card/60 cursor-pointer"
                                     : "bg-card/20 border-border opacity-50 cursor-not-allowed"
-                                }`}
+                                  }`}
                                 style={{ pointerEvents: (!canSelect && !isChosen) ? 'none' : 'auto' }}
                               >
-                                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                                  isChosen
-                                    ? "bg-primary border-primary"
-                                    : "border-border"
-                                }`}>
+                                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${isChosen
+                                  ? "bg-primary border-primary"
+                                  : "border-border"
+                                  }`}>
                                   {isChosen && (
                                     <span className="text-white text-xs">✓</span>
                                   )}
@@ -2379,7 +2390,7 @@ function NewCharacterPageContent() {
                             const isChosen = chosenRaceSkills.includes(skill.key);
                             const chosenCount = chosenRaceSkills.length;
                             const canSelect = !isGuaranteed && !isChosen && chosenCount < race.chooseableSkills!;
-                            
+
                             return (
                               <button
                                 key={skill.key}
@@ -2408,21 +2419,19 @@ function NewCharacterPageContent() {
                                   }
                                 }}
                                 disabled={!canSelect && !isChosen}
-                                className={`flex items-center gap-2 p-2 rounded border transition-colors ${
-                                  isChosen
-                                    ? "bg-primary/20 border-primary cursor-pointer"
-                                    : isGuaranteed
+                                className={`flex items-center gap-2 p-2 rounded border transition-colors ${isChosen
+                                  ? "bg-primary/20 border-primary cursor-pointer"
+                                  : isGuaranteed
                                     ? "bg-primary/10 border-primary/50 cursor-default"
                                     : canSelect
-                                    ? "bg-card/40 border-border hover:bg-card/60 cursor-pointer"
-                                    : "bg-card/20 border-border opacity-50 cursor-not-allowed"
-                                }`}
+                                      ? "bg-card/40 border-border hover:bg-card/60 cursor-pointer"
+                                      : "bg-card/20 border-border opacity-50 cursor-not-allowed"
+                                  }`}
                               >
-                                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                                  isChosen || isGuaranteed
-                                    ? "bg-primary border-primary"
-                                    : "border-border"
-                                }`}>
+                                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${isChosen || isGuaranteed
+                                  ? "bg-primary border-primary"
+                                  : "border-border"
+                                  }`}>
                                   {(isChosen || isGuaranteed) && (
                                     <span className="text-white text-xs">✓</span>
                                   )}
@@ -2459,7 +2468,15 @@ function NewCharacterPageContent() {
                       delete newErrors.characterClass;
                       return newErrors;
                     });
-                    setFormData(prev => ({ ...prev, characterClass: e.target.value }));
+
+                    // Limpar subclasse e dragonType ao trocar de classe
+                    setFormData(prev => ({
+                      ...prev,
+                      characterClass: e.target.value,
+                      subclass: "", // Limpar subclasse
+                      dragonType: "" // Limpar tipo de dragão
+                    }));
+
                     if (e.target.value) {
                       applyClassBonuses(e.target.value);
                     }
@@ -2474,14 +2491,95 @@ function NewCharacterPageContent() {
                   ))}
                 </select>
               </div>
+
+              {/* Seleção de Subclasse */}
+              {formData.characterClass && (() => {
+                const subclassLevel = getSubclassLevel(formData.characterClass);
+                const needsSubclass = formData.level >= subclassLevel;
+
+                if (!needsSubclass) return null;
+
+                return (
+                  <div>
+                    <Label htmlFor="subclass">
+                      Subclasse {formData.characterClass === 'Bruxo' ? '(Patrono)' : ''}
+                      {needsSubclass && ' *'}
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="subclass"
+                        value={formData.subclass}
+                        readOnly
+                        placeholder={`Selecione ${formData.characterClass === 'Bruxo' ? 'seu patrono' : 'sua subclasse'}...`}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowSubclassSelector(true)}
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Escolher
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Seleção de Tipo de Dragão (Linhagem Dracônica) */}
+              {formData.subclass === "Linhagem Dracônica" && (
+                <div>
+                  <Label htmlFor="dragonType">Dragão Ancestral *</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="dragonType"
+                      value={formData.dragonType}
+                      readOnly
+                      placeholder="Selecione seu dragão ancestral..."
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowDragonTypeSelector(true)}
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Escolher
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Seleção de Antecedente */}
+              <div>
+                <Label htmlFor="background">Antecedente</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="background"
+                    value={formData.background}
+                    readOnly
+                    placeholder="Selecione seu antecedente..."
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowBackgroundSelector(true)}
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Escolher
+                  </Button>
+                </div>
+              </div>
+
               {formData.characterClass && (() => {
                 const charClass = CHARACTER_CLASSES.find(c => c.name === formData.characterClass);
                 if (!charClass || !charClass.bonuses.chooseableSkills || charClass.bonuses.chooseableSkills === 0) return null;
-                
+
                 const skillOptions = charClass.bonuses.skillOptions && charClass.bonuses.skillOptions.length > 0
                   ? charClass.bonuses.skillOptions
                   : SKILLS.map(s => s.key);
-                
+
                 return (
                   <div className="md:col-span-3">
                     <Label>Escolha {charClass.bonuses.chooseableSkills} {charClass.bonuses.chooseableSkills === 1 ? 'perícia' : 'perícias'} da classe:</Label>
@@ -2491,7 +2589,7 @@ function NewCharacterPageContent() {
                         const isChosen = chosenClassSkills.includes(skill.key);
                         const chosenCount = chosenClassSkills.length;
                         const canSelect = !isGuaranteed && !isChosen && chosenCount < charClass.bonuses.chooseableSkills!;
-                        
+
                         return (
                           <button
                             key={skill.key}
@@ -2518,21 +2616,19 @@ function NewCharacterPageContent() {
                               }
                             }}
                             disabled={!canSelect && !isChosen}
-                            className={`flex items-center gap-2 p-2 rounded border transition-colors ${
-                              isChosen
-                                ? "bg-primary/20 border-primary cursor-pointer"
-                                : isGuaranteed
+                            className={`flex items-center gap-2 p-2 rounded border transition-colors ${isChosen
+                              ? "bg-primary/20 border-primary cursor-pointer"
+                              : isGuaranteed
                                 ? "bg-primary/10 border-primary/50 cursor-default"
                                 : canSelect
-                                ? "bg-card/40 border-border hover:bg-card/60 cursor-pointer"
-                                : "bg-card/20 border-border opacity-50 cursor-not-allowed"
-                            }`}
+                                  ? "bg-card/40 border-border hover:bg-card/60 cursor-pointer"
+                                  : "bg-card/20 border-border opacity-50 cursor-not-allowed"
+                              }`}
                           >
-                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                              isChosen || isGuaranteed
-                                ? "bg-primary border-primary"
-                                : "border-border"
-                            }`}>
+                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${isChosen || isGuaranteed
+                              ? "bg-primary border-primary"
+                              : "border-border"
+                              }`}>
                               {(isChosen || isGuaranteed) && (
                                 <span className="text-white text-xs">✓</span>
                               )}
@@ -2555,14 +2651,6 @@ function NewCharacterPageContent() {
                 );
               })()}
               <div>
-                <Label htmlFor="subclass">Subclasse</Label>
-                <Input
-                  id="subclass"
-                  value={formData.subclass}
-                  onChange={(e) => setFormData({ ...formData, subclass: e.target.value })}
-                />
-              </div>
-              <div>
                 <Label htmlFor="level">Nível</Label>
                 <Input
                   id="level"
@@ -2577,14 +2665,6 @@ function NewCharacterPageContent() {
                       proficiencyBonus: Math.ceil((parseInt(e.target.value) || 1) / 4) + 1,
                     })
                   }
-                />
-              </div>
-              <div>
-                <Label htmlFor="background">Antecedente</Label>
-                <Input
-                  id="background"
-                  value={formData.background}
-                  onChange={(e) => setFormData({ ...formData, background: e.target.value })}
                 />
               </div>
               <div>
@@ -2745,11 +2825,10 @@ function NewCharacterPageContent() {
                                     removeAssignment(assignedTo);
                                   }
                                 }}
-                                className={`px-4 py-2 rounded-lg border-2 font-bold text-lg transition-all active:scale-95 ${
-                                  isAssigned
-                                    ? "bg-green-500/20 border-green-500 text-green-400 cursor-pointer"
-                                    : "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 cursor-pointer"
-                                }`}
+                                className={`px-4 py-2 rounded-lg border-2 font-bold text-lg transition-all active:scale-95 ${isAssigned
+                                  ? "bg-green-500/20 border-green-500 text-green-400 cursor-pointer"
+                                  : "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 cursor-pointer"
+                                  }`}
                                 title={isAssigned ? `Atribuído a: ${attrLabel}` : "Clique em um atributo abaixo para atribuir este valor"}
                               >
                                 {value}
@@ -2764,7 +2843,7 @@ function NewCharacterPageContent() {
                               const sortedDice = [...rollDetail.dice].sort((a, b) => b - a);
                               const lowestDice = sortedDice[3];
                               const usedDice = sortedDice.slice(0, 3);
-                              
+
                               return (
                                 <Tooltip key={`roll-${index}`}>
                                   <TooltipTrigger asChild>
@@ -2924,16 +3003,15 @@ function NewCharacterPageContent() {
                           max="30"
                           value={value || 0}
                           placeholder="0"
-                          className={`text-center font-bold text-lg ${
-                            !isDM && hasRolled && assignedValue === null 
-                              ? "cursor-not-allowed" 
-                              : ""
-                          } ${hasError ? "border-red-500 border-2" : ""}`}
+                          className={`text-center font-bold text-lg ${!isDM && hasRolled && assignedValue === null
+                            ? "cursor-not-allowed"
+                            : ""
+                            } ${hasError ? "border-red-500 border-2" : ""}`}
                           onBlur={(e) => {
                             // Validar apenas quando o campo perde o foco
                             const inputValue = e.target.value.trim();
                             const newValue = inputValue === "" ? 0 : parseInt(inputValue) || 0;
-                            
+
                             // Se for jogador e já rolou, validar que o valor está nos valores rolados
                             if (!isDM && hasRolled && rolledValues.length > 0) {
                               // Se resetou para 0, remover atribuição
@@ -2943,7 +3021,7 @@ function NewCharacterPageContent() {
                                 e.target.value = "0";
                                 return;
                               }
-                              
+
                               // Verificar se o valor está nos valores rolados
                               if (!rolledValues.includes(newValue)) {
                                 toast.error(`O valor ${newValue} não foi rolado. Use apenas valores dos dados.`);
@@ -2963,10 +3041,10 @@ function NewCharacterPageContent() {
                                 }, 0);
                                 return;
                               }
-                              
+
                               // Se o atributo já tinha um valor atribuído, liberar o índice anterior primeiro
                               const previousIndex = assignedRollIndices[attr.key];
-                              
+
                               // Encontrar um índice disponível com este valor
                               // Se o atributo já tinha um índice atribuído, considerar esse índice também como disponível
                               const availableIndex = rolledValues.findIndex((v, idx) => {
@@ -2977,7 +3055,7 @@ function NewCharacterPageContent() {
                                 const isIndexAssigned = Object.values(assignedRollIndices).includes(idx);
                                 return !isIndexAssigned;
                               });
-                              
+
                               if (availableIndex === -1) {
                                 toast.error(`Todos os valores ${newValue} já foram atribuídos.`);
                                 // Reverter para o valor anterior (que está no estado)
@@ -2996,12 +3074,12 @@ function NewCharacterPageContent() {
                                 }, 0);
                                 return;
                               }
-                              
+
                               // Se passou todas as validações, atualizar
                               // O valor digitado é o valor base (sem bônus), então precisamos somar os bônus de raça
                               const raceBonus = previousRaceBonuses[attr.key as keyof RaceBonus] || 0;
                               const finalValue = newValue + raceBonus;
-                              
+
                               setFormData(prev => ({
                                 ...prev,
                                 attributes: {
@@ -3013,7 +3091,7 @@ function NewCharacterPageContent() {
                                   initiative: Math.max(0, calculateModifier(finalValue)),
                                 }),
                               }));
-                              
+
                               setAttributeAssignments(prev => ({
                                 ...prev,
                                 [attr.key]: newValue, // Salvar o valor base (sem bônus)
@@ -3022,7 +3100,7 @@ function NewCharacterPageContent() {
                                 ...prev,
                                 [attr.key]: availableIndex,
                               }));
-                              
+
                               // Salvar no localStorage
                               if (campaignId && userId) {
                                 const storageKey = `character_rolls_${campaignId}_${userId}`;
@@ -3047,7 +3125,7 @@ function NewCharacterPageContent() {
                               // O valor digitado é o valor base (sem bônus), então precisamos somar os bônus de raça
                               const raceBonus = previousRaceBonuses[attr.key as keyof RaceBonus] || 0;
                               const finalValue = newValue + raceBonus;
-                              
+
                               setFormData(prev => ({
                                 ...prev,
                                 attributes: {
@@ -3104,7 +3182,7 @@ function NewCharacterPageContent() {
                                   // Verificar se este índice já está atribuído
                                   const isIndexAssigned = Object.values(assignedRollIndices).includes(idx);
                                   if (isIndexAssigned) return null;
-                                  
+
                                   return (
                                     <button
                                       key={`assign-${idx}`}
@@ -3207,119 +3285,119 @@ function NewCharacterPageContent() {
             <CardContent>
               {/* Estatísticas de Combate */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <Label htmlFor="armorClass">Classe de Armadura (CA)</Label>
-                <Input
-                  id="armorClass"
-                  type="number"
-                  value={formData.armorClass}
-                  onChange={(e) =>
-                    setFormData({ ...formData, armorClass: parseInt(e.target.value) || 10 })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="initiative">Iniciativa</Label>
-                <Input
-                  id="initiative"
-                  type="number"
-                  value={formData.initiative}
-                  onChange={(e) =>
-                    setFormData({ ...formData, initiative: parseInt(e.target.value) || 0 })
-                  }
-                  readOnly={!isDM}
-                  className={!isDM ? "bg-muted cursor-not-allowed" : ""}
-                />
-                {!isDM && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Calculado automaticamente pelo modificador de Destreza
-                  </p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="speed">Deslocamento</Label>
-                <Input
-                  id="speed"
-                  type="number"
-                  value={formData.speed}
-                  onChange={(e) =>
-                    setFormData({ ...formData, speed: parseInt(e.target.value) || 30 })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="hitDice">Dados de Vida</Label>
-                <Input
-                  id="hitDice"
-                  value={formData.hitDice}
-                  onChange={(e) => setFormData({ ...formData, hitDice: e.target.value })}
-                  placeholder="1d8"
-                />
-              </div>
-              {/* Testes de Resistência (apenas os da classe) */}
-              {ATTRIBUTES.filter(attr => previousClassSavingThrows.includes(attr.key)).map((attr) => {
-                const modifier = getSavingThrowModifier(attr.key);
-                const baseModifier = calculateModifier(formData.attributes[attr.key as keyof typeof formData.attributes] || 0);
-
-                return (
-                  <div key={attr.key}>
-                    <Label htmlFor={`savingThrow-${attr.key}`}>
-                      Teste de {attr.label} ({attr.abbr})
-                    </Label>
-                    <Input
-                      id={`savingThrow-${attr.key}`}
-                      type="number"
-                      value={modifier}
-                      readOnly
-                      className="bg-muted cursor-not-allowed"
-                    />
+                <div>
+                  <Label htmlFor="armorClass">Classe de Armadura (CA)</Label>
+                  <Input
+                    id="armorClass"
+                    type="number"
+                    value={formData.armorClass}
+                    onChange={(e) =>
+                      setFormData({ ...formData, armorClass: parseInt(e.target.value) || 10 })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="initiative">Iniciativa</Label>
+                  <Input
+                    id="initiative"
+                    type="number"
+                    value={formData.initiative}
+                    onChange={(e) =>
+                      setFormData({ ...formData, initiative: parseInt(e.target.value) || 0 })
+                    }
+                    readOnly={!isDM}
+                    className={!isDM ? "bg-muted cursor-not-allowed" : ""}
+                  />
+                  {!isDM && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      {baseModifier >= 0 ? "+" : ""}{baseModifier} + {formData.proficiencyBonus} prof.
+                      Calculado automaticamente pelo modificador de Destreza
                     </p>
-                  </div>
-                );
-              })}
-              <div>
-                <Label htmlFor="currentHp">PV Atuais</Label>
-                <Input
-                  id="currentHp"
-                  type="number"
-                  value={formData.currentHp}
-                  onChange={(e) =>
-                    setFormData({ ...formData, currentHp: parseInt(e.target.value) || 0 })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="maxHp">PV Máximos</Label>
-                <Input
-                  id="maxHp"
-                  type="number"
-                  value={formData.maxHp}
-                  onChange={(e) => {
-                    const newMaxHp = parseInt(e.target.value) || 10;
-                    setFormData({ 
-                      ...formData, 
-                      maxHp: newMaxHp,
-                      currentHp: Math.max(1, newMaxHp) // Atualizar currentHp para igual ao maxHp ao criar personagem
-                    });
-                  }}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  HP base da classe + modificador de CON (calculado automaticamente)
-                </p>
-              </div>
-              <div>
-                <Label htmlFor="tempHp">PV Temporários</Label>
-                <Input
-                  id="tempHp"
-                  type="number"
-                  value={formData.tempHp}
-                  onChange={(e) =>
-                    setFormData({ ...formData, tempHp: parseInt(e.target.value) || 0 })
-                  }
-                />
-              </div>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="speed">Deslocamento</Label>
+                  <Input
+                    id="speed"
+                    type="number"
+                    value={formData.speed}
+                    onChange={(e) =>
+                      setFormData({ ...formData, speed: parseInt(e.target.value) || 30 })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="hitDice">Dados de Vida</Label>
+                  <Input
+                    id="hitDice"
+                    value={formData.hitDice}
+                    onChange={(e) => setFormData({ ...formData, hitDice: e.target.value })}
+                    placeholder="1d8"
+                  />
+                </div>
+                {/* Testes de Resistência (apenas os da classe) */}
+                {ATTRIBUTES.filter(attr => previousClassSavingThrows.includes(attr.key)).map((attr) => {
+                  const modifier = getSavingThrowModifier(attr.key);
+                  const baseModifier = calculateModifier(formData.attributes[attr.key as keyof typeof formData.attributes] || 0);
+
+                  return (
+                    <div key={attr.key}>
+                      <Label htmlFor={`savingThrow-${attr.key}`}>
+                        Teste de {attr.label} ({attr.abbr})
+                      </Label>
+                      <Input
+                        id={`savingThrow-${attr.key}`}
+                        type="number"
+                        value={modifier}
+                        readOnly
+                        className="bg-muted cursor-not-allowed"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {baseModifier >= 0 ? "+" : ""}{baseModifier} + {formData.proficiencyBonus} prof.
+                      </p>
+                    </div>
+                  );
+                })}
+                <div>
+                  <Label htmlFor="currentHp">PV Atuais</Label>
+                  <Input
+                    id="currentHp"
+                    type="number"
+                    value={formData.currentHp}
+                    onChange={(e) =>
+                      setFormData({ ...formData, currentHp: parseInt(e.target.value) || 0 })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="maxHp">PV Máximos</Label>
+                  <Input
+                    id="maxHp"
+                    type="number"
+                    value={formData.maxHp}
+                    onChange={(e) => {
+                      const newMaxHp = parseInt(e.target.value) || 10;
+                      setFormData({
+                        ...formData,
+                        maxHp: newMaxHp,
+                        currentHp: Math.max(1, newMaxHp) // Atualizar currentHp para igual ao maxHp ao criar personagem
+                      });
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    HP base da classe + modificador de CON (calculado automaticamente)
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="tempHp">PV Temporários</Label>
+                  <Input
+                    id="tempHp"
+                    type="number"
+                    value={formData.tempHp}
+                    onChange={(e) =>
+                      setFormData({ ...formData, tempHp: parseInt(e.target.value) || 0 })
+                    }
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -3411,7 +3489,7 @@ function NewCharacterPageContent() {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Notas de equipamento (texto livre) */}
                 <div>
                   <Label htmlFor="equipment-notes" className="text-sm font-semibold">
@@ -3573,31 +3651,31 @@ function NewCharacterPageContent() {
                   const spellSlots = getSpellSlots(formData.characterClass, formData.level);
                   const maxSpellLevel = getSpellcastingLevel(formData.characterClass, formData.level);
                   const spellType = getSpellType(formData.characterClass);
-                  
+
                   // Calcular quantidade de truques e magias baseado na tabela
                   const cantripsCount = getCantripsCount(formData.characterClass, formData.level);
-                  
+
                   // Calcular modificador de Sabedoria para classes preparadas
-                  const wisModifier = formData.attributes?.wisdom 
+                  const wisModifier = formData.attributes?.wisdom
                     ? Math.floor((formData.attributes.wisdom - 10) / 2)
                     : 0;
-                  
+
                   const spellsCountValue = getSpellsCount(formData.characterClass, formData.level, wisModifier);
-                  const spellsToSelect = typeof spellsCountValue === "number" 
-                    ? spellsCountValue 
+                  const spellsToSelect = typeof spellsCountValue === "number"
+                    ? spellsCountValue
                     : (spellsCountValue === "1 + WIS_mod" ? 1 + wisModifier : 0);
-                  
+
                   // Separar truques de magias de nível 1+
                   const selectedCantrips = selectedSpells.filter(spellIndex => {
                     const spell = availableSpells.find(s => s.index === spellIndex);
                     return spell?.level === 0;
                   });
-                  
+
                   const selectedSpellsLevel1Plus = selectedSpells.filter(spellIndex => {
                     const spell = availableSpells.find(s => s.index === spellIndex);
                     return spell?.level && spell.level > 0;
                   });
-                  
+
                   return (
                     <>
                       {spellSlots && (
@@ -3654,13 +3732,13 @@ function NewCharacterPageContent() {
                                 className="w-full"
                                 disabled={selectedCantrips.length >= cantripsCount}
                               >
-                                {selectedCantrips.length >= cantripsCount 
-                                  ? "Todos os truques selecionados" 
+                                {selectedCantrips.length >= cantripsCount
+                                  ? "Todos os truques selecionados"
                                   : `Selecionar Truques (${selectedCantrips.length}/${cantripsCount})`}
                               </Button>
                             </div>
                           )}
-                          
+
                           {/* Seleção de Magias */}
                           {spellsToSelect > 0 && (
                             <div>
@@ -3698,8 +3776,8 @@ function NewCharacterPageContent() {
                                 className="w-full"
                                 disabled={selectedSpellsLevel1Plus.length >= spellsToSelect}
                               >
-                                {selectedSpellsLevel1Plus.length >= spellsToSelect 
-                                  ? "Todas as magias selecionadas" 
+                                {selectedSpellsLevel1Plus.length >= spellsToSelect
+                                  ? "Todas as magias selecionadas"
                                   : `Selecionar Magias (${selectedSpellsLevel1Plus.length}/${spellsToSelect})`}
                               </Button>
                               {spellType === "prepared" && (
@@ -3763,12 +3841,12 @@ function NewCharacterPageContent() {
               selectedSpells={selectedSpells}
               onSpellsChange={setSelectedSpells}
               maxSpells={(() => {
-                const wisModifier = formData.attributes?.wisdom 
+                const wisModifier = formData.attributes?.wisdom
                   ? Math.floor((formData.attributes.wisdom - 10) / 2)
                   : 0;
                 const spellsCountValue = getSpellsCount(formData.characterClass, formData.level, wisModifier);
-                return typeof spellsCountValue === "number" 
-                  ? spellsCountValue 
+                return typeof spellsCountValue === "number"
+                  ? spellsCountValue
                   : (spellsCountValue === "1 + WIS_mod" ? 1 + wisModifier : 0);
               })()}
               maxCantrips={getCantripsCount(formData.characterClass, formData.level)}
@@ -3789,6 +3867,80 @@ function NewCharacterPageContent() {
           </div>
         </form>
 
+
+        {/* Dialog de Seleção de Subclasse */}
+        {formData.characterClass && (
+          <SubclassSelector
+            open={showSubclassSelector}
+            onOpenChange={setShowSubclassSelector}
+            className={formData.characterClass}
+            characterLevel={formData.level}
+            type={formData.characterClass === 'Bruxo' ? 'patron' : undefined}
+            onSelect={(subclass: Subclass) => {
+              // Aplicar benefícios automaticamente
+              const characterData = {
+                ...formData,
+                subclass: subclass.name,
+              };
+
+              const updatedCharacter = applySubclassBenefits(characterData as any, subclass);
+
+              // Atualizar formData com os benefícios aplicados
+              setFormData({
+                ...formData,
+                subclass: subclass.name,
+                skills: updatedCharacter.skills || formData.skills,
+                proficiencies: updatedCharacter.proficiencies || formData.proficiencies,
+                languages: updatedCharacter.languages || formData.languages,
+              });
+
+              toast.success(`Subclasse "${subclass.name}" selecionada! Benefícios aplicados.`);
+            }}
+          />
+        )}
+
+        {/* Dialog de Seleção de Antecedente */}
+        <BackgroundSelector
+          open={showBackgroundSelector}
+          onOpenChange={setShowBackgroundSelector}
+          onSelect={(background: Background) => {
+            // Aplicar benefícios automaticamente
+            const characterData = {
+              ...formData,
+              background: background.name,
+            };
+
+            const updatedCharacter = applyBackgroundBenefits(characterData as any, background);
+
+            // Atualizar formData com os benefícios aplicados
+            setFormData({
+              ...formData,
+              background: background.name,
+              skills: updatedCharacter.skills || formData.skills,
+              proficiencies: updatedCharacter.proficiencies || formData.proficiencies,
+              languages: updatedCharacter.languages || formData.languages,
+              inventory: (updatedCharacter as any).inventory || formData.inventory,
+            });
+
+            toast.success(`Antecedente "${background.name}" selecionado! Benefícios e equipamentos aplicados.`);
+          }}
+        />
+
+        {/* Dialog de Seleção de Tipo de Dragão */}
+        <DragonTypeSelector
+          open={showDragonTypeSelector}
+          onOpenChange={setShowDragonTypeSelector}
+          onSelect={(dragonType: DragonType) => {
+            // Atualizar formData com o tipo de dragão selecionado
+            setFormData({
+              ...formData,
+              dragonType: dragonType.name,
+            });
+
+            toast.success(`Dragão Ancestral "${dragonType.name}" selecionado! Você ganhará resistência a ${dragonType.damageType} no nível 6.`);
+          }}
+        />
+
         {/* Dialog de Loja */}
         <ShopDialog
           open={showShopDialog}
@@ -3800,7 +3952,7 @@ function NewCharacterPageContent() {
               toast.error("Você não tem dinheiro suficiente!");
               return;
             }
-            
+
             // Adicionar itens ao inventário
             const newInventory = [...formData.inventory];
             items.forEach(purchasedItem => {
@@ -3816,12 +3968,12 @@ function NewCharacterPageContent() {
                 });
               }
             });
-            
+
             // Deduzir dinheiro (sempre em valores inteiros)
             // Converter o total para ouro e depois converter para as moedas corretas
             const totalCostInt = Math.floor(totalCost);
             const remainingGold = Math.max(0, Math.floor(formData.currency.gp || 0) - totalCostInt);
-            
+
             // Garantir que todas as moedas sejam inteiras
             const newCurrency = {
               pp: Math.floor(formData.currency.pp || 0),
@@ -3830,13 +3982,13 @@ function NewCharacterPageContent() {
               sp: Math.floor(formData.currency.sp || 0),
               cp: Math.floor(formData.currency.cp || 0),
             };
-            
+
             setFormData({
               ...formData,
               inventory: newInventory,
               currency: newCurrency,
             });
-            
+
             toast.success(`Compra realizada! ${items.length} item(ns) adicionado(s) ao inventário.`);
           }}
         />

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { getSpellSlots, canCastSpells, getSpellcastingLevel } from "@/lib/spell-slots";
 import { getFeaturesAtLevel } from "@/lib/class-features";
 import { calculateLevel } from "@/lib/xp-levels";
+import { getSpellLearningInfo } from "@/lib/spell-learning-rules";
 import { SpellSelectionDialog } from "@/components/characters/SpellSelectionDialog";
 import { useTranslation } from "@/lib/i18n/context";
 
@@ -46,7 +47,9 @@ export default function LevelUpPage() {
   const [hpGain, setHpGain] = useState(0);
   const [availableSpells, setAvailableSpells] = useState<Spell[]>([]);
   const [selectedSpells, setSelectedSpells] = useState<string[]>([]);
+  const [selectedCantrips, setSelectedCantrips] = useState<string[]>([]);
   const [spellsToSelect, setSpellsToSelect] = useState(0);
+  const [cantripsToSelect, setCantripsToSelect] = useState(0);
   const [showSpellDialog, setShowSpellDialog] = useState(false);
   const [saving, setSaving] = useState(false);
   const { translateSpell } = useTranslation();
@@ -56,7 +59,7 @@ export default function LevelUpPage() {
       setLoading(true);
       const res = await fetch(`/api/characters/${characterId}`);
       if (!res.ok) throw new Error("Failed to fetch character");
-      
+
       const data = await res.json();
       const characterData = data.character || data; // Suporta ambos os formatos
       setCharacter(characterData);
@@ -66,16 +69,16 @@ export default function LevelUpPage() {
       const currentXP = characterData.experiencePoints || 0;
       const currentLevel = characterData.level || 1;
       const calculatedLevel = calculateLevel(currentXP);
-      
+
       // Precisa de level up se: flag está true OU nível calculado > nível atual
       const needsLevelUp = characterData.needsLevelUp || calculatedLevel > currentLevel;
-      
+
       if (!needsLevelUp) {
         toast.info("Este personagem não precisa de level up no momento");
         router.push(`/characters/${characterId}`);
         return;
       }
-      
+
       // Se o flag não estava true mas o XP é suficiente, atualizar o flag
       if (!characterData.needsLevelUp && calculatedLevel > currentLevel) {
         // Atualizar o personagem para marcar que precisa de level up
@@ -94,10 +97,19 @@ export default function LevelUpPage() {
       // Verificar se precisa selecionar magias
       if (canCastSpells(characterData.characterClass)) {
         const newLevel = characterData.level;
-        const features = getFeaturesAtLevel(characterData.characterClass, newLevel);
-        const spellcastingFeature = features.find(f => f.type === "spellcasting");
-        
-        if (spellcastingFeature || newLevel === 1) {
+        const previousLevel = newLevel - 1;
+
+        // Usar a nova biblioteca de regras de aprendizado
+        const learningInfo = getSpellLearningInfo(
+          characterData.characterClass,
+          newLevel,
+          previousLevel
+        );
+
+        setCantripsToSelect(learningInfo.newCantrips);
+        setSpellsToSelect(learningInfo.newSpells);
+
+        if (learningInfo.newSpells > 0 || learningInfo.newCantrips > 0) {
           // Buscar magias disponíveis para a classe
           await fetchAvailableSpells(characterData.characterClass, newLevel);
         }
@@ -119,7 +131,7 @@ export default function LevelUpPage() {
       // Buscar magias da API do D&D 5e filtradas por classe
       const spellsRes = await fetch(`${DND_API_BASE}/api/2014/spells`);
       if (!spellsRes.ok) return;
-      
+
       const spellsData = await spellsRes.json();
       const allSpells: Spell[] = spellsData.results || [];
 
@@ -145,18 +157,8 @@ export default function LevelUpPage() {
 
       const results = await Promise.all(spellPromises);
       const validSpells = results.filter((s): s is Spell & { level: number } => s !== null && s.level !== undefined);
-      
-      setAvailableSpells(validSpells);
 
-      // Determinar quantas magias o personagem pode selecionar
-      // Por enquanto, vamos usar uma lógica simples: 2 magias por nível para classes full caster
-      if (["Bardo", "Clérigo", "Druida", "Feiticeiro", "Mago"].includes(className)) {
-        setSpellsToSelect(level === 1 ? 6 : 2); // Nível 1: 6 magias, outros níveis: 2 magias
-      } else if (["Paladino", "Patrulheiro"].includes(className)) {
-        setSpellsToSelect(level === 2 ? 2 : 1); // Half casters aprendem menos magias
-      } else if (className === "Bruxo") {
-        setSpellsToSelect(level === 1 ? 2 : 1); // Bruxo aprende menos magias
-      }
+      setAvailableSpells(validSpells);
     } catch (error) {
       console.error("Error fetching spells:", error);
     }
@@ -164,7 +166,7 @@ export default function LevelUpPage() {
 
   const rollHitDice = () => {
     if (!character) return;
-    
+
     const hitDiceMatch = character.hitDice?.match(/1d(\d+)/);
     if (!hitDiceMatch) {
       toast.error("Dado de vida inválido");
@@ -183,9 +185,16 @@ export default function LevelUpPage() {
       return;
     }
 
-    if (canCastSpells(character.characterClass) && selectedSpells.length < spellsToSelect) {
-      toast.error(`Selecione ${spellsToSelect} magia(s)`);
-      return;
+    // Validar seleção de magias e truques
+    if (canCastSpells(character.characterClass)) {
+      if (cantripsToSelect > 0 && selectedCantrips.length < cantripsToSelect) {
+        toast.error(`Selecione ${cantripsToSelect} truque(s)`);
+        return;
+      }
+      if (spellsToSelect > 0 && selectedSpells.length < spellsToSelect) {
+        toast.error(`Selecione ${spellsToSelect} magia(s)`);
+        return;
+      }
     }
 
     setSaving(true);
@@ -196,16 +205,18 @@ export default function LevelUpPage() {
       // Preparar dados de spellcasting
       const currentSpellcasting = character.spellcasting || {};
       const knownSpells = currentSpellcasting.knownSpells || [];
-      const newKnownSpells = [...knownSpells, ...selectedSpells];
+
+      // Adicionar novas magias e truques às conhecidas
+      const newKnownSpells = [...knownSpells, ...selectedSpells, ...selectedCantrips];
 
       // Calcular slots de magia
       const spellSlots = getSpellSlots(character.characterClass, character.level);
-      
+
       // Obter features do novo nível
       const features = getFeaturesAtLevel(character.characterClass, character.level);
       const currentFeatures = character.features || {};
       const newFeatures = { ...currentFeatures };
-      
+
       features.forEach(feature => {
         if (!newFeatures[feature.level]) {
           newFeatures[feature.level] = [];
@@ -377,26 +388,41 @@ export default function LevelUpPage() {
         )}
 
         {/* Seleção de Magias */}
-        {canCastSpells(character.characterClass) && spellsToSelect > 0 && (
+        {canCastSpells(character.characterClass) && (spellsToSelect > 0 || cantripsToSelect > 0) && (
           <Card className="bg-card/60 border-white/10">
             <CardHeader>
               <CardTitle>Selecionar Magias</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Selecione {spellsToSelect} magia(s) para aprender neste nível
+                {cantripsToSelect > 0 && spellsToSelect > 0
+                  ? `Selecione ${cantripsToSelect} truque(s) e ${spellsToSelect} magia(s) para aprender neste nível`
+                  : cantripsToSelect > 0
+                    ? `Selecione ${cantripsToSelect} truque(s) para aprender neste nível`
+                    : `Selecione ${spellsToSelect} magia(s) para aprender neste nível`
+                }
               </p>
-              {selectedSpells.length > 0 && (
+              {(selectedSpells.length > 0 || selectedCantrips.length > 0) && (
                 <div className="space-y-2">
-                  <Label>Magias Selecionadas ({selectedSpells.length}/{spellsToSelect})</Label>
+                  <Label>
+                    Selecionadas ({selectedSpells.length + selectedCantrips.length}/{spellsToSelect + cantripsToSelect})
+                  </Label>
                   <div className="flex flex-wrap gap-2">
-                    {selectedSpells.map((spellIndex) => {
+                    {[...selectedCantrips, ...selectedSpells].map((spellIndex) => {
                       const spell = availableSpells.find(s => s.index === spellIndex);
+                      const isCantrip = spell?.level === 0;
                       return (
                         <Badge key={spellIndex} variant="outline" className="p-2">
                           {spell ? translateSpell(spell.name) : spellIndex}
+                          {isCantrip && " (Truque)"}
                           <button
-                            onClick={() => setSelectedSpells(prev => prev.filter(s => s !== spellIndex))}
+                            onClick={() => {
+                              if (isCantrip) {
+                                setSelectedCantrips(prev => prev.filter(s => s !== spellIndex));
+                              } else {
+                                setSelectedSpells(prev => prev.filter(s => s !== spellIndex));
+                              }
+                            }}
                             className="ml-2 text-red-400 hover:text-red-300"
                           >
                             ×
@@ -411,11 +437,11 @@ export default function LevelUpPage() {
                 onClick={() => setShowSpellDialog(true)}
                 variant="outline"
                 className="w-full"
-                disabled={selectedSpells.length >= spellsToSelect}
+                disabled={(selectedSpells.length >= spellsToSelect && selectedCantrips.length >= cantripsToSelect)}
               >
-                {selectedSpells.length >= spellsToSelect 
-                  ? "Todas as magias selecionadas" 
-                  : `Selecionar Magias (${selectedSpells.length}/${spellsToSelect})`}
+                {(selectedSpells.length >= spellsToSelect && selectedCantrips.length >= cantripsToSelect)
+                  ? "Todas as magias selecionadas"
+                  : `Selecionar Magias (${selectedSpells.length + selectedCantrips.length}/${spellsToSelect + cantripsToSelect})`}
               </Button>
             </CardContent>
           </Card>
@@ -426,7 +452,7 @@ export default function LevelUpPage() {
           <CardContent className="pt-6">
             <Button
               onClick={handleCompleteLevelUp}
-              disabled={!hitDiceRoll || saving || (canCastSpells(character.characterClass) && selectedSpells.length < spellsToSelect)}
+              disabled={!hitDiceRoll || saving || (canCastSpells(character.characterClass) && (selectedSpells.length < spellsToSelect || selectedCantrips.length < cantripsToSelect))}
               className="w-full"
               size="lg"
             >
@@ -451,11 +477,26 @@ export default function LevelUpPage() {
             open={showSpellDialog}
             onOpenChange={setShowSpellDialog}
             availableSpells={availableSpells}
-            selectedSpells={selectedSpells}
-            onSpellsChange={setSelectedSpells}
+            selectedSpells={[...selectedCantrips, ...selectedSpells]}
+            onSpellsChange={(spells) => {
+              // Separar truques de magias
+              const cantrips = spells.filter(idx => {
+                const spell = availableSpells.find(s => s.index === idx);
+                return spell?.level === 0;
+              });
+              const regularSpells = spells.filter(idx => {
+                const spell = availableSpells.find(s => s.index === idx);
+                return spell?.level !== undefined && spell.level > 0;
+              });
+              setSelectedCantrips(cantrips);
+              setSelectedSpells(regularSpells);
+            }}
             maxSpells={spellsToSelect}
+            maxCantrips={cantripsToSelect}
             characterClass={character.characterClass}
             characterLevel={character.level}
+            knownSpells={character.spellcasting?.knownSpells || []}
+            allowSwap={false}
           />
         )}
       </div>
