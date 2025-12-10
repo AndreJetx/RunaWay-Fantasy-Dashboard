@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 interface Campaign {
@@ -34,7 +34,7 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isDM, setIsDM] = useState(false);
 
-  const fetchCampaigns = async () => {
+  const fetchCampaigns = useCallback(async () => {
     try {
       const res = await fetch("/api/campaigns/my-campaigns");
       if (res.ok) {
@@ -65,11 +65,11 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeCampaign]);
 
   useEffect(() => {
     fetchCampaigns();
-  }, []);
+  }, [fetchCampaigns]);
 
   const handleSetActiveCampaign = (campaign: Campaign | null) => {
     setActiveCampaign(campaign);

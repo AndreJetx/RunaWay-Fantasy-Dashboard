@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,11 +129,7 @@ export default function CampaignDetailsPage() {
   const [savingTotalChapters, setSavingTotalChapters] = useState(false);
   const [deletingCampaign, setDeletingCampaign] = useState(false);
 
-  useEffect(() => {
-    fetchCampaignData();
-  }, [campaignId]);
-
-  const fetchCampaignData = async () => {
+  const fetchCampaignData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -177,7 +173,11 @@ export default function CampaignDetailsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId, router]);
+
+  useEffect(() => {
+    fetchCampaignData();
+  }, [fetchCampaignData]);
 
   const handleChapterComplete = async (chapterId: string, isCompleted: boolean) => {
     if (isCompleted && isDM) {

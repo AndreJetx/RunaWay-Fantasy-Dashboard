@@ -63,7 +63,7 @@ export default function Notes() {
     };
 
     fetchNotes();
-  }, [activeCampaign, t]);
+  }, [activeCampaign, t, activeNote]);
 
   const filteredNotes = notes.filter(
     (note) =>

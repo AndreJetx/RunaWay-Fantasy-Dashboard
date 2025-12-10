@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card } from "@/components/ui/card";
@@ -91,11 +91,7 @@ export default function NPCsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
-  useEffect(() => {
-    fetchNPCs();
-  }, [campaignId]);
-
-  const fetchNPCs = async () => {
+  const fetchNPCs = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/campaigns/${campaignId}/npcs`);
@@ -112,7 +108,11 @@ export default function NPCsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId]);
+
+  useEffect(() => {
+    fetchNPCs();
+  }, [fetchNPCs]);
 
   const filteredNpcs = npcs.filter((npc) =>
     npc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
