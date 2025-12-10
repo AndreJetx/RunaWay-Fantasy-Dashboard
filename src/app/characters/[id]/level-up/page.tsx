@@ -15,6 +15,12 @@ import { getFeaturesAtLevel } from "@/lib/class-features";
 import { calculateLevel } from "@/lib/xp-levels";
 import { getSpellLearningInfo } from "@/lib/spell-learning-rules";
 import { SpellSelectionDialog } from "@/components/characters/SpellSelectionDialog";
+import { SubclassSelector } from "@/components/characters/SubclassSelector";
+import { DragonTypeSelector } from "@/components/characters/DragonTypeSelector";
+import { getSubclassLevel, needsSubclassSelection } from "@/lib/subclasses";
+import { applySubclassBenefits } from "@/lib/benefit-application";
+import type { Subclass } from "@/lib/subclasses";
+import type { DragonType } from "@/lib/dragon-types";
 import { useTranslation } from "@/lib/i18n/context";
 
 const DND_API_BASE = "https://www.dnd5eapi.co";
@@ -51,6 +57,12 @@ export default function LevelUpPage() {
   const [spellsToSelect, setSpellsToSelect] = useState(0);
   const [cantripsToSelect, setCantripsToSelect] = useState(0);
   const [showSpellDialog, setShowSpellDialog] = useState(false);
+  const [showSubclassSelector, setShowSubclassSelector] = useState(false);
+  const [showDragonTypeSelector, setShowDragonTypeSelector] = useState(false);
+  const [pendingSubclass, setPendingSubclass] = useState<Subclass | null>(null);
+  const [pendingDragonType, setPendingDragonType] = useState<DragonType | null>(null);
+  const [showPactSelector, setShowPactSelector] = useState(false);
+  const [pendingPact, setPendingPact] = useState<Subclass | null>(null);
   const [saving, setSaving] = useState(false);
   const { translateSpell } = useTranslation();
 
@@ -94,15 +106,17 @@ export default function LevelUpPage() {
       const conMod = Math.floor((con - 10) / 2);
       setConModifier(conMod);
 
+      // Definir o nível alvo como o próximo nível
+      const targetLevel = currentLevel + 1;
+
       // Verificar se precisa selecionar magias
       if (canCastSpells(characterData.characterClass)) {
-        const newLevel = characterData.level;
-        const previousLevel = newLevel - 1;
+        const previousLevel = currentLevel;
 
         // Usar a nova biblioteca de regras de aprendizado
         const learningInfo = getSpellLearningInfo(
           characterData.characterClass,
-          newLevel,
+          targetLevel,
           previousLevel
         );
 
@@ -111,7 +125,7 @@ export default function LevelUpPage() {
 
         if (learningInfo.newSpells > 0 || learningInfo.newCantrips > 0) {
           // Buscar magias disponíveis para a classe
-          await fetchAvailableSpells(characterData.characterClass, newLevel);
+          await fetchAvailableSpells(characterData.characterClass, targetLevel);
         }
       }
     } catch (error: any) {
@@ -197,6 +211,29 @@ export default function LevelUpPage() {
       }
     }
 
+    // Validar seleção de subclasse
+    const targetLevel = character.level + 1;
+    const subclassLevel = getSubclassLevel(character.characterClass);
+    const needsSubclass = !character.subclass && targetLevel >= subclassLevel;
+    if (needsSubclass && !pendingSubclass) {
+      toast.error(`Selecione sua ${character.characterClass === 'Bruxo' ? 'Patrono' : 'Subclasse'}`);
+      return;
+    }
+
+    // Validar seleção de dragão
+    const isDraconic = (character.subclass === "Linhagem Dracônica" || pendingSubclass?.name === "Linhagem Dracônica");
+    if (isDraconic && !character.dragonType && !pendingDragonType) {
+      toast.error("Selecione seu Dragão Ancestral");
+      return;
+    }
+
+    // Validar seleção de pacto
+    const needsPact = character.characterClass === 'Bruxo' && targetLevel >= 3 && !character.pact && !pendingPact;
+    if (needsPact) {
+      toast.error("Selecione seu Pacto");
+      return;
+    }
+
     setSaving(true);
     try {
       const newMaxHp = (character.maxHp || 0) + hpGain;
@@ -210,13 +247,14 @@ export default function LevelUpPage() {
       const newKnownSpells = [...knownSpells, ...selectedSpells, ...selectedCantrips];
 
       // Calcular slots de magia
-      const spellSlots = getSpellSlots(character.characterClass, character.level);
+      const spellSlots = getSpellSlots(character.characterClass, targetLevel);
 
       // Obter features do novo nível
-      const features = getFeaturesAtLevel(character.characterClass, character.level);
+      const features = getFeaturesAtLevel(character.characterClass, targetLevel);
       const currentFeatures = character.features || {};
       const newFeatures = { ...currentFeatures };
 
+      // Adicionar features de classe ao nível
       features.forEach(feature => {
         if (!newFeatures[feature.level]) {
           newFeatures[feature.level] = [];
@@ -228,27 +266,120 @@ export default function LevelUpPage() {
         });
       });
 
+      // Verificar se ainda precisa de level up após este
+      const currentXP = character.experiencePoints || 0;
+      const calculatedLevel = calculateLevel(currentXP);
+      const stillNeedsLevelUp = calculatedLevel > targetLevel;
+
+      // Preparar objeto base para atualização
+      let updateBody: any = {
+        level: targetLevel, // Atualizar para o novo nível
+        maxHp: newMaxHp,
+        currentHp: newCurrentHp,
+        needsLevelUp: stillNeedsLevelUp, // Manter true se ainda tiver níveis a subir
+        pendingHitDiceRoll: null,
+        spellcasting: {
+          ...currentSpellcasting,
+          knownSpells: newKnownSpells,
+          spellSlots: spellSlots,
+        },
+        features: newFeatures,
+      };
+
+      // Aplicar Subclasse
+      if (pendingSubclass) {
+        updateBody.subclass = pendingSubclass.name;
+
+        // Aplicar benefícios da subclasse para obter skills, proficiências, etc.
+        // Criamos um clone do personagem para aplicar os benefícios
+        let tempChar = { ...character, subclass: pendingSubclass.name };
+        tempChar = applySubclassBenefits(tempChar, pendingSubclass);
+
+        // Atualizar campos no body
+        if (tempChar.skills) updateBody.skills = tempChar.skills;
+        if (tempChar.proficiencies) updateBody.proficiencies = tempChar.proficiencies;
+        if (tempChar.languages) updateBody.languages = tempChar.languages;
+        if (tempChar.resistances) updateBody.resistances = tempChar.resistances;
+
+        // Adicionar features da subclasse ao newFeatures
+        // Filtrar features até o nível alvo
+        const subclassFeatures = pendingSubclass.benefits
+          .filter(b => b.level <= targetLevel && b.type === 'feature');
+
+        subclassFeatures.forEach(b => {
+          if (!newFeatures[character.level]) {
+            newFeatures[character.level] = [];
+          }
+          // Evitar duplicatas
+          const featureName = typeof b.value === 'string' ? b.value : b.value[0];
+          // Verificar se já existe (simplificado)
+          const exists = newFeatures[character.level].some((f: any) => f.name === featureName);
+
+          if (!exists) {
+            newFeatures[character.level].push({
+              name: featureName,
+              description: b.description || `Habilidade de ${pendingSubclass.name}`,
+              type: 'Subclasse'
+            });
+          }
+        });
+      }
+
+      // Aplicar Dragão
+      if (pendingDragonType) {
+        updateBody.dragonType = pendingDragonType.name;
+      }
+
+      // Aplicar Pacto
+      if (pendingPact) {
+        updateBody.pact = pendingPact.name;
+
+        // Aplicar benefícios do pacto
+        let tempChar = { ...character, pact: pendingPact.name };
+        tempChar = applySubclassBenefits(tempChar, pendingPact);
+
+        // Atualizar campos no body (similar à subclasse)
+        if (tempChar.skills) updateBody.skills = tempChar.skills;
+        if (tempChar.proficiencies) updateBody.proficiencies = tempChar.proficiencies;
+        if (tempChar.languages) updateBody.languages = tempChar.languages;
+
+        // Adicionar features do pacto
+        const pactFeatures = pendingPact.benefits
+          .filter(b => b.level <= character.level && b.type === 'feature');
+
+        pactFeatures.forEach(b => {
+          if (!newFeatures[character.level]) {
+            newFeatures[character.level] = [];
+          }
+          const featureName = typeof b.value === 'string' ? b.value : b.value[0];
+          const exists = newFeatures[character.level].some((f: any) => f.name === featureName);
+
+          if (!exists) {
+            newFeatures[character.level].push({
+              name: featureName,
+              description: b.description || `Pacto: ${pendingPact.name}`,
+              type: 'Subclasse' // Pacto é tecnicamente uma feature de subclasse/classe
+            });
+          }
+        });
+      }
+
       const res = await fetch(`/api/characters/${characterId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          maxHp: newMaxHp,
-          currentHp: newCurrentHp,
-          needsLevelUp: false,
-          pendingHitDiceRoll: null,
-          spellcasting: {
-            ...currentSpellcasting,
-            knownSpells: newKnownSpells,
-            spellSlots: spellSlots,
-          },
-          features: newFeatures,
-        }),
+        body: JSON.stringify(updateBody),
       });
 
       if (!res.ok) throw new Error("Failed to complete level up");
 
       toast.success("Level up concluído com sucesso!");
-      router.push(`/characters/${characterId}`);
+
+      if (stillNeedsLevelUp) {
+        toast.info("Você ainda tem níveis a subir! Recarregando...");
+        window.location.reload(); // Recarregar para processar o próximo nível
+      } else {
+        router.push(`/characters/${characterId}`);
+      }
     } catch (error: any) {
       console.error("Error completing level up:", error);
       toast.error("Erro ao concluir level up");
@@ -278,8 +409,16 @@ export default function LevelUpPage() {
     );
   }
 
-  const spellSlots = getSpellSlots(character.characterClass, character.level);
-  const features = getFeaturesAtLevel(character.characterClass, character.level);
+  const spellSlots = character ? getSpellSlots(character.characterClass, character.level + 1) : null;
+  const features = character ? getFeaturesAtLevel(character.characterClass, character.level + 1) : [];
+
+  // Lógica de Subclasse
+  const targetLevel = character ? character.level + 1 : 1;
+  const subclassLevel = character ? getSubclassLevel(character.characterClass) : 99;
+  const needsSubclass = character && !character.subclass && !pendingSubclass && targetLevel >= subclassLevel;
+  const isDraconic = character && (character.subclass === "Linhagem Dracônica" || pendingSubclass?.name === "Linhagem Dracônica");
+  const needsDragonType = isDraconic && !character.dragonType && !pendingDragonType;
+  const needsPact = character && character.characterClass === 'Bruxo' && targetLevel >= 3 && !character.pact && !pendingPact;
 
   return (
     <FantasyLayout>
@@ -289,9 +428,140 @@ export default function LevelUpPage() {
             Level Up: {character.name}
           </h1>
           <p className="text-muted-foreground mt-2">
-            Nível {character.level - 1} → Nível {character.level}
+            Nível {character.level} → Nível {character.level + 1}
           </p>
         </div>
+
+        {/* Seleção de Subclasse */}
+        {needsSubclass && (
+          <Card className="bg-card/60 border-white/10 border-l-4 border-l-purple-500">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-400" />
+                Escolha sua Subclasse
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-muted-foreground">
+                Você alcançou o nível {subclassLevel} e agora pode escolher uma especialização para sua classe!
+              </p>
+              <Button
+                onClick={() => setShowSubclassSelector(true)}
+                className="w-full bg-purple-600 hover:bg-purple-700"
+              >
+                Escolher {character.characterClass === 'Bruxo' ? 'Patrono' : 'Subclasse'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Subclasse Selecionada (Pendente) */}
+        {pendingSubclass && (
+          <Card className="bg-card/60 border-white/10 border-l-4 border-l-green-500">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-400" />
+                Subclasse Selecionada
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-bold">{pendingSubclass.name}</h3>
+                  <p className="text-sm text-muted-foreground">{pendingSubclass.description}</p>
+                </div>
+                <Button variant="outline" onClick={() => setShowSubclassSelector(true)}>
+                  Alterar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Seleção de Dragão (Se necessário) */}
+        {isDraconic && !character.dragonType && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${pendingDragonType ? 'border-l-green-500' : 'border-l-red-500'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-red-400" />
+                {pendingDragonType ? 'Dragão Ancestral Selecionado' : 'Escolha seu Dragão Ancestral'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {pendingDragonType ? (
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-bold text-red-400">{pendingDragonType.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Dano: {pendingDragonType.damageType} | Sopro: {pendingDragonType.breathWeapon}
+                    </p>
+                  </div>
+                  <Button variant="outline" onClick={() => setShowDragonTypeSelector(true)}>
+                    Alterar
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-4 text-muted-foreground">
+                    Como um Feiticeiro de Linhagem Dracônica, você deve escolher a cor do seu ancestral dragão.
+                  </p>
+                  <Button
+                    onClick={() => setShowDragonTypeSelector(true)}
+                    className="w-full bg-red-600 hover:bg-red-700"
+                  >
+                    Escolher Dragão Ancestral
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Seleção de Pacto (Bruxo Nível 3+) */}
+        {needsPact && (
+          <Card className="bg-card/60 border-white/10 border-l-4 border-l-blue-500">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-400" />
+                Escolha seu Pacto
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-muted-foreground">
+                No 3º nível, seu Patrono lhe concede um presente pelos seus serviços leais.
+              </p>
+              <Button
+                onClick={() => setShowPactSelector(true)}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                Escolher Pacto
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Pacto Selecionado (Pendente) */}
+        {pendingPact && (
+          <Card className="bg-card/60 border-white/10 border-l-4 border-l-green-500">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-400" />
+                Pacto Selecionado
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-bold">{pendingPact.name}</h3>
+                  <p className="text-sm text-muted-foreground">{pendingPact.description}</p>
+                </div>
+                <Button variant="outline" onClick={() => setShowPactSelector(true)}>
+                  Alterar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Rolagem de Dado de Vida */}
         <Card className="bg-card/60 border-white/10">
@@ -452,7 +722,14 @@ export default function LevelUpPage() {
           <CardContent className="pt-6">
             <Button
               onClick={handleCompleteLevelUp}
-              disabled={!hitDiceRoll || saving || (canCastSpells(character.characterClass) && (selectedSpells.length < spellsToSelect || selectedCantrips.length < cantripsToSelect))}
+              disabled={
+                !hitDiceRoll ||
+                saving ||
+                (canCastSpells(character.characterClass) && (selectedSpells.length < spellsToSelect || selectedCantrips.length < cantripsToSelect)) ||
+                (needsSubclass && !pendingSubclass) ||
+                (needsDragonType && !pendingDragonType) ||
+                (needsPact && !pendingPact)
+              }
               className="w-full"
               size="lg"
             >
@@ -499,6 +776,44 @@ export default function LevelUpPage() {
             allowSwap={false}
           />
         )}
+
+        {/* Dialog de Seleção de Subclasse */}
+        <SubclassSelector
+          open={showSubclassSelector}
+          onOpenChange={setShowSubclassSelector}
+          className={character.characterClass}
+          characterLevel={targetLevel}
+          currentSubclass={character.subclass || pendingSubclass?.name}
+          type={character.characterClass === 'Bruxo' ? 'patron' : undefined}
+          onSelect={(subclass) => {
+            setPendingSubclass(subclass);
+            toast.success(`${character.characterClass === 'Bruxo' ? 'Patrono' : 'Subclasse'} "${subclass.name}" selecionada!`);
+          }}
+        />
+
+        {/* Dialog de Seleção de Dragão */}
+        <DragonTypeSelector
+          open={showDragonTypeSelector}
+          onOpenChange={setShowDragonTypeSelector}
+          onSelect={(dragonType) => {
+            setPendingDragonType(dragonType);
+            toast.success(`Dragão Ancestral "${dragonType.name}" selecionado!`);
+          }}
+        />
+
+        {/* Dialog de Seleção de Pacto */}
+        <SubclassSelector
+          open={showPactSelector}
+          onOpenChange={setShowPactSelector}
+          className={character.characterClass}
+          characterLevel={targetLevel}
+          currentSubclass={character.pact || pendingPact?.name}
+          type="pact"
+          onSelect={(pact) => {
+            setPendingPact(pact);
+            toast.success(`Pacto "${pact.name}" selecionado!`);
+          }}
+        />
       </div>
     </FantasyLayout>
   );

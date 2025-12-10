@@ -89,8 +89,8 @@ export function needsSubclassSelection(
     if (className === 'Bruxo') {
         // Nível 1: precisa de Patrono
         if (level === 1 && !currentSubclass) return true;
-        // Nível 3: precisa de Pacto
-        if (level === 3 && !currentPact) return true;
+        // Nível 3+: precisa de Pacto
+        if (level >= 3 && !currentPact) return true;
         return false;
     }
 

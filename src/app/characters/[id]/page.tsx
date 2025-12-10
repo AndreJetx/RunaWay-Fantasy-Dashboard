@@ -9,14 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  ArrowLeft, 
-  Save, 
-  Heart, 
-  Shield, 
-  Zap, 
-  Move, 
-  Star, 
+import {
+  ArrowLeft,
+  Save,
+  Heart,
+  Shield,
+  Zap,
+  Move,
+  Star,
   Award,
   Settings,
   Target,
@@ -99,7 +99,7 @@ export default function CharacterPage() {
     try {
       setLoadingSpells(true);
       const details: Record<string, any> = {};
-      
+
       await Promise.all(
         spellIndexes.map(async (spellIndex) => {
           try {
@@ -115,7 +115,7 @@ export default function CharacterPage() {
           }
         })
       );
-      
+
       setSpellDetails(details);
     } catch (error) {
       console.error("Error loading spell details:", error);
@@ -126,46 +126,46 @@ export default function CharacterPage() {
 
   const addSpellToCharacter = async (spellIndex: string) => {
     if (!character) return;
-    
+
     try {
       setSaving(true);
-      
+
       // Verificar se a magia existe na API
       const spellRes = await fetch(`https://www.dnd5eapi.co/api/2014/spells/${spellIndex}`);
       if (!spellRes.ok) {
         toast.error(`Magia "${spellIndex}" não encontrada na API D&D 5e`);
         return;
       }
-      
+
       const currentSpellcasting = character.spellcasting || {};
       const knownSpells = currentSpellcasting.knownSpells || [];
-      
+
       // Verificar se já conhece a magia
       if (knownSpells.includes(spellIndex)) {
         toast.info("Você já conhece esta magia");
         return;
       }
-      
+
       // Adicionar magia
       const updatedSpellcasting = {
         ...currentSpellcasting,
         knownSpells: [...knownSpells, spellIndex],
       };
-      
+
       const res = await fetch(`/api/characters/${characterId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ spellcasting: updatedSpellcasting }),
       });
-      
+
       if (!res.ok) throw new Error("Erro ao adicionar magia");
-      
+
       const data = await res.json();
       setCharacter(data.character);
-      
+
       // Recarregar detalhes das magias
       await loadSpellDetails(updatedSpellcasting.knownSpells);
-      
+
       toast.success("Magia adicionada com sucesso!");
     } catch (error: any) {
       console.error("Error adding spell:", error);
@@ -179,7 +179,7 @@ export default function CharacterPage() {
     try {
       setLoading(true);
       const res = await fetch(`/api/characters/${characterId}`);
-      
+
       if (!res.ok) {
         if (res.status === 404) {
           toast.error("Personagem não encontrado");
@@ -322,7 +322,10 @@ export default function CharacterPage() {
               {character.name || "Personagem Sem Nome"}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {character.race || "Desconhecido"} • {character.characterClass || "Sem Classe"} • Nível {character.level || 1}
+              {character.race || "Desconhecido"} • {character.characterClass || "Sem Classe"}
+              {character.subclass && ` • ${character.subclass}`}
+              {character.pact && ` • ${character.pact}`}
+              • Nível {character.level || 1}
             </p>
           </div>
           {canEdit && (
@@ -398,8 +401,8 @@ export default function CharacterPage() {
                 <Label className="text-sm text-muted-foreground">Iniciativa</Label>
               </div>
               <div className="text-2xl font-bold">
-                {character.initiative !== undefined && character.initiative !== null 
-                  ? (character.initiative >= 0 ? "+" : "") + character.initiative 
+                {character.initiative !== undefined && character.initiative !== null
+                  ? (character.initiative >= 0 ? "+" : "") + character.initiative
                   : "0"}
               </div>
             </CardContent>
@@ -479,7 +482,7 @@ export default function CharacterPage() {
                     const value = attributes[attr.key] || 10;
                     const modifier = calculateModifier(value);
                     const IconComponent = attr.Icon;
-                    
+
                     return (
                       <Card key={attr.key} className="bg-card/40 border-border">
                         <CardContent className="p-4 text-center">
@@ -577,7 +580,7 @@ export default function CharacterPage() {
                 {getClassSavingThrows().map((attrKey) => {
                   const attr = ATTRIBUTES.find(a => a.key === attrKey);
                   if (!attr) return null;
-                  
+
                   const modifier = getSavingThrowModifier(attrKey);
                   const baseModifier = calculateModifier(attributes[attrKey as keyof typeof attributes] || 0);
                   const proficiencyBonus = character.proficiencyBonus || 2;
@@ -716,13 +719,13 @@ export default function CharacterPage() {
                         {character.spellcasting.knownSpells
                           .filter((spellIndex: string) => !spellDetails[spellIndex])
                           .length > 0 && (
-                          <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded">
-                            <p className="text-sm text-yellow-400">
-                              Carregando detalhes de {character.spellcasting.knownSpells.filter((spellIndex: string) => !spellDetails[spellIndex]).length} magia(s)...
-                            </p>
-                          </div>
-                        )}
-                        
+                            <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded">
+                              <p className="text-sm text-yellow-400">
+                                Carregando detalhes de {character.spellcasting.knownSpells.filter((spellIndex: string) => !spellDetails[spellIndex]).length} magia(s)...
+                              </p>
+                            </div>
+                          )}
+
                         {/* Agrupar por nível */}
                         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((level) => {
                           const spellsAtLevel = character.spellcasting.knownSpells
