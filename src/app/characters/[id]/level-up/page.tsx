@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,11 +51,7 @@ export default function LevelUpPage() {
   const [saving, setSaving] = useState(false);
   const { translateSpell } = useTranslation();
 
-  useEffect(() => {
-    fetchCharacterData();
-  }, [characterId]);
-
-  const fetchCharacterData = async () => {
+  const fetchCharacterData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/characters/${characterId}`);
@@ -112,7 +108,11 @@ export default function LevelUpPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [characterId]);
+
+  useEffect(() => {
+    fetchCharacterData();
+  }, [fetchCharacterData]);
 
   const fetchAvailableSpells = async (className: string, level: number) => {
     try {

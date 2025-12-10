@@ -147,7 +147,7 @@ export async function POST(
     const [item] = await db
       .insert(schema.items)
       .values({
-        campaignId,
+        campaignId: campaignId,
         ownerId: campaign.dmId, // Item de recompensa pertence ao DM
         name: parsed.name,
         type: parsed.type,

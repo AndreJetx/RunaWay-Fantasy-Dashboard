@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -78,62 +78,7 @@ export function ShopDialog({ open, onOpenChange, currentMoney, onPurchase }: Sho
   const [cart, setCart] = useState<Array<{ index: string; name: string; cost: number; quantity: number }>>([]);
   const { t, translateDnd5e, translateEquipment, locale } = useTranslation();
 
-  useEffect(() => {
-    if (open) {
-      setSelectedCategory("all");
-      setSearchTerm("");
-      setCart([]);
-      fetchCategories();
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (open && selectedCategory) {
-      fetchCategoryItems(selectedCategory);
-    }
-  }, [selectedCategory, open]);
-
-  // Carregar detalhes dos itens automaticamente
-  useEffect(() => {
-    if (currentItems.length > 0) {
-      // Carregar detalhes dos primeiros 20 itens para não sobrecarregar
-      currentItems.slice(0, 20).forEach((item) => {
-        if (!itemsDetails[item.index]) {
-          fetch(`${DND_API_BASE}${item.url}`)
-            .then((res) => res.json())
-            .then((detail) => {
-              setItemsDetails((prev) => ({ ...prev, [item.index]: detail }));
-            })
-            .catch((error) => {
-              console.error(`Error loading details for ${item.index}:`, error);
-            });
-        }
-      });
-    }
-  }, [currentItems]);
-
-  const fetchCategories = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${DND_API_BASE}/api/2014/equipment-categories`);
-      if (!res.ok) throw new Error("Failed to fetch categories");
-      const data = await res.json();
-      const categoriesList = data.results || [];
-      setCategories(categoriesList);
-      
-      // Se "all" estiver selecionado, buscar todos os itens
-      if (selectedCategory === "all") {
-        await fetchAllItems();
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-      setCategories([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAllItems = async () => {
+  const fetchAllItems = useCallback(async () => {
     try {
       setLoadingItems(true);
       const res = await fetch(`${DND_API_BASE}/api/2014/equipment`);
@@ -145,9 +90,9 @@ export function ShopDialog({ open, onOpenChange, currentMoney, onPurchase }: Sho
     } finally {
       setLoadingItems(false);
     }
-  };
+  }, []);
 
-  const fetchCategoryItems = async (categoryIndex: string) => {
+  const fetchCategoryItems = useCallback(async (categoryIndex: string) => {
     try {
       setLoadingItems(true);
       setItemsDetails({}); // Limpar detalhes anteriores
@@ -175,7 +120,61 @@ export function ShopDialog({ open, onOpenChange, currentMoney, onPurchase }: Sho
     } finally {
       setLoadingItems(false);
     }
-  };
+  }, [fetchAllItems]);
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${DND_API_BASE}/api/2014/equipment-categories`);
+      if (!res.ok) throw new Error("Failed to fetch categories");
+      const data = await res.json();
+      const categoriesList = data.results || [];
+      setCategories(categoriesList);
+      
+      // Se "all" estiver selecionado, buscar todos os itens
+      if (selectedCategory === "all") {
+        await fetchAllItems();
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCategory, fetchAllItems]);
+
+  useEffect(() => {
+    if (open) {
+      setSelectedCategory("all");
+      setSearchTerm("");
+      setCart([]);
+      fetchCategories();
+    }
+  }, [open, fetchCategories]);
+
+  useEffect(() => {
+    if (open && selectedCategory) {
+      fetchCategoryItems(selectedCategory);
+    }
+  }, [selectedCategory, open, fetchCategoryItems]);
+
+  // Carregar detalhes dos itens automaticamente
+  useEffect(() => {
+    if (currentItems.length > 0) {
+      // Carregar detalhes dos primeiros 20 itens para não sobrecarregar
+      currentItems.slice(0, 20).forEach((item) => {
+        if (!itemsDetails[item.index]) {
+          fetch(`${DND_API_BASE}${item.url}`)
+            .then((res) => res.json())
+            .then((detail) => {
+              setItemsDetails((prev) => ({ ...prev, [item.index]: detail }));
+            })
+            .catch((error) => {
+              console.error(`Error loading details for ${item.index}:`, error);
+            });
+        }
+      });
+    }
+  }, [currentItems, itemsDetails]);
 
   const fetchItemDetails = async (url: string, itemIndex: string) => {
     try {

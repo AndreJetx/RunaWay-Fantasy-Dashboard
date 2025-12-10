@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,10 +87,6 @@ export default function CharacterPage() {
   const [spellDetails, setSpellDetails] = useState<Record<string, any>>({});
   const [loadingSpells, setLoadingSpells] = useState(false);
   const { translateSpell, translateDnd5e } = useTranslation();
-
-  useEffect(() => {
-    fetchCharacter();
-  }, [characterId]);
 
   // Carregar detalhes das magias quando o personagem for carregado
   useEffect(() => {
@@ -179,7 +175,7 @@ export default function CharacterPage() {
     }
   };
 
-  const fetchCharacter = async () => {
+  const fetchCharacter = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/characters/${characterId}`);
@@ -204,7 +200,11 @@ export default function CharacterPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [characterId, router]);
+
+  useEffect(() => {
+    fetchCharacter();
+  }, [fetchCharacter]);
 
   const handleSave = async () => {
     if (!character) return;

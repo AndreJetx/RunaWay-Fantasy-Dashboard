@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -104,38 +104,7 @@ export default function ShopPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const { t, translateDnd5e, translateEquipment, locale } = useTranslation();
 
-  // Buscar categorias ao carregar
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  // Buscar itens quando mudar categoria
-  useEffect(() => {
-    if (selectedCategory) {
-      fetchCategoryItems(selectedCategory);
-    }
-  }, [selectedCategory]);
-
-  const fetchCategories = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${DND_API_BASE}/api/2014/equipment-categories`);
-      if (!res.ok) throw new Error("Failed to fetch categories");
-      const data = await res.json();
-      setCategories(data.results || []);
-      
-      // Buscar itens de todas as categorias para o "all"
-      if (selectedCategory === "all") {
-        fetchAllItems();
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAllItems = async () => {
+  const fetchAllItems = useCallback(async () => {
     try {
       setLoadingItems(true);
       const res = await fetch(`${DND_API_BASE}/api/2014/equipment`);
@@ -147,9 +116,9 @@ export default function ShopPage() {
     } finally {
       setLoadingItems(false);
     }
-  };
+  }, []);
 
-  const fetchCategoryItems = async (categoryIndex: string) => {
+  const fetchCategoryItems = useCallback(async (categoryIndex: string) => {
     try {
       setLoadingItems(true);
       
@@ -170,7 +139,38 @@ export default function ShopPage() {
     } finally {
       setLoadingItems(false);
     }
-  };
+  }, [fetchAllItems]);
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${DND_API_BASE}/api/2014/equipment-categories`);
+      if (!res.ok) throw new Error("Failed to fetch categories");
+      const data = await res.json();
+      setCategories(data.results || []);
+      
+      // Buscar itens de todas as categorias para o "all"
+      if (selectedCategory === "all") {
+        fetchAllItems();
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCategory, fetchAllItems]);
+
+  // Buscar categorias ao carregar
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  // Buscar itens quando mudar categoria
+  useEffect(() => {
+    if (selectedCategory) {
+      fetchCategoryItems(selectedCategory);
+    }
+  }, [selectedCategory, fetchCategoryItems]);
 
   const fetchItemDetails = async (url: string, itemIndex: string) => {
     try {

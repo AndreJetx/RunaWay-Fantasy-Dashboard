@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -924,7 +924,7 @@ export default function NewCharacterPage() {
     };
 
     fetchUserData();
-  }, [campaignId, router]);
+  }, [campaignId, router, previousRaceBonuses]);
 
   // Calcular pontos usados no sistema point_buy
   useEffect(() => {
@@ -932,7 +932,7 @@ export default function NewCharacterPage() {
       const totalCost = calculateTotalPointCost(pointBuyAttributes);
       setPointBuyPointsUsed(totalCost);
     }
-  }, [pointBuyAttributes, campaignData?.attributeSystem]);
+  }, [pointBuyAttributes, campaignData?.attributeSystem, calculateTotalPointCost]);
 
   // Recalcular PV e CA quando atributos ou classe mudarem
   useEffect(() => {
@@ -1029,9 +1029,9 @@ export default function NewCharacterPage() {
     return costTable[value] ?? 0;
   };
 
-  const calculateTotalPointCost = (attributes: Record<string, number>): number => {
+  const calculateTotalPointCost = useCallback((attributes: Record<string, number>): number => {
     return Object.values(attributes).reduce((total, value) => total + getPointCost(value), 0);
-  };
+  }, []);
 
   const rollD20 = (): number => {
     const roll = Math.floor(Math.random() * 20) + 1;

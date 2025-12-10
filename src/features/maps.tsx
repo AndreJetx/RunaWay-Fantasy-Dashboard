@@ -59,7 +59,7 @@ export default function Maps() {
     };
 
     fetchMaps();
-  }, [activeCampaign, t]);
+  }, [activeCampaign, t, selectedMap]);
 
   if (!activeCampaign) {
     return (
