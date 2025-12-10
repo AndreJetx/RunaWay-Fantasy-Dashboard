@@ -117,7 +117,6 @@ export const EQUIPMENT_TRANSLATIONS = {
     "Deck of cards": "Baralho",
     "Dragonchess set": "Conjunto de Xadrez Dragão",
     "Three-Dragon Ante set": "Conjunto de Três Dragões",
-    "Playing card set": "Baralho",
     
     // Mounts and Vehicles
     "Riding Horse": "Cavalo de Montaria",
@@ -129,8 +128,6 @@ export const EQUIPMENT_TRANSLATIONS = {
     "Donkey": "Burro",
     "Elephant": "Elefante",
     "Mastiff": "Mastim",
-    "Pony": "Pônei",
-    "Warhorse": "Cavalo de Guerra",
     "Carriage": "Carruagem",
     "Cart": "Carroça",
     "Chariot": "Carro de Guerra",

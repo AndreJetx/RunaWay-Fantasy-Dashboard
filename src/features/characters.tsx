@@ -18,6 +18,7 @@ interface Character {
   id: string;
   name: string;
   characterClass: string;
+  playerId?: string;
   level: number;
   currentHp: number;
   maxHp: number;

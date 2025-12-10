@@ -15,7 +15,7 @@ import { useTranslation } from "@/lib/i18n/context";
 export default function NewChapterPage() {
   const params = useParams();
   const router = useRouter();
-  const campaignId = params.id as string;
+  const campaignId = (params?.id as string) || "";
   const { t } = useTranslation();
 
   const [loading, setLoading] = useState(false);
@@ -39,7 +39,7 @@ export default function NewChapterPage() {
       let totalChapters = 10;
       
       if (campaignRes.ok) {
-        const campaignData = await campaignRes.ok ? campaignRes.json() : null;
+        const campaignData = await campaignRes.json();
         if (campaignData?.campaign?.totalChapters) {
           totalChapters = campaignData.campaign.totalChapters;
         }

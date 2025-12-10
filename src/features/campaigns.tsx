@@ -76,7 +76,7 @@ export default function Campaigns() {
     checkRole();
   }, []);
 
-  const handleSelectCampaign = (campaign: Campaign) => {
+  const handleSelectCampaign = (campaign: Campaign | any) => {
     router.push(`/campaigns/${campaign.id}`);
   };
 

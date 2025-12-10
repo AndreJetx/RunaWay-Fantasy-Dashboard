@@ -144,21 +144,23 @@ export async function POST(
     const parsed = createRewardItemSchema.parse(payload);
 
     // Criar item de recompensa (ownerId = dmId)
+    const itemData = {
+      campaignId: campaignId,
+      ownerId: campaign.dmId, // Item de recompensa pertence ao DM
+      name: parsed.name,
+      type: parsed.type as typeof itemTypeValues[number],
+      rarity: parsed.rarity as typeof itemRarityValues[number],
+      weight: parsed.weight ?? 1,
+      quantity: parsed.quantity ?? 1,
+      image: parsed.image || null,
+      description: parsed.description || null,
+      attunementRequired: parsed.attunementRequired ?? false,
+      equipped: false,
+    };
+
     const [item] = await db
       .insert(schema.items)
-      .values({
-        campaignId: campaignId,
-        ownerId: campaign.dmId, // Item de recompensa pertence ao DM
-        name: parsed.name,
-        type: parsed.type,
-        rarity: parsed.rarity,
-        weight: parsed.weight ?? 1,
-        quantity: parsed.quantity ?? 1,
-        image: parsed.image || null,
-        description: parsed.description || null,
-        attunementRequired: parsed.attunementRequired ?? false,
-        equipped: false,
-      })
+      .values(itemData as any)
       .returning();
 
     // Armazenar CA adicional em description se for armadura

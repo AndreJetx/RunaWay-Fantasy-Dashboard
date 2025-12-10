@@ -16,8 +16,8 @@ export default function NewNpcPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const campaignId = params.id as string;
-  const chapterId = searchParams.get("chapterId");
+  const campaignId = (params?.id as string) || "";
+  const chapterId = searchParams?.get("chapterId") || null;
   const { t } = useTranslation();
 
   const [loading, setLoading] = useState(false);

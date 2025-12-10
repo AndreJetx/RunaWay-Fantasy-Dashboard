@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -583,7 +583,7 @@ const CHARACTER_CLASSES: CharacterClass[] = [
   },
 ];
 
-export default function NewCharacterPage() {
+function NewCharacterPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const campaignId = searchParams?.get("campaignId") || null;
@@ -926,6 +926,10 @@ export default function NewCharacterPage() {
     fetchUserData();
   }, [campaignId, router, previousRaceBonuses]);
 
+  const calculateTotalPointCost = useCallback((attributes: Record<string, number>): number => {
+    return Object.values(attributes).reduce((total, value) => total + getPointCost(value), 0);
+  }, []);
+
   // Calcular pontos usados no sistema point_buy
   useEffect(() => {
     if (campaignData?.attributeSystem === "point_buy") {
@@ -1028,10 +1032,6 @@ export default function NewCharacterPage() {
     };
     return costTable[value] ?? 0;
   };
-
-  const calculateTotalPointCost = useCallback((attributes: Record<string, number>): number => {
-    return Object.values(attributes).reduce((total, value) => total + getPointCost(value), 0);
-  }, []);
 
   const rollD20 = (): number => {
     const roll = Math.floor(Math.random() * 20) + 1;
@@ -3842,6 +3842,22 @@ export default function NewCharacterPage() {
         />
       </div>
     </FantasyLayout>
+  );
+}
+
+export default function NewCharacterPage() {
+  return (
+    <Suspense fallback={
+      <FantasyLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <p className="text-muted-foreground">Carregando...</p>
+          </div>
+        </div>
+      </FantasyLayout>
+    }>
+      <NewCharacterPageContent />
+    </Suspense>
   );
 }
 
