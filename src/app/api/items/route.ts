@@ -183,21 +183,23 @@ export async function POST(request: Request) {
       }
     }
 
+    const itemData = {
+      campaignId: parsed.campaignId,
+      ownerId: user.id, // Sempre usar o ID do usuário autenticado
+      name: parsed.name,
+      type: parsed.type,
+      rarity: parsed.rarity,
+      weight: parsed.weight ?? 1,
+      quantity: parsed.quantity ?? 1,
+      image: parsed.image,
+      description: description || null,
+      attunementRequired: parsed.attunementRequired ?? false,
+      equipped: parsed.equipped ?? false,
+    };
+
     const [item] = await db
       .insert(schema.items)
-      .values({
-        campaignId: parsed.campaignId,
-        ownerId: user.id, // Sempre usar o ID do usuário autenticado
-        name: parsed.name,
-        type: parsed.type,
-        rarity: parsed.rarity,
-        weight: parsed.weight ?? 1,
-        quantity: parsed.quantity ?? 1,
-        image: parsed.image,
-        description: description || null,
-        attunementRequired: parsed.attunementRequired ?? false,
-        equipped: parsed.equipped ?? false,
-      })
+      .values(itemData as any)
       .returning();
 
     return NextResponse.json(item, { status: 201 });

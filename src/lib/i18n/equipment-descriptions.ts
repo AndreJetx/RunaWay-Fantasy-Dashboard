@@ -122,10 +122,6 @@ export const EQUIPMENT_DESCRIPTIONS = {
       "Estes suprimentos especiais incluem os itens necessários para praticar alquimia.",
       "Proficiência com estes suprimentos permite que você adicione seu bônus de proficiência a qualquer teste de habilidade que você faça para criar uma substância alquímica."
     ],
-    "Thieves' Tools": [
-      "Este conjunto de ferramentas inclui uma pequena lima, um conjunto de gazuas, um pequeno espelho montado em uma alça de metal, um conjunto de tesouras de lâmina estreita e um par de alicates.",
-      "Proficiência com estas ferramentas permite que você adicione seu bônus de proficiência a qualquer teste de habilidade que você faça para desarmar armadilhas ou abrir fechaduras."
-    ],
   },
   "es": {
     // Armas

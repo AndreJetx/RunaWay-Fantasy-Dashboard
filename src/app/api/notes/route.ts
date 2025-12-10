@@ -116,7 +116,7 @@ export async function POST(request: Request) {
         category: parsed.category,
         tags: parsed.tags,
         isPrivate: parsed.isPrivate ?? true,
-      })
+      } as any)
       .returning();
 
     return NextResponse.json(note, { status: 201 });

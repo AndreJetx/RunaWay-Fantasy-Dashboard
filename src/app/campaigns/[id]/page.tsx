@@ -106,7 +106,7 @@ interface CampaignMember {
 export default function CampaignDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const campaignId = params.id as string;
+  const campaignId = (params?.id as string) || "";
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);

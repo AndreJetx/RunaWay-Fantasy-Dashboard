@@ -37,7 +37,7 @@ interface SpellDetail {
 export default function LevelUpPage() {
   const params = useParams();
   const router = useRouter();
-  const characterId = params.id as string;
+  const characterId = (params?.id as string) || "";
 
   const [character, setCharacter] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -108,7 +108,7 @@ export default function LevelUpPage() {
     } finally {
       setLoading(false);
     }
-  }, [characterId]);
+  }, [characterId, router]);
 
   useEffect(() => {
     fetchCharacterData();
@@ -144,7 +144,7 @@ export default function LevelUpPage() {
       });
 
       const results = await Promise.all(spellPromises);
-      const validSpells = results.filter((s): s is Spell => s !== null && s.level !== undefined);
+      const validSpells = results.filter((s): s is Spell & { level: number } => s !== null && s.level !== undefined);
       
       setAvailableSpells(validSpells);
 

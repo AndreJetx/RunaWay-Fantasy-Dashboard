@@ -81,7 +81,7 @@ interface NPC {
 export default function NPCsPage() {
   const params = useParams();
   const router = useRouter();
-  const campaignId = params.id as string;
+  const campaignId = (params?.id as string) || "";
 
   const [npcs, setNpcs] = useState<NPC[]>([]);
   const [loading, setLoading] = useState(true);

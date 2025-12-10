@@ -76,7 +76,7 @@ const calculateModifier = (value: number): number => {
 export default function CharacterPage() {
   const params = useParams();
   const router = useRouter();
-  const characterId = params.id as string;
+  const characterId = (params?.id as string) || "";
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
