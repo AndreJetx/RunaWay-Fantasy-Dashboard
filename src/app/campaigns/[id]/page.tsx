@@ -658,12 +658,13 @@ export default function CampaignDetailsPage() {
                               Lvl {enemy.level}
                             </Badge>
                           )}
-                          {enemy.maxHp && (
+                          {/* Jogadores não veem HP e CA de inimigos */}
+                          {isDM && enemy.maxHp && (
                             <span className="text-muted-foreground">
                               HP: {enemy.currentHp || 0}/{enemy.maxHp}
                             </span>
                           )}
-                          {enemy.armorClass && (
+                          {isDM && enemy.armorClass && (
                             <span className="text-muted-foreground">
                               CA: {enemy.armorClass}
                             </span>

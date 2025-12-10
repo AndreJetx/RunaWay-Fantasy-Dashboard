@@ -22,7 +22,7 @@ export async function POST(
 
     const campaignId = params.id;
     const payload = await request.json();
-    const { monsterData, chapterId } = payload;
+    const { monsterData, chapterId, npcType } = payload;
 
     if (!monsterData || !monsterData.name) {
       return NextResponse.json(
@@ -56,7 +56,7 @@ export async function POST(
     }
 
     // Converter dados JSON para formato do schema
-    const npcData = convertMonsterToNpc(monsterData, campaignId, chapterId);
+    const npcData = convertMonsterToNpc(monsterData, campaignId, chapterId, npcType);
 
     // Criar NPC - npcData já está no formato correto
     const [npc] = await db

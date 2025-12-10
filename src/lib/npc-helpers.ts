@@ -43,7 +43,8 @@ export interface MonsterJsonData {
 /**
  * Extrai HP numérico de uma string como "13 (2d8+4)"
  */
-function extractHp(hpString: string): number {
+function extractHp(hpString?: string): number {
+  if (!hpString || typeof hpString !== "string") return 10;
   const match = hpString.match(/^(\d+)/);
   return match ? parseInt(match[1], 10) : 10;
 }
@@ -63,20 +64,24 @@ function extractSpeed(speedString?: string): number {
 export function convertMonsterToNpc(
   monsterData: MonsterJsonData,
   campaignId: string,
-  chapterId?: string | null
+  chapterId?: string | null,
+  npcType: "npc" | "enemy" | "boss" = "npc"
 ) {
   const hp = extractHp(monsterData.hp);
   const speed = extractSpeed(monsterData.speed);
+  
+  // Garantir que hp é uma string válida antes de usar includes
+  const hpString = monsterData.hp || "";
 
   // Converter habilidades para o formato do schema
   const abilities = monsterData.abilities
     ? {
-        strength: monsterData.abilities.str || 10,
-        dexterity: monsterData.abilities.dex || 10,
-        constitution: monsterData.abilities.con || 10,
-        intelligence: monsterData.abilities.int || 10,
-        wisdom: monsterData.abilities.wis || 10,
-        charisma: monsterData.abilities.cha || 10,
+        strength: monsterData.abilities.str ?? 10,
+        dexterity: monsterData.abilities.dex ?? 10,
+        constitution: monsterData.abilities.con ?? 10,
+        intelligence: monsterData.abilities.int ?? 10,
+        wisdom: monsterData.abilities.wis ?? 10,
+        charisma: monsterData.abilities.cha ?? 10,
       }
     : {};
 
@@ -122,28 +127,29 @@ export function convertMonsterToNpc(
     campaignId,
     name: monsterData.name,
     challengeRating: monsterData.cr?.toString() || null,
-    type: monsterData.type || null,
+    type: npcType, // Usar o tipo fornecido (npc, enemy ou boss)
     alignment: monsterData.alignment || null,
     armorClass: monsterData.ac || 10,
     maxHp: hp,
     currentHp: hp,
     speed,
-    hitDice: monsterData.hp.includes("(") 
-      ? monsterData.hp.match(/\(([^)]+)\)/)?.[1] || null 
+    hitDice: hpString.includes("(") 
+      ? hpString.match(/\(([^)]+)\)/)?.[1] || null 
       : null,
     attributes: abilities,
     savingThrows: savingThrowsObj,
     skills: skillsObj,
     attacks,
     abilities: abilitiesList,
-    resistances: monsterData.damage_resistances || [],
+    resistances: Array.isArray(monsterData.damage_resistances) ? monsterData.damage_resistances : [],
     immunities: [
-      ...(monsterData.damage_immunities || []),
-      ...(monsterData.condition_immunities || []),
+      ...(Array.isArray(monsterData.damage_immunities) ? monsterData.damage_immunities : []),
+      ...(Array.isArray(monsterData.condition_immunities) ? monsterData.condition_immunities : []),
     ],
-    vulnerabilities: monsterData.damage_vulnerabilities || [],
+    vulnerabilities: Array.isArray(monsterData.damage_vulnerabilities) ? monsterData.damage_vulnerabilities : [],
     description: monsterData.senses || null,
-    isHostile: true, // Por padrão, monstros são hostis
+    image: null, // Não há imagem por padrão nos templates
+    isHostile: npcType !== "npc", // Hostil apenas se for enemy ou boss
     chapterId: chapterId || null,
   };
 }

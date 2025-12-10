@@ -88,47 +88,33 @@ export async function GET(
       }
     }
 
-    // Buscar NPCs - DM vê tudo, jogador só nome e tipo básico
-    const npcs = await db
-      .select({
-        id: schema.campaignNpcs.id,
-        name: schema.campaignNpcs.name,
-        type: schema.campaignNpcs.type,
-        challengeRating: schema.campaignNpcs.challengeRating,
-        alignment: schema.campaignNpcs.alignment,
-        image: schema.campaignNpcs.image,
-        isHostile: schema.campaignNpcs.isHostile,
-        // Campos completos apenas para DM
-        ...(userIsDM && {
-          race: schema.campaignNpcs.race,
-          characterClass: schema.campaignNpcs.characterClass,
-          level: schema.campaignNpcs.level,
-          armorClass: schema.campaignNpcs.armorClass,
-          initiative: schema.campaignNpcs.initiative,
-          speed: schema.campaignNpcs.speed,
-          currentHp: schema.campaignNpcs.currentHp,
-          maxHp: schema.campaignNpcs.maxHp,
-          tempHp: schema.campaignNpcs.tempHp,
-          hitDice: schema.campaignNpcs.hitDice,
-          attributes: schema.campaignNpcs.attributes,
-          savingThrows: schema.campaignNpcs.savingThrows,
-          skills: schema.campaignNpcs.skills,
-          proficiencyBonus: schema.campaignNpcs.proficiencyBonus,
-          attacks: schema.campaignNpcs.attacks,
-          abilities: schema.campaignNpcs.abilities,
-          resistances: schema.campaignNpcs.resistances,
-          immunities: schema.campaignNpcs.immunities,
-          vulnerabilities: schema.campaignNpcs.vulnerabilities,
-          description: schema.campaignNpcs.description,
-          backstory: schema.campaignNpcs.backstory,
-          notes: schema.campaignNpcs.notes,
-          chapterId: schema.campaignNpcs.chapterId,
-          createdAt: schema.campaignNpcs.createdAt,
-          updatedAt: schema.campaignNpcs.updatedAt,
-        }),
-      })
+    // Buscar NPCs com regras de visibilidade:
+    // - DM: vê tudo
+    // - Jogadores: vêem ficha completa de NPCs (não hostis), apenas nome de inimigos (hostis)
+    const allNpcs = await db
+      .select()
       .from(schema.campaignNpcs)
       .where(eq(schema.campaignNpcs.campaignId, campaignId));
+
+    // Aplicar regras de visibilidade
+    const npcs = allNpcs.map((npc) => {
+      if (userIsDM) {
+        // DM vê tudo
+        return npc;
+      } else {
+        // Jogador: se for hostil, retorna apenas nome
+        if (npc.isHostile) {
+          return {
+            id: npc.id,
+            name: npc.name,
+            isHostile: true,
+          };
+        } else {
+          // Jogador: se for NPC (não hostil), vê ficha completa
+          return npc;
+        }
+      }
+    });
 
     return NextResponse.json({
       npcs,
@@ -237,7 +223,11 @@ export async function POST(
       description: parsed.description || null,
       image: parsed.image || null,
       chapterId: parsed.chapterId || null,
-      isHostile: parsed.isHostile ?? false,
+      // isHostile: se não fornecido, usar false (NPCs não são hostis por padrão)
+      // Se o tipo for enemy ou boss, será true apenas se explicitamente definido
+      isHostile: parsed.isHostile !== undefined 
+        ? parsed.isHostile 
+        : (parsed.type === "enemy" || parsed.type === "boss"),
     };
 
     const [npc] = await db
