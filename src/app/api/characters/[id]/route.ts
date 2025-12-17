@@ -229,6 +229,7 @@ export async function PUT(
     if (body.flaws !== undefined) updateData.flaws = body.flaws;
     if (body.backstory !== undefined) updateData.backstory = body.backstory;
     if (body.notes !== undefined) updateData.notes = body.notes;
+    if (body.feats !== undefined) updateData.feats = body.feats;
     if (body.needsLevelUp !== undefined) updateData.needsLevelUp = body.needsLevelUp;
     if (body.pendingHitDiceRoll !== undefined) updateData.pendingHitDiceRoll = body.pendingHitDiceRoll;
 

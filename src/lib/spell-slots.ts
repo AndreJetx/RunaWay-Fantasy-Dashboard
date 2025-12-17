@@ -125,25 +125,32 @@ export function getSpellSlots(className: string, level: number): SpellSlots | nu
 }
 
 /**
- * Retorna o nível de conjuração para uma classe e nível específicos
+ * Retorna o nível MÁXIMO de magia que o personagem pode aprender/conjurar
+ * baseado nos slots de magia disponíveis
  */
 export function getSpellcastingLevel(className: string, level: number): number {
   const normalizedLevel = Math.max(1, Math.min(20, level));
   
-  // Bruxo sempre usa o nível do personagem
-  if (className === "Bruxo") {
-    return normalizedLevel;
+  // Classes que não conjuram magias
+  const nonSpellcasters = ["Bárbaro", "Guerreiro", "Ladino", "Monge"];
+  if (nonSpellcasters.includes(className)) {
+    return 0;
   }
   
-  // Half casters usam metade do nível (arredondado para cima)
-  if (className === "Paladino" || className === "Patrulheiro") {
-    return Math.ceil(normalizedLevel / 2);
-  }
+  // Obter slots de magia para o nível
+  const slots = getSpellSlots(className, normalizedLevel);
+  if (!slots) return 0;
   
-  // Full casters usam o nível completo
-  if (["Bardo", "Clérigo", "Druida", "Feiticeiro", "Mago"].includes(className)) {
-    return normalizedLevel;
-  }
+  // Determinar o nível máximo de magia baseado nos slots disponíveis
+  if (slots.level9 > 0) return 9;
+  if (slots.level8 > 0) return 8;
+  if (slots.level7 > 0) return 7;
+  if (slots.level6 > 0) return 6;
+  if (slots.level5 > 0) return 5;
+  if (slots.level4 > 0) return 4;
+  if (slots.level3 > 0) return 3;
+  if (slots.level2 > 0) return 2;
+  if (slots.level1 > 0) return 1;
   
   return 0;
 }

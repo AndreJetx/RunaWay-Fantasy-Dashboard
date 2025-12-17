@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +30,8 @@ import {
   Brain,
   Eye,
   Crown,
-  Coins
+  Coins,
+  BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -560,6 +562,53 @@ export default function CharacterPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Talentos (Feats) */}
+              {character.feats && character.feats.length > 0 && (
+                <Card className="bg-card/60 border-white/10 border-l-4 border-l-amber-500">
+                  <CardHeader>
+                    <CardTitle className="text-xl font-cinzel flex items-center gap-2">
+                      <Award className="w-5 h-5 text-amber-500" />
+                      Talentos (Feats)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {character.feats.map((feat: any, idx: number) => (
+                        <div key={idx} className="bg-background/50 rounded-lg p-4 border border-amber-500/20">
+                          <div className="flex items-start justify-between mb-2">
+                            <h3 className="font-bold text-lg text-amber-400">{feat.name}</h3>
+                            <Badge variant="secondary" className="text-xs">
+                              Nv. {feat.acquiredAt}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {feat.description}
+                          </p>
+                          {feat.benefits && feat.benefits.length > 0 && (
+                            <div className="space-y-1">
+                              <p className="text-xs font-semibold text-amber-400">Benefícios:</p>
+                              <ul className="text-xs space-y-1">
+                                {feat.benefits.slice(0, 3).map((benefit: string, bidx: number) => (
+                                  <li key={bidx} className="flex items-start gap-1">
+                                    <span className="text-green-400">✓</span>
+                                    <span>{benefit}</span>
+                                  </li>
+                                ))}
+                                {feat.benefits.length > 3 && (
+                                  <li className="text-muted-foreground italic">
+                                    ... e mais {feat.benefits.length - 3}
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Atributos */}
               <Card className="bg-card/60 border-white/10">
@@ -1188,6 +1237,114 @@ export default function CharacterPage() {
                               <li>Resistência a dano de {getDamageTypeLabel(dragonData.damageType).toLowerCase()}</li>
                               <li>Ao causar dano de {getDamageTypeLabel(dragonData.damageType).toLowerCase()}, você pode adicionar seu modificador de Carisma</li>
                             </ul>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Antecedente */}
+              {character.background && (
+                <Card className="bg-card/60 border-white/10 border-l-4 border-l-amber-500">
+                  <CardHeader>
+                    <CardTitle className="text-xl font-cinzel flex items-center gap-2">
+                      <BookOpen className="w-5 h-5 text-amber-500" />
+                      Antecedente: {character.background}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(() => {
+                      // Buscar dados do antecedente
+                      const { BACKGROUNDS } = require('@/lib/backgrounds');
+                      const backgroundData = BACKGROUNDS.find(
+                        (b: any) => b.name === character.background
+                      );
+                      
+                      if (!backgroundData) return (
+                        <p className="text-muted-foreground">
+                          Informações do antecedente não disponíveis.
+                        </p>
+                      );
+
+                      return (
+                        <div className="space-y-4">
+                          {/* Feature do Antecedente */}
+                          <div className="bg-amber-500/10 rounded-lg p-4 border border-amber-500/20">
+                            <h4 className="font-bold text-amber-400 mb-2 flex items-center gap-2">
+                              <Sparkles className="w-4 h-4" />
+                              {backgroundData.feature.name}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                              {backgroundData.feature.description}
+                            </p>
+                          </div>
+
+                          {/* Benefícios */}
+                          <div className="grid md:grid-cols-2 gap-3">
+                            {/* Perícias */}
+                            {backgroundData.skillProficiencies && backgroundData.skillProficiencies.length > 0 && (
+                              <div className="bg-background/50 rounded-lg p-3">
+                                <h4 className="font-medium text-primary mb-2 text-sm">📚 Perícias</h4>
+                                <ul className="text-sm text-muted-foreground space-y-1">
+                                  {backgroundData.skillProficiencies.map((skill: string, idx: number) => {
+                                    const skillData = SKILLS.find(s => s.key === skill);
+                                    return (
+                                      <li key={idx} className="flex items-center gap-1">
+                                        <span className="text-green-400">✓</span>
+                                        {skillData?.label || skill}
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Proficiências em Ferramentas */}
+                            {backgroundData.toolProficiencies && backgroundData.toolProficiencies.length > 0 && (
+                              <div className="bg-background/50 rounded-lg p-3">
+                                <h4 className="font-medium text-primary mb-2 text-sm">🔧 Ferramentas</h4>
+                                <ul className="text-sm text-muted-foreground space-y-1">
+                                  {backgroundData.toolProficiencies.map((tool: string, idx: number) => (
+                                    <li key={idx} className="flex items-center gap-1">
+                                      <span className="text-green-400">✓</span>
+                                      {tool}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Idiomas */}
+                            {backgroundData.languages && backgroundData.languages > 0 && (
+                              <div className="bg-background/50 rounded-lg p-3">
+                                <h4 className="font-medium text-primary mb-2 text-sm">🗣️ Idiomas</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  +{backgroundData.languages} idioma(s) adicional(is) à sua escolha
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Equipamento */}
+                            {backgroundData.equipment && backgroundData.equipment.length > 0 && (
+                              <div className="bg-background/50 rounded-lg p-3">
+                                <h4 className="font-medium text-primary mb-2 text-sm">🎒 Equipamento Inicial</h4>
+                                <ul className="text-sm text-muted-foreground space-y-1">
+                                  {backgroundData.equipment.slice(0, 5).map((item: string, idx: number) => (
+                                    <li key={idx} className="flex items-center gap-1">
+                                      <span className="text-amber-400">•</span>
+                                      {item}
+                                    </li>
+                                  ))}
+                                  {backgroundData.equipment.length > 5 && (
+                                    <li className="text-xs italic">
+                                      ... e mais {backgroundData.equipment.length - 5} itens
+                                    </li>
+                                  )}
+                                </ul>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );

@@ -178,6 +178,7 @@ const characterColumns = {
   flaws: text("flaws"),
   backstory: text("backstory"),
   notes: text("notes"),
+  feats: jsonb("feats").default(sql`'[]'::jsonb`), // Array de feats escolhidos
   needsLevelUp: boolean("needs_level_up").default(false),
   pendingHitDiceRoll: integer("pending_hit_dice_roll"),
   createdAt: timestamp("created_at", { withTimezone: true })
