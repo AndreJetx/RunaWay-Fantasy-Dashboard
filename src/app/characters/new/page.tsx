@@ -1157,18 +1157,22 @@ function NewCharacterPageContent() {
       }
       setPreviousClassSavingThrows(newClassSavingThrows);
 
-      // Remover perícias anteriores da classe
+      // Remover APENAS perícias anteriores da classe (preservando raça e background)
       const newSkills = { ...prev.skills };
+      
+      // Remove apenas as perícias que vieram da classe anterior
       [...previousClassSkills, ...chosenClassSkills].forEach(skillKey => {
         delete newSkills[skillKey];
       });
 
-      // Aplicar perícias garantidas da classe
+      // Aplicar perícias garantidas da classe (não duplica se já existe)
       const newClassSkills: string[] = [];
       if (bonuses.guaranteedSkills && bonuses.guaranteedSkills.length > 0) {
         bonuses.guaranteedSkills.forEach(skillKey => {
-          newSkills[skillKey] = true;
-          newClassSkills.push(skillKey);
+          if (!newSkills[skillKey]) {
+            newSkills[skillKey] = true;
+            newClassSkills.push(skillKey);
+          }
         });
       }
       setPreviousClassSkills(newClassSkills);

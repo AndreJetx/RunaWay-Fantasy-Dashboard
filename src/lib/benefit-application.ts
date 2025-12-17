@@ -162,11 +162,14 @@ export function applyBackgroundBenefits(
     if (!updatedCharacter.skills) updatedCharacter.skills = {};
     if (!updatedCharacter.proficiencies) updatedCharacter.proficiencies = [];
     if (!updatedCharacter.languages) updatedCharacter.languages = [];
-    if (!updatedCharacter.features) updatedCharacter.features = [];
+    if (!updatedCharacter.features) updatedCharacter.features = {} as any; // features é um objeto JSONB
 
-    // Aplicar perícias
+    // Aplicar perícias (não duplica se já existe)
     background.skillProficiencies.forEach(skill => {
-        updatedCharacter.skills![skill] = true;
+        // Só aplica se ainda não tem essa perícia
+        if (!updatedCharacter.skills![skill]) {
+            updatedCharacter.skills![skill] = true;
+        }
     });
 
     // Aplicar proficiências em ferramentas
@@ -180,8 +183,13 @@ export function applyBackgroundBenefits(
 
     // Aplicar feature do antecedente
     const featureName = `${background.name}: ${background.feature.name}`;
-    if (!updatedCharacter.features!.includes(featureName)) {
-        updatedCharacter.features!.push(featureName);
+    if (!(updatedCharacter.features as any)[featureName]) {
+        (updatedCharacter.features as any)[featureName] = {
+            name: background.feature.name,
+            description: background.feature.description,
+            type: 'background',
+            source: background.name
+        };
     }
 
     // Aplicar equipamento inicial ao inventário

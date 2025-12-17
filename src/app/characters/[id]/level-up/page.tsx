@@ -7,8 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Dice1, Sparkles, CheckCircle2, Loader2, Settings, TrendingUp } from "lucide-react";
+import { Dice1, Sparkles, CheckCircle2, Loader2, Settings, TrendingUp, Award } from "lucide-react";
 import { toast } from "sonner";
 import { getSpellSlots, canCastSpells, getSpellcastingLevel } from "@/lib/spell-slots";
 import { getFeaturesAtLevel } from "@/lib/class-features";
@@ -17,8 +18,10 @@ import { getSpellLearningInfo } from "@/lib/spell-learning-rules";
 import { SpellSelectionDialog } from "@/components/characters/SpellSelectionDialog";
 import { SubclassSelector } from "@/components/characters/SubclassSelector";
 import { DragonTypeSelector } from "@/components/characters/DragonTypeSelector";
+import { FeatSelector } from "@/components/characters/FeatSelector";
 import { getSubclassLevel, needsSubclassSelection } from "@/lib/subclasses";
 import { applySubclassBenefits } from "@/lib/benefit-application";
+import type { Feat } from "@/lib/feats";
 import type { Subclass } from "@/lib/subclasses";
 import type { DragonType } from "@/lib/dragon-types";
 import { useTranslation } from "@/lib/i18n/context";
@@ -65,6 +68,10 @@ export default function LevelUpPage() {
   const [pendingPact, setPendingPact] = useState<Subclass | null>(null);
   const [saving, setSaving] = useState(false);
   const [attributeIncreases, setAttributeIncreases] = useState<Record<string, number>>({});
+  const [asiChoice, setAsiChoice] = useState<"asi" | "feat" | null>(null); // Escolha entre ASI ou Feat
+  const [showFeatSelector, setShowFeatSelector] = useState(false);
+  const [selectedFeat, setSelectedFeat] = useState<any>(null);
+  const [selectedFeatAttribute, setSelectedFeatAttribute] = useState<string | null>(null); // Atributo escolhido para feat com "any"
   const { translateSpell } = useTranslation();
 
   const fetchCharacterData = useCallback(async () => {
@@ -110,6 +117,15 @@ export default function LevelUpPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ needsLevelUp: true }),
         });
+      }
+
+      // Restaurar o dado de vida pendente se existir
+      if (characterData.pendingHitDiceRoll) {
+        setHitDiceRoll(characterData.pendingHitDiceRoll);
+        const attributes = characterData.attributes || {};
+        const constitution = attributes.constitution || 10;
+        const conMod = Math.floor((constitution - 10) / 2);
+        setHpGain(characterData.pendingHitDiceRoll + conMod);
       }
 
       // Calcular modificador de CON
@@ -189,7 +205,7 @@ export default function LevelUpPage() {
     }
   };
 
-  const rollHitDice = () => {
+  const rollHitDice = async () => {
     if (!character) return;
 
     const hitDiceMatch = character.hitDice?.match(/1d(\d+)/);
@@ -202,6 +218,17 @@ export default function LevelUpPage() {
     const roll = Math.floor(Math.random() * diceSize) + 1;
     setHitDiceRoll(roll);
     setHpGain(roll + conModifier);
+
+    // Salvar o resultado do dado no banco para persistir entre sessões
+    try {
+      await fetch(`/api/characters/${characterId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pendingHitDiceRoll: roll }),
+      });
+    } catch (error) {
+      console.error("Error saving hit dice roll:", error);
+    }
   };
 
   const handleCompleteLevelUp = async () => {
@@ -225,14 +252,31 @@ export default function LevelUpPage() {
     // Definir targetLevel primeiro
     const targetLevel = character.level + 1;
 
-    // Validar ASI
+    // Validar ASI ou Feat
     const features = getFeaturesAtLevel(character.characterClass, targetLevel);
     const hasASI = features.some(f => f.type === "ability_score_improvement");
     if (hasASI) {
-      const usedPoints = Object.values(attributeIncreases).reduce((sum, val) => sum + val, 0);
-      if (usedPoints !== 2) {
-        toast.error("Você deve distribuir 2 pontos de atributo");
+      if (!asiChoice) {
+        toast.error("Escolha entre aumentar atributos (ASI) ou escolher um talento (Feat)");
         return;
+      }
+      
+      if (asiChoice === "asi") {
+        const usedPoints = Object.values(attributeIncreases).reduce((sum, val) => sum + val, 0);
+        if (usedPoints !== 2) {
+          toast.error("Você deve distribuir 2 pontos de atributo");
+          return;
+        }
+      } else if (asiChoice === "feat") {
+        if (!selectedFeat) {
+          toast.error("Selecione um talento (Feat)");
+          return;
+        }
+        // Validar se precisa escolher atributo para feat com "any"
+        if (selectedFeat.attributeBonus?.attribute === "any" && !selectedFeatAttribute) {
+          toast.error("Escolha o atributo que receberá o bônus do talento");
+          return;
+        }
       }
     }
 
@@ -297,15 +341,45 @@ export default function LevelUpPage() {
 
       console.log(`[Level Up Complete] Nível atual: ${character.level}, Novo nível: ${targetLevel}, XP: ${currentXP}, Nível calculado: ${calculatedLevel}, Ainda precisa de level up: ${stillNeedsLevelUp}`);
 
-      // Aplicar aumentos de atributos se houver
+      // Aplicar aumentos de atributos ou Feat
       const currentAttributes = character.attributes || {};
       const updatedAttributes = { ...currentAttributes };
+      const currentFeats = character.feats || [];
+      let updatedFeats = [...currentFeats];
       
-      if (Object.keys(attributeIncreases).length > 0) {
+      if (asiChoice === "asi" && Object.keys(attributeIncreases).length > 0) {
+        // Aplicar ASI (aumentos de atributo)
         Object.entries(attributeIncreases).forEach(([attr, increase]) => {
           const currentValue = updatedAttributes[attr] || 10;
           updatedAttributes[attr] = Math.min(20, currentValue + increase); // Máximo 20
         });
+      } else if (asiChoice === "feat" && selectedFeat) {
+        // Aplicar Feat
+        const featData: any = {
+          name: selectedFeat.name,
+          description: selectedFeat.description,
+          benefits: selectedFeat.benefits,
+          acquiredAt: targetLevel,
+        };
+        
+        // Se o feat tem bônus de atributo "any", salvar o atributo escolhido
+        if (selectedFeat.attributeBonus?.attribute === "any" && selectedFeatAttribute) {
+          featData.chosenAttribute = selectedFeatAttribute;
+        }
+        
+        updatedFeats.push(featData);
+        
+        // Se o Feat dá bônus de atributo, aplicar também
+        if (selectedFeat.attributeBonus) {
+          const attrKey = selectedFeat.attributeBonus.attribute === 'any' 
+            ? selectedFeatAttribute 
+            : selectedFeat.attributeBonus.attribute;
+          
+          if (attrKey) {
+            const currentValue = updatedAttributes[attrKey] || 10;
+            updatedAttributes[attrKey] = Math.min(20, currentValue + selectedFeat.attributeBonus.bonus);
+          }
+        }
       }
 
       // Preparar objeto base para atualização
@@ -314,8 +388,9 @@ export default function LevelUpPage() {
         maxHp: newMaxHp,
         currentHp: newCurrentHp,
         needsLevelUp: stillNeedsLevelUp, // Manter true se ainda tiver níveis a subir
-        pendingHitDiceRoll: null,
+        pendingHitDiceRoll: stillNeedsLevelUp ? null : null, // Limpar dado pendente quando level up completo
         attributes: updatedAttributes,
+        feats: updatedFeats,
         spellcasting: {
           ...currentSpellcasting,
           knownSpells: newKnownSpells,
@@ -648,90 +723,225 @@ export default function LevelUpPage() {
           </Card>
         )}
 
-        {/* Aumento de Atributo (ASI) */}
+        {/* Escolha: ASI ou Feat */}
         {hasASI && (
-          <Card className={`bg-card/60 border-white/10 border-l-4 ${remainingASIPoints === 0 ? 'border-l-green-500' : 'border-l-yellow-500'}`}>
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${asiChoice ? 'border-l-green-500' : 'border-l-yellow-500'}`}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-yellow-400" />
-                Aumento de Atributo (ASI)
+                Aumento de Poder - Nível {character.level + 1}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Distribua 2 pontos nos seus atributos. Você pode:
-              </p>
-              <ul className="text-sm text-muted-foreground list-disc list-inside ml-2">
-                <li>Aumentar um atributo em +2, OU</li>
-                <li>Aumentar dois atributos diferentes em +1 cada</li>
-              </ul>
-              <p className="text-sm font-bold mt-2">
-                Pontos disponíveis: <span className={remainingASIPoints === 0 ? "text-green-400" : "text-yellow-400"}>{remainingASIPoints}/2</span>
+                Você pode escolher entre duas opções:
               </p>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                {["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"].map((attr) => {
-                  const currentValue = character.attributes?.[attr] || 10;
-                  const increase = attributeIncreases[attr] || 0;
-                  const newValue = currentValue + increase;
-                  const atMax = newValue >= 20;
+            <CardContent className="space-y-4">
+              {/* Escolha */}
+              {!asiChoice && (
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => setAsiChoice("asi")}
+                    className="h-auto py-6 flex-col items-start text-left space-y-2 hover:border-primary hover:bg-primary/10 whitespace-normal"
+                  >
+                    <div className="flex items-center gap-2 font-bold text-lg w-full">
+                      <TrendingUp className="w-5 h-5 flex-shrink-0" />
+                      <span className="break-words">Aumentar Atributos (ASI)</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground font-normal break-words w-full">
+                      Distribua +2 pontos nos seus atributos (máximo +1 por atributo ou +2 em um único).
+                    </p>
+                  </Button>
+                  
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => {
+                      setAsiChoice("feat");
+                      setShowFeatSelector(true);
+                    }}
+                    className="h-auto py-6 flex-col items-start text-left space-y-2 hover:border-primary hover:bg-primary/10 whitespace-normal"
+                  >
+                    <div className="flex items-center gap-2 font-bold text-lg w-full">
+                      <Award className="w-5 h-5 flex-shrink-0" />
+                      <span className="break-words">Escolher Talento (Feat)</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground font-normal break-words w-full">
+                      Escolha uma habilidade especial. Alguns talentos também dão +1 em um atributo.
+                    </p>
+                  </Button>
+                </div>
+              )}
 
-                  return (
-                    <div key={attr} className="bg-background/50 rounded-lg p-3">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium capitalize">
-                          {attr === "strength" && "Força"}
-                          {attr === "dexterity" && "Destreza"}
-                          {attr === "constitution" && "Constituição"}
-                          {attr === "intelligence" && "Inteligência"}
-                          {attr === "wisdom" && "Sabedoria"}
-                          {attr === "charisma" && "Carisma"}
-                        </span>
-                        <span className="text-lg font-bold">
-                          {currentValue} → {newValue}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            if (increase > 0) {
-                              setAttributeIncreases(prev => ({
-                                ...prev,
-                                [attr]: increase - 1
-                              }));
-                            }
-                          }}
-                          disabled={increase === 0}
-                          className="flex-1"
-                        >
-                          -
-                        </Button>
-                        <div className="flex-1 text-center py-1 bg-background rounded">
-                          +{increase}
+              {/* ASI Selecionado */}
+              {asiChoice === "asi" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary" className="text-sm">
+                      ✓ Aumentar Atributos (ASI)
+                    </Badge>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setAsiChoice(null);
+                        setAttributeIncreases({});
+                      }}
+                    >
+                      Mudar escolha
+                    </Button>
+                  </div>
+                  
+                  <p className="text-sm font-bold">
+                    Pontos disponíveis: <span className={remainingASIPoints === 0 ? "text-green-400" : "text-yellow-400"}>{remainingASIPoints}/2</span>
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"].map((attr) => {
+                      const currentValue = character.attributes?.[attr] || 10;
+                      const increase = attributeIncreases[attr] || 0;
+                      const newValue = currentValue + increase;
+                      const atMax = newValue >= 20;
+
+                      return (
+                        <div key={attr} className="bg-background/50 rounded-lg p-3">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium capitalize">
+                              {attr === "strength" && "Força"}
+                              {attr === "dexterity" && "Destreza"}
+                              {attr === "constitution" && "Constituição"}
+                              {attr === "intelligence" && "Inteligência"}
+                              {attr === "wisdom" && "Sabedoria"}
+                              {attr === "charisma" && "Carisma"}
+                            </span>
+                            <span className="text-lg font-bold">
+                              {currentValue} → {newValue}
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                if (increase > 0) {
+                                  setAttributeIncreases(prev => ({
+                                    ...prev,
+                                    [attr]: increase - 1
+                                  }));
+                                }
+                              }}
+                              disabled={increase === 0}
+                              className="flex-1"
+                            >
+                              -
+                            </Button>
+                            <div className="flex-1 text-center py-1 bg-background rounded">
+                              +{increase}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                if (remainingASIPoints > 0 && !atMax) {
+                                  setAttributeIncreases(prev => ({
+                                    ...prev,
+                                    [attr]: increase + 1
+                                  }));
+                                }
+                              }}
+                              disabled={remainingASIPoints === 0 || atMax}
+                              className="flex-1"
+                            >
+                              +
+                            </Button>
+                          </div>
+                          {atMax && <p className="text-xs text-yellow-400 mt-1">Máximo atingido (20)</p>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Feat Selecionado */}
+              {asiChoice === "feat" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary" className="text-sm">
+                      ✓ Escolher Talento (Feat)
+                    </Badge>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setAsiChoice(null);
+                        setSelectedFeat(null);
+                        setSelectedFeatAttribute(null);
+                      }}
+                    >
+                      Mudar escolha
+                    </Button>
+                  </div>
+
+                  {selectedFeat ? (
+                    <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-bold text-lg">{selectedFeat.name}</h3>
+                          <p className="text-sm text-muted-foreground">{selectedFeat.description}</p>
                         </div>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            if (remainingASIPoints > 0 && !atMax) {
-                              setAttributeIncreases(prev => ({
-                                ...prev,
-                                [attr]: increase + 1
-                              }));
-                            }
-                          }}
-                          disabled={remainingASIPoints === 0 || atMax}
-                          className="flex-1"
+                          onClick={() => setShowFeatSelector(true)}
                         >
-                          +
+                          Trocar
                         </Button>
                       </div>
-                      {atMax && <p className="text-xs text-yellow-400 mt-1">Máximo atingido (20)</p>}
+                      
+                      {selectedFeat.attributeBonus && (
+                        <Badge variant="secondary" className="flex items-center gap-1 w-fit">
+                          <TrendingUp className="w-3 h-3" />
+                          +{selectedFeat.attributeBonus.bonus}{" "}
+                          {selectedFeat.attributeBonus.attribute === "any" ? "Atributo à escolha" : 
+                           selectedFeat.attributeBonus.attribute === "strength" ? "Força" :
+                           selectedFeat.attributeBonus.attribute === "dexterity" ? "Destreza" :
+                           selectedFeat.attributeBonus.attribute === "constitution" ? "Constituição" :
+                           selectedFeat.attributeBonus.attribute === "intelligence" ? "Inteligência" :
+                           selectedFeat.attributeBonus.attribute === "wisdom" ? "Sabedoria" : "Carisma"}
+                        </Badge>
+                      )}
+                      
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold">Benefícios:</p>
+                        <ul className="text-sm space-y-1">
+                          {selectedFeat.benefits.slice(0, 3).map((benefit: string, idx: number) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="text-green-400">✓</span>
+                              <span>{benefit}</span>
+                            </li>
+                          ))}
+                          {selectedFeat.benefits.length > 3 && (
+                            <li className="text-xs text-muted-foreground italic">
+                              ... e mais {selectedFeat.benefits.length - 3} benefício(s)
+                            </li>
+                          )}
+                        </ul>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
+                  ) : (
+                    <Button
+                      onClick={() => setShowFeatSelector(true)}
+                      className="w-full"
+                      size="lg"
+                    >
+                      <Award className="w-5 h-5 mr-2" />
+                      Escolher Talento
+                    </Button>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -796,9 +1006,50 @@ export default function LevelUpPage() {
                       <h3 className="font-semibold">{feature.name}</h3>
                       <Badge variant="outline">{feature.type}</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    {/* Não mostrar descrição para ASI, pois já tem a escolha ASI/Feat */}
+                    {feature.type !== "ability_score_improvement" && (
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    )}
                   </div>
                 ))}
+                
+                {/* Escolha de atributo para Feat com "any" */}
+                {asiChoice === "feat" && selectedFeat && selectedFeat.attributeBonus?.attribute === "any" && (
+                  <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="w-4 h-4 text-primary" />
+                      <h3 className="font-semibold text-primary">Escolha o Atributo para {selectedFeat.name}</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Este talento concede +{selectedFeat.attributeBonus.bonus} em um atributo à sua escolha:
+                    </p>
+                    <Select
+                      value={selectedFeatAttribute || ""}
+                      onValueChange={(value) => setSelectedFeatAttribute(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um atributo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="strength">Força</SelectItem>
+                        <SelectItem value="dexterity">Destreza</SelectItem>
+                        <SelectItem value="constitution">Constituição</SelectItem>
+                        <SelectItem value="intelligence">Inteligência</SelectItem>
+                        <SelectItem value="wisdom">Sabedoria</SelectItem>
+                        <SelectItem value="charisma">Carisma</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {selectedFeatAttribute && (
+                      <p className="text-sm text-green-400 mt-2">
+                        ✓ {selectedFeatAttribute === "strength" ? "Força" :
+                            selectedFeatAttribute === "dexterity" ? "Destreza" :
+                            selectedFeatAttribute === "constitution" ? "Constituição" :
+                            selectedFeatAttribute === "intelligence" ? "Inteligência" :
+                            selectedFeatAttribute === "wisdom" ? "Sabedoria" : "Carisma"} receberá +{selectedFeat.attributeBonus.bonus}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -971,6 +1222,17 @@ export default function LevelUpPage() {
           onSelect={(dragonType) => {
             setPendingDragonType(dragonType);
             toast.success(`Dragão Ancestral "${dragonType.name}" selecionado!`);
+          }}
+        />
+
+        {/* Dialog de Seleção de Feat */}
+        <FeatSelector
+          open={showFeatSelector}
+          onOpenChange={setShowFeatSelector}
+          onSelect={(feat) => {
+            setSelectedFeat(feat);
+            setSelectedFeatAttribute(null); // Resetar atributo ao trocar de feat
+            toast.success(`Talento "${feat.name}" selecionado!`);
           }}
         />
 
