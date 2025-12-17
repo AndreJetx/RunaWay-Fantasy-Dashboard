@@ -24,7 +24,12 @@ export async function POST(request: NextRequest) {
 
     // Garantir que o usuário existe na tabela users
     let dbUser = await db
-      .select()
+      .select({
+        id: schema.users.id,
+        username: schema.users.username,
+        email: schema.users.email,
+        role: schema.users.role,
+      })
       .from(schema.users)
       .where(eq(schema.users.id, user.id))
       .limit(1);
@@ -32,7 +37,12 @@ export async function POST(request: NextRequest) {
     // Se não encontrou por ID, tentar buscar por email
     if (dbUser.length === 0 && user.email) {
       const userByEmail = await db
-        .select()
+        .select({
+          id: schema.users.id,
+          username: schema.users.username,
+          email: schema.users.email,
+          role: schema.users.role,
+        })
         .from(schema.users)
         .where(eq(schema.users.email, user.email))
         .limit(1);

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,10 +13,11 @@ import { Sword } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(searchParams?.get("signup") === "true");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -92,12 +94,18 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-primary/20 border border-primary/50 flex items-center justify-center shadow-[0_0_15px_rgba(0,255,255,0.3)]">
-              <Sword className="w-7 h-7 text-primary" />
+            <div className="w-16 h-16 flex items-center justify-center relative">
+              <Image
+                src="/logo.png"
+                alt="RunaWay Logo"
+                width={64}
+                height={64}
+                className="object-contain w-full h-full drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]"
+              />
             </div>
             <div>
               <h1 className="font-cinzel font-bold text-xl tracking-wider text-foreground">
-                Runway Fantasy
+                RunaWay Fantasy
               </h1>
               <p className="text-xs text-muted-foreground tracking-widest uppercase">
                 Dashboard
@@ -227,3 +235,10 @@ export default function LoginPage() {
   );
 }
 
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <LoginForm />
+    </Suspense>
+  );
+}

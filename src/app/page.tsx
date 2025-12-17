@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Sword, Scroll, Map, Backpack, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
@@ -12,12 +13,18 @@ export default function LandingPage() {
       <header className="w-full border-b border-border/40 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/20 border border-primary/50 flex items-center justify-center shadow-[0_0_15px_rgba(0,255,255,0.3)]">
-              <Sword className="w-6 h-6 text-primary" />
+            <div className="w-12 h-12 flex items-center justify-center relative">
+              <Image
+                src="/logo.png"
+                alt="RunaWay Logo"
+                width={48}
+                height={48}
+                className="object-contain w-full h-full drop-shadow-[0_0_10px_rgba(0,255,255,0.5)]"
+              />
             </div>
             <div>
               <h1 className="font-cinzel font-bold text-lg tracking-wider text-foreground">
-                Runway Fantasy
+                RunaWay Fantasy
               </h1>
               <p className="text-xs text-muted-foreground tracking-widest uppercase">
                 Dashboard
@@ -51,7 +58,7 @@ export default function LandingPage() {
           </motion.div>
 
           <h1 className="text-5xl md:text-7xl font-bold font-cinzel text-foreground mb-6 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            Runway Fantasy Dashboard
+            RunaWay Fantasy Dashboard
           </h1>
 
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
@@ -60,7 +67,7 @@ export default function LandingPage() {
           </p>
 
           <div className="flex gap-4 justify-center pt-4">
-            <Link href="/login">
+            <Link href="/login?signup=true">
               <Button
                 size="lg"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6 h-auto"
@@ -131,7 +138,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="w-full border-t border-border/40 py-6">
         <div className="container mx-auto px-6 text-center text-sm text-muted-foreground">
-          <p>© 2024 Runway Fantasy Dashboard. Todos os direitos reservados.</p>
+          <p>© 2024 RunaWay Fantasy Dashboard. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>

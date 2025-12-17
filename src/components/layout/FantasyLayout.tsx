@@ -2,21 +2,23 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Sword, 
-  Scroll, 
-  Map as MapIcon, 
-  Backpack, 
-  LayoutDashboard, 
-  Feather, 
-  Menu, 
+import {
+  Sword,
+  Scroll,
+  Map as MapIcon,
+  Backpack,
+  LayoutDashboard,
+  Feather,
+  Menu,
   X,
   Settings,
   LogOut,
   ShoppingBag,
-  Sparkles
+  Sparkles,
+  Crown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -48,6 +50,7 @@ export function FantasyLayout({ children }: { children: React.ReactNode }) {
     { label: t("nav.notes"), icon: Feather, href: "/notes" },
     { label: t("nav.shop"), icon: ShoppingBag, href: "/shop" },
     { label: t("nav.spells"), icon: Sparkles, href: "/spells" },
+    { label: t("nav.customize"), icon: Crown, href: "/homebrew", className: "text-amber-400" },
   ];
 
   const navItemsPlayer = [
@@ -65,7 +68,7 @@ export function FantasyLayout({ children }: { children: React.ReactNode }) {
         data: { user },
       } = await supabase.auth.getUser();
       setUser(user);
-      
+
       // Buscar role do usuário na tabela users
       if (user) {
         try {
@@ -73,8 +76,15 @@ export function FantasyLayout({ children }: { children: React.ReactNode }) {
           if (res.ok) {
             const data = await res.json();
             const role = data.role || "player";
-            console.log("User role loaded:", role);
-            setUserRole(role);
+            // Normaliza o role para lowercase para comparação
+            const normalizedRole = role.toLowerCase() === "dm" ? "dm" : "player";
+            console.log("User role loaded:", {
+              rawRole: role,
+              normalizedRole: normalizedRole,
+              userId: data.id,
+              email: data.email,
+            });
+            setUserRole(normalizedRole);
           } else {
             console.error("Failed to fetch user role, status:", res.status);
             setUserRole("player"); // Default para player
@@ -102,38 +112,58 @@ export function FantasyLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-background font-sans text-foreground overflow-hidden relative">
+    <div className="min-h-screen flex bg-background font-sans text-foreground overflow-x-hidden relative w-full">
       {/* Background Texture Overlay */}
-      <div 
+      <div
         className="fixed inset-0 opacity-20 pointer-events-none z-0 mix-blend-overlay"
         style={{ backgroundImage: `url(${sidebarBg})`, backgroundSize: 'cover' }}
       />
 
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 border-b border-border bg-card/80 backdrop-blur-md z-50 flex items-center px-4 justify-between">
-        <div className="font-cinzel font-bold text-xl text-primary animate-pulse">Runway Fantasy</div>
+        <div className="font-cinzel font-bold text-xl text-primary animate-pulse">RunaWay Fantasy</div>
         <Button variant="ghost" size="icon" onClick={() => setIsMobileOpen(!isMobileOpen)}>
           {isMobileOpen ? <X /> : <Menu />}
         </Button>
       </div>
 
+      {/* Mobile Overlay Backdrop */}
+      <AnimatePresence>
+        {isMobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
+            onClick={() => setIsMobileOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
-      <aside 
+      <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-card/90 backdrop-blur-xl border-r border-border transform transition-transform duration-300 lg:translate-x-0 lg:static lg:block shadow-2xl",
+          "fixed inset-y-0 left-0 z-40 w-64 bg-card/90 border-r border-border transform transition-transform duration-300 lg:translate-x-0 lg:static lg:block shadow-2xl shrink-0",
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="h-full flex flex-col relative overflow-hidden">
-           {/* Decorative mystical glow at top */}
-           <div className="absolute top-0 left-0 right-0 h-32 bg-primary/10 blur-3xl pointer-events-none" />
+          {/* Decorative mystical glow at top */}
+          <div className="absolute top-0 left-0 right-0 h-32 bg-primary/10 blur-3xl pointer-events-none" />
 
           <div className="p-6 flex items-center gap-3 z-10">
-            <div className="w-10 h-10 rounded-lg bg-primary/20 border border-primary/50 flex items-center justify-center shadow-[0_0_15px_rgba(0,255,255,0.3)]">
-              <Sword className="w-6 h-6 text-primary" />
+            <div className="w-12 h-12 flex items-center justify-center relative">
+              <Image
+                src="/logo.png"
+                alt="RunaWay Logo"
+                width={48}
+                height={48}
+                className="object-contain w-full h-full drop-shadow-[0_0_10px_rgba(0,255,255,0.5)]"
+              />
             </div>
             <div>
-              <h1 className="font-cinzel font-bold text-lg tracking-wider text-foreground">Runway</h1>
+              <h1 className="font-cinzel font-bold text-lg tracking-wider text-foreground">RunaWay</h1>
               <p className="text-xs text-muted-foreground tracking-widest uppercase">Fantasy Dash</p>
             </div>
           </div>
@@ -177,19 +207,19 @@ export function FantasyLayout({ children }: { children: React.ReactNode }) {
                   )}
                   onClick={() => setIsMobileOpen(false)}
                 >
-                     {isActive && (
-                        <motion.div
-                          layoutId="activeNav"
-                          className="absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-100"
-                          initial={false}
-                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                        />
-                     )}
-                    <item.icon className={cn("w-5 h-5 relative z-10", isActive && "text-primary-foreground animate-pulse")} />
-                    <span className="relative z-10 font-cinzel tracking-wide">{item.label}</span>
-                    
-                    {/* Hover glow effect */}
-                    <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeNav"
+                      className="absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-100"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                  <item.icon className={cn("w-5 h-5 relative z-10", isActive && "text-primary-foreground animate-pulse", (item as any).className)} />
+                  <span className="relative z-10 font-cinzel tracking-wide">{item.label}</span>
+
+                  {/* Hover glow effect */}
+                  <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </Link>
               );
             })}
@@ -197,60 +227,59 @@ export function FantasyLayout({ children }: { children: React.ReactNode }) {
 
           <div className="p-4 border-t border-border z-10 bg-black/20">
             <div className="flex items-start gap-3 mb-4">
-               <Avatar className="border-2 border-primary/30 shadow-[0_0_10px_rgba(var(--primary),0.2)] shrink-0">
-                  <AvatarImage src={user?.user_metadata?.avatar_url} />
-                  <AvatarFallback>
-                    {user?.user_metadata?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "DM"}
-                  </AvatarFallback>
-               </Avatar>
-               <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-medium font-cinzel text-primary truncate">
-                      {user?.user_metadata?.username || "Dungeon Master"}
-                    </p>
-                    {userRole !== null && (
-                      <Badge 
-                        variant="outline" 
-                        className={`text-[10px] px-1.5 py-0 shrink-0 whitespace-nowrap ${
-                          userRole === "dm" 
-                            ? "border-purple-500/50 text-purple-400 bg-purple-500/10" 
-                            : "border-blue-500/50 text-blue-400 bg-blue-500/10"
-                        }`}
-                      >
-                        {userRole === "dm" ? t("campaign.master") : t("campaign.player")}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user?.email || "Level 20 Creator"}
+              <Avatar className="border-2 border-primary/30 shadow-[0_0_10px_rgba(var(--primary),0.2)] shrink-0">
+                <AvatarImage src={user?.user_metadata?.avatar_url} />
+                <AvatarFallback>
+                  {user?.user_metadata?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "DM"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm font-medium font-cinzel text-primary truncate">
+                    {user?.user_metadata?.username || "Dungeon Master"}
                   </p>
-               </div>
+                  {userRole !== null && (
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] px-1.5 py-0 shrink-0 whitespace-nowrap ${userRole === "dm"
+                        ? "border-purple-500/50 text-purple-400 bg-purple-500/10"
+                        : "border-blue-500/50 text-blue-400 bg-blue-500/10"
+                        }`}
+                    >
+                      {userRole === "dm" ? t("campaign.master") : t("campaign.player")}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground truncate">
+                  {user?.email || "Level 20 Creator"}
+                </p>
+              </div>
             </div>
             <div className="flex gap-2">
-               <Button 
-                 variant="outline" 
-                 size="sm" 
-                 className="w-full border-border/50 hover:border-primary/50 hover:bg-primary/10"
-                 onClick={() => router.push("/settings")}
-               >
-                  <Settings className="w-4 h-4 mr-2" /> {t("nav.settings")}
-               </Button>
-               <Button 
-                 variant="ghost" 
-                 size="icon" 
-                 className="shrink-0 hover:text-destructive"
-                 onClick={handleLogout}
-               >
-                  <LogOut className="w-4 h-4" />
-               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full border-border/50 hover:border-primary/50 hover:bg-primary/10"
+                onClick={() => router.push("/settings")}
+              >
+                <Settings className="w-4 h-4 mr-2" /> {t("nav.settings")}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0 hover:text-destructive"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 h-screen overflow-y-auto pt-16 lg:pt-0 relative z-10 scroll-smooth">
-        <div className="container mx-auto p-6 lg:p-8 max-w-7xl animate-in fade-in duration-500 slide-in-from-bottom-4">
+      <main className="flex-1 h-screen overflow-y-auto overflow-x-hidden pt-16 lg:pt-0 relative z-10 scroll-smooth min-w-0">
+        <div className="container mx-auto p-6 lg:p-8 max-w-7xl animate-in fade-in duration-500 slide-in-from-bottom-4 w-full max-w-full">
           {children}
         </div>
       </main>

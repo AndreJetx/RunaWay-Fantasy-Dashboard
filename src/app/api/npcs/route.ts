@@ -148,7 +148,8 @@ export async function POST(request: NextRequest) {
         description: parsed.description,
         backstory: parsed.backstory,
         notes: parsed.notes,
-        isHostile: parsed.isHostile ?? false,
+        // isHostile deve ser true apenas se explicitamente definido como true ou se o tipo for enemy/boss
+        isHostile: parsed.isHostile ?? (parsed.type === "enemy" || parsed.type === "boss"),
       })
       .returning();
 

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Coins, ShoppingCart, X } from "lucide-react";
+import { getItemIcon } from "@/lib/icon-mapper";
 import { useTranslation } from "@/lib/i18n/context";
 import { getEquipmentDescription } from "@/lib/i18n/equipment-descriptions";
 
@@ -360,7 +361,13 @@ export function ShopDialog({ open, onOpenChange, currentMoney, onPurchase }: Sho
                       onClick={() => fetchItemDetails(item.url, item.index)}
                     >
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">{translateEquipment(item.name)}</CardTitle>
+                        <div className="flex items-center gap-2">
+                          {(() => {
+                            const ItemIcon = getItemIcon(item.name, detail?.equipment_category?.index);
+                            return <ItemIcon className="w-5 h-5 text-primary flex-shrink-0" />;
+                          })()}
+                          <CardTitle className="text-sm">{translateEquipment(item.name)}</CardTitle>
+                        </div>
                       </CardHeader>
                       <CardContent className="pt-0 space-y-2">
                         {/* Dano da arma */}

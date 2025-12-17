@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -539,18 +539,31 @@ export function CreateEnemyDialog({
 }: CreateEnemyDialogProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [crFilter, setCrFilter] = useState<string>("all");
   const [selectedEnemy, setSelectedEnemy] = useState<any>(null);
   const [customName, setCustomName] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [creating, setCreating] = useState(false);
 
-  const filteredEnemies = ENEMY_DATA.filter((enemy) =>
-    enemy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    enemy.type.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Obter todos os CRs únicos para o filtro
+  const uniqueCRs = Array.from(new Set(ENEMY_DATA.map((enemy) => enemy.cr.toString()))).sort((a, b) => {
+    const numA = parseFloat(a);
+    const numB = parseFloat(b);
+    return numA - numB;
+  });
+
+  const filteredEnemies = ENEMY_DATA.filter((enemy) => {
+    const matchesSearch =
+      enemy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      enemy.type.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCR = crFilter === "all" || enemy.cr.toString() === crFilter;
+    return matchesSearch && matchesCR;
+  });
 
   const handleSelectEnemy = (enemy: any) => {
     setSelectedEnemy(enemy);
     setCustomName(enemy.name);
+    setImageUrl("");
   };
 
   const handleCreate = async () => {
@@ -561,29 +574,68 @@ export function CreateEnemyDialog({
 
     setCreating(true);
     try {
+      // Preparar dados do inimigo para envio
+      const hpMatch = selectedEnemy.hp?.match(/\d+/);
+      const hpValue = hpMatch ? parseInt(hpMatch[0], 10) : 10;
+      
+      const speedMatch = selectedEnemy.speed?.match(/\d+/);
+      const speedValue = speedMatch ? parseInt(speedMatch[0], 10) : 30;
+
+      const enemyData: any = {
+        name: customName || selectedEnemy.name,
+        challengeRating: selectedEnemy.cr?.toString() || undefined,
+        type: "enemy", // Sempre definir como "enemy" quando criar através deste dialog
+        size: selectedEnemy.size || undefined,
+        alignment: selectedEnemy.alignment || undefined,
+        armorClass: selectedEnemy.ac || 10,
+        maxHp: hpValue,
+        currentHp: hpValue,
+        speed: speedValue,
+        hitDice: selectedEnemy.hp || undefined,
+        abilities: selectedEnemy.abilities || {},
+        savingThrows: selectedEnemy.saving_throws || [],
+        skills: selectedEnemy.skills || [],
+        damageVulnerabilities: selectedEnemy.damage_vulnerabilities || [],
+        damageResistances: selectedEnemy.damage_resistances || [],
+        damageImmunities: selectedEnemy.damage_immunities || [],
+        conditionImmunities: selectedEnemy.condition_immunities || [],
+        senses: selectedEnemy.senses || undefined,
+        languages: selectedEnemy.languages || undefined,
+        actions: selectedEnemy.actions || [],
+        specialTraits: selectedEnemy.special_traits || [],
+        isHostile: true, // Sempre true para inimigos criados através deste dialog
+      };
+
+      // Adicionar campos opcionais apenas se tiverem valor
+      if (imageUrl) {
+        enemyData.image = imageUrl;
+      }
+      if (chapterId) {
+        enemyData.chapterId = chapterId;
+      }
+
       const res = await fetch(`/api/campaigns/${campaignId}/npcs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...selectedEnemy,
-          name: customName || selectedEnemy.name,
-          chapterId: chapterId || null,
-        }),
+        body: JSON.stringify(enemyData),
       });
 
       if (!res.ok) {
-        throw new Error("Failed to create enemy");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Erro ao criar inimigo: ${res.status}`);
       }
 
       toast.success(`Inimigo "${customName || selectedEnemy.name}" criado!`);
       setOpen(false);
       setSelectedEnemy(null);
       setCustomName("");
+      setImageUrl("");
       setSearchTerm("");
+      setCrFilter("all");
       onEnemyCreated?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating enemy:", error);
-      toast.error("Erro ao criar inimigo");
+      toast.error(error.message || "Erro ao criar inimigo");
     } finally {
       setCreating(false);
     }
@@ -596,27 +648,44 @@ export function CreateEnemyDialog({
           <Plus className="mr-2 h-4 w-4" /> Criar Inimigo
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Criar Inimigo</DialogTitle>
           <DialogDescription>
             Selecione um inimigo da lista ou busque por nome/tipo
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-4 h-[600px]">
+        <div className="grid grid-cols-2 gap-4 flex-1 min-h-0">
           {/* Lista de Inimigos */}
-          <div className="flex flex-col space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar inimigo..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          <div className="flex flex-col space-y-4 min-h-0">
+            <div className="flex flex-col gap-2 flex-shrink-0">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar inimigo..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <div>
+                <Select value={crFilter} onValueChange={setCrFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filtrar por CR (todos)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os CRs</SelectItem>
+                    {uniqueCRs.map((cr) => (
+                      <SelectItem key={cr} value={cr}>
+                        CR {cr}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <ScrollArea className="flex-1 border rounded-md">
+            <ScrollArea className="flex-1 min-h-0 border rounded-md">
               <div className="p-2 space-y-2">
                 {filteredEnemies.map((enemy) => (
                   <div
@@ -644,19 +713,31 @@ export function CreateEnemyDialog({
           </div>
 
           {/* Preview do Inimigo Selecionado */}
-          <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-4 min-h-0">
             {selectedEnemy ? (
               <>
-                <div>
-                  <Label htmlFor="customName">Nome do Inimigo</Label>
-                  <Input
-                    id="customName"
-                    value={customName}
-                    onChange={(e) => setCustomName(e.target.value)}
-                    placeholder={selectedEnemy.name}
-                  />
+                <div className="flex flex-col gap-2 flex-shrink-0">
+                  <div>
+                    <Label htmlFor="customName">Nome do Inimigo</Label>
+                    <Input
+                      id="customName"
+                      value={customName}
+                      onChange={(e) => setCustomName(e.target.value)}
+                      placeholder={selectedEnemy.name}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="imageUrl">URL da Imagem (opcional)</Label>
+                    <Input
+                      id="imageUrl"
+                      type="url"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      placeholder="https://exemplo.com/imagem.jpg"
+                    />
+                  </div>
                 </div>
-                <ScrollArea className="flex-1 border rounded-md p-4">
+                <ScrollArea className="flex-1 min-h-0 border rounded-md p-4">
                   <div className="space-y-4">
                     <div>
                       <h3 className="font-bold text-lg">{selectedEnemy.name}</h3>
@@ -762,7 +843,7 @@ export function CreateEnemyDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0">
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancelar
           </Button>

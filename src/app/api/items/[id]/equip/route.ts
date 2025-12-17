@@ -3,6 +3,9 @@ import { db, schema } from "@/lib/db";
 import { eq, and } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
+import { calculateAC, parseArmorDescription, isShield } from "@/lib/ac-calculator";
+import { getUnarmoredDefenseType } from "@/lib/class-ac-helper";
+import { getDbUser } from "@/lib/user-helper";
 
 const equipItemSchema = z.object({
   characterId: z.string().uuid(),
@@ -38,18 +41,41 @@ export async function PUT(
       return NextResponse.json({ error: "Item not found" }, { status: 404 });
     }
 
-    // Verificar se o item pertence ao usuário
-    let dbUser = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.id, user.id))
-      .limit(1);
+    // Buscar usuário no banco de dados (tenta por ID e depois por email)
+    let dbUser = await getDbUser(user.id, user.email);
 
-    if (dbUser.length === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // Se não encontrou, criar usuário automaticamente
+    if (!dbUser) {
+      if (!user.email) {
+        return NextResponse.json({ error: "User email not found" }, { status: 400 });
+      }
+
+      // Criar usuário no banco de dados
+      const [newUser] = await db
+        .insert(schema.users)
+        .values({
+          id: user.id,
+          email: user.email,
+          username: user.email.split("@")[0],
+          role: "player",
+        } as any)
+        .returning();
+
+      dbUser = {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+      };
     }
 
-    if (item.ownerId !== user.id && item.ownerId !== dbUser[0].id) {
+    // Verificar se o item pertence ao usuário (comparar com ambos os IDs)
+    const userIds = [user.id];
+    if (dbUser && dbUser.id !== user.id) {
+      userIds.push(dbUser.id);
+    }
+
+    if (!userIds.includes(item.ownerId)) {
       return NextResponse.json(
         { error: "You don't own this item" },
         { status: 403 }
@@ -67,8 +93,8 @@ export async function PUT(
       return NextResponse.json({ error: "Character not found" }, { status: 404 });
     }
 
-    // Verificar se o personagem pertence ao usuário
-    if (character.playerId !== user.id && character.playerId !== dbUser[0].id) {
+    // Verificar se o personagem pertence ao usuário (comparar com ambos os IDs)
+    if (!userIds.includes(character.playerId)) {
       return NextResponse.json(
         { error: "This character doesn't belong to you" },
         { status: 403 }
@@ -82,24 +108,49 @@ export async function PUT(
       .where(eq(schema.items.id, itemId))
       .returning();
 
-    // Se for armadura e estiver equipando, atualizar CA do personagem
-    if (parsed.equipped && item.type === "Armor") {
-      // Extrair CA adicional da descrição (formato: "CA: +X")
-      let acBonus = 0;
-      if (item.description) {
-        const acMatch = item.description.match(/CA:\s*\+(\d+)/i);
-        if (acMatch) {
-          acBonus = parseInt(acMatch[1], 10);
-        }
-      }
-
-      // Calcular novo CA (CA base + bônus da armadura)
-      // CA base geralmente é 10 + modificador de Destreza
+    // Se for armadura ou escudo, recalcular CA
+    if (item.type === "Armor" || isShield(item.name)) {
       const attributes = (character.attributes as any) || {};
-      const dexterity = attributes.dexterity || 10;
-      const dexModifier = Math.floor((dexterity - 10) / 2);
-      const baseAC = 10 + dexModifier;
-      const newAC = baseAC + acBonus;
+
+      // Buscar todos os itens equipados do personagem
+      const equippedItems = await db
+        .select()
+        .from(schema.items)
+        .where(
+          and(
+            eq(schema.items.ownerId, item.ownerId),
+            eq(schema.items.campaignId, item.campaignId),
+            eq(schema.items.equipped, true)
+          )
+        );
+
+      // Encontrar armadura equipada (se houver)
+      const equippedArmor = equippedItems.find((i) => i.type === "Armor");
+      const armorInfo = equippedArmor
+        ? parseArmorDescription(equippedArmor.description)
+        : undefined;
+
+      // Verificar se há escudo equipado
+      const hasShield = equippedItems.some((i) => isShield(i.name));
+
+      // Verificar se o personagem tem Unarmored Defense da classe
+      const unarmoredDefense = getUnarmoredDefenseType(character.characterClass);
+
+      console.log("Equip item - Character data:", {
+        characterClass: character.characterClass,
+        unarmoredDefense,
+        attributes,
+        armorInfo,
+        hasShield,
+      });
+
+      // Calcular CA usando a função auxiliar
+      const newAC = calculateAC({
+        characterAttributes: attributes,
+        unarmoredDefense,
+        equippedArmor: armorInfo || undefined,
+        equippedShield: hasShield,
+      });
 
       await db
         .update(schema.characters)
@@ -109,26 +160,9 @@ export async function PUT(
       return NextResponse.json({
         item: updatedItem,
         characterAC: newAC,
-        message: "Item equipped and armor class updated",
-      });
-    }
-
-    // Se estiver desequipando armadura, recalcular CA sem o bônus
-    if (!parsed.equipped && item.type === "Armor") {
-      const attributes = (character.attributes as any) || {};
-      const dexterity = attributes.dexterity || 10;
-      const dexModifier = Math.floor((dexterity - 10) / 2);
-      const baseAC = 10 + dexModifier;
-
-      await db
-        .update(schema.characters)
-        .set({ armorClass: baseAC })
-        .where(eq(schema.characters.id, parsed.characterId));
-
-      return NextResponse.json({
-        item: updatedItem,
-        characterAC: baseAC,
-        message: "Item unequipped and armor class updated",
+        message: parsed.equipped
+          ? "Item equipped and armor class updated"
+          : "Item unequipped and armor class updated",
       });
     }
 

@@ -42,22 +42,21 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
         setCampaigns(data.campaigns || []);
         setIsDM(data.isDM);
 
-        // Set first campaign as active if none selected
-        if (!activeCampaign && data.campaigns && data.campaigns.length > 0) {
+        // Restore active campaign from localStorage or set first one
+        const savedId = localStorage.getItem("activeCampaignId");
+        if (savedId && data.campaigns) {
+          const saved = data.campaigns.find((c: Campaign) => c.id === savedId);
+          if (saved) {
+            setActiveCampaign(saved);
+          } else if (data.campaigns.length > 0) {
+            // Saved campaign not found, use first one
+            setActiveCampaign(data.campaigns[0]);
+            localStorage.setItem("activeCampaignId", data.campaigns[0].id);
+          }
+        } else if (data.campaigns && data.campaigns.length > 0) {
+          // No saved campaign, use first one
           setActiveCampaign(data.campaigns[0]);
           localStorage.setItem("activeCampaignId", data.campaigns[0].id);
-        } else if (activeCampaign) {
-          // Restore active campaign from localStorage or find it in the list
-          const savedId = localStorage.getItem("activeCampaignId");
-          if (savedId) {
-            const saved = data.campaigns?.find((c: Campaign) => c.id === savedId);
-            if (saved) {
-              setActiveCampaign(saved);
-            } else if (data.campaigns && data.campaigns.length > 0) {
-              setActiveCampaign(data.campaigns[0]);
-              localStorage.setItem("activeCampaignId", data.campaigns[0].id);
-            }
-          }
         }
       }
     } catch (error) {
@@ -65,11 +64,11 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [activeCampaign]);
+  }, []); // Removido activeCampaign das dependências para evitar loop infinito
 
   useEffect(() => {
     fetchCampaigns();
-  }, [fetchCampaigns]);
+  }, []); // Executa apenas uma vez ao montar
 
   const handleSetActiveCampaign = (campaign: Campaign | null) => {
     setActiveCampaign(campaign);

@@ -658,12 +658,13 @@ export default function CampaignDetailsPage() {
                               Lvl {enemy.level}
                             </Badge>
                           )}
-                          {enemy.maxHp && (
+                          {/* Jogadores não veem HP e CA de inimigos */}
+                          {isDM && enemy.maxHp && (
                             <span className="text-muted-foreground">
                               HP: {enemy.currentHp || 0}/{enemy.maxHp}
                             </span>
                           )}
-                          {enemy.armorClass && (
+                          {isDM && enemy.armorClass && (
                             <span className="text-muted-foreground">
                               CA: {enemy.armorClass}
                             </span>
@@ -926,18 +927,16 @@ export default function CampaignDetailsPage() {
                         )}
                       </div>
                     </CardHeader>
-                    {chapter.description && (
-                      <CardContent>
+                    <CardContent className="space-y-4">
+                      {chapter.description && (
                         <p className="text-muted-foreground">{chapter.description}</p>
-                      </CardContent>
-                    )}
-                    {chapter.isCompleted && chapter.completedAt && (
-                      <CardContent>
+                      )}
+                      {chapter.isCompleted && chapter.completedAt && (
                         <p className="text-xs text-muted-foreground">
                           Concluído em: {new Date(chapter.completedAt).toLocaleDateString("pt-BR")}
                         </p>
-                      </CardContent>
-                    )}
+                      )}
+                    </CardContent>
                   </Card>
                 ))}
               </div>

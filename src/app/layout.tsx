@@ -3,8 +3,11 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Runway Fantasy Dashboard",
+  title: "RunaWay Fantasy Dashboard",
   description: "Immersive RPG campaign manager and dashboard",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({

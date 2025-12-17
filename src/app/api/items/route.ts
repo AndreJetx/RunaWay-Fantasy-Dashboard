@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db, schema } from "@/lib/db";
 import { itemRarityEnum, itemTypeEnum } from "@shared/schema";
 import { createClient } from "@/lib/supabase/server";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { getDbUser } from "@/lib/user-helper";
 
 const itemTypeValues = itemTypeEnum.enumValues as [string, ...string[]];
@@ -38,19 +38,10 @@ export async function GET(request: Request) {
     const campaignId = searchParams.get("campaignId");
 
     // Buscar usuário otimizado
-    const dbUser = await db
-      .select({
-        id: schema.users.id,
-        role: schema.users.role,
-      })
-      .from(schema.users)
-      .where(eq(schema.users.id, user.id))
-      .limit(1);
+    const dbUser = await getDbUser(user.id, user.email);
+    const isDM = dbUser?.role === "dm" || dbUser?.role === "admin";
 
-    const isDM = dbUser[0]?.role === "dm" || dbUser[0]?.role === "admin";
-
-    // Se for DM e tem campaignId, mostrar todos os itens da campanha
-    // Se for jogador, mostrar apenas seus itens
+    // Se for DM e tem campaignId, mostrar todos os itens da campanha com informações do dono
     if (isDM && campaignId) {
       const items = await db
         .select({
@@ -63,14 +54,80 @@ export async function GET(request: Request) {
           quantity: schema.items.quantity,
           equipped: schema.items.equipped,
           image: schema.items.image,
+          description: schema.items.description,
         })
         .from(schema.items)
         .where(eq(schema.items.campaignId, campaignId))
         .limit(100);
-      return NextResponse.json(items);
+
+      // Buscar informações dos donos (personagens e usuários) em paralelo
+      const ownerIds = [...new Set(items.map(item => item.ownerId))];
+      
+      if (ownerIds.length === 0) {
+        return NextResponse.json(items);
+      }
+
+      const [characters, users] = await Promise.all([
+        // Buscar personagens dos donos (ownerId pode ser playerId ou userId)
+        db
+          .select({
+            id: schema.characters.id,
+            name: schema.characters.name,
+            playerId: schema.characters.playerId,
+          })
+          .from(schema.characters)
+          .where(
+            and(
+              eq(schema.characters.campaignId, campaignId),
+              inArray(schema.characters.playerId, ownerIds)
+            )
+          ),
+        // Buscar usuários
+        db
+          .select({
+            id: schema.users.id,
+            username: schema.users.username,
+          })
+          .from(schema.users)
+          .where(inArray(schema.users.id, ownerIds))
+          .limit(100),
+      ]);
+
+      // Criar mapas para busca rápida
+      // Mapa: ownerId -> nome do personagem
+      const characterMap = new Map(characters.map(char => [char.playerId, char.name]));
+      // Mapa: userId -> username
+      const userMap = new Map(users.map(user => [user.id, user.username]));
+
+      // Adicionar informações do dono aos itens
+      const itemsWithOwner = items.map(item => {
+        // Tentar encontrar pelo personagem primeiro (ownerId = playerId)
+        const characterName = characterMap.get(item.ownerId);
+        // Se não encontrou personagem, tentar pelo usuário
+        const userName = userMap.get(item.ownerId);
+        const ownerName = characterName || userName || "Desconhecido";
+        
+        return {
+          ...item,
+          ownerName,
+        };
+      });
+
+      return NextResponse.json(itemsWithOwner);
     }
 
-    // Jogador: apenas seus itens
+    // Jogador: apenas seus itens (buscar por ambos os IDs: Supabase Auth ID e DB ID)
+    const userIds = [user.id];
+    if (dbUser && dbUser.id !== user.id) {
+      userIds.push(dbUser.id);
+    }
+
+    // Construir condições de busca
+    const conditions = [inArray(schema.items.ownerId, userIds)];
+    if (campaignId) {
+      conditions.push(eq(schema.items.campaignId, campaignId));
+    }
+
     const items = await db
       .select({
         id: schema.items.id,
@@ -82,9 +139,10 @@ export async function GET(request: Request) {
         quantity: schema.items.quantity,
         equipped: schema.items.equipped,
         image: schema.items.image,
+        description: schema.items.description,
       })
       .from(schema.items)
-      .where(eq(schema.items.ownerId, user.id))
+      .where(conditions.length === 1 ? conditions[0] : and(...conditions))
       .limit(100);
     
     return NextResponse.json(items);

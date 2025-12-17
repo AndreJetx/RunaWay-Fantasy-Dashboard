@@ -175,17 +175,19 @@ export default function NPCsPage() {
                   <Plus className="mr-2 h-4 w-4" /> Criar NPC
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
+              <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+                <DialogHeader className="flex-shrink-0">
                   <DialogTitle>Criar NPC a partir de Template</DialogTitle>
                 </DialogHeader>
-                <CreateNPCForm
-                  campaignId={campaignId}
-                  onSuccess={() => {
-                    setIsCreateDialogOpen(false);
-                    fetchNPCs();
-                  }}
-                />
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  <CreateNPCForm
+                    campaignId={campaignId}
+                    onSuccess={() => {
+                      setIsCreateDialogOpen(false);
+                      fetchNPCs();
+                    }}
+                  />
+                </div>
               </DialogContent>
             </Dialog>
           )}
@@ -229,31 +231,47 @@ export default function NPCsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className="bg-card/40 border-white/10 hover:border-primary/50 transition-colors cursor-pointer h-full flex flex-col">
+                <Card className={`bg-card/40 border-white/10 transition-colors h-full flex flex-col ${
+                  !isDM && npc.isHostile ? "cursor-default" : "cursor-pointer hover:border-primary/50"
+                }`}>
                   <div
                     className="p-4 flex-1"
-                    onClick={() => handleViewNpc(npc)}
+                    onClick={() => {
+                      if (!isDM && npc.isHostile) {
+                        // Jogadores não podem clicar em inimigos
+                        return;
+                      }
+                      handleViewNpc(npc);
+                    }}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <h3 className="font-bold text-lg mb-1">{npc.name}</h3>
-                        <div className="flex gap-2 flex-wrap">
-                          {npc.type && (
-                            <Badge variant="outline" className="text-xs">
-                              {npc.type}
-                            </Badge>
-                          )}
-                          {npc.challengeRating && (
-                            <Badge variant="outline" className="text-xs">
-                              CR {npc.challengeRating}
-                            </Badge>
-                          )}
-                          {npc.isHostile && (
-                            <Badge variant="destructive" className="text-xs">
-                              <Skull className="h-3 w-3 mr-1" /> Hostil
-                            </Badge>
-                          )}
-                        </div>
+                        {!isDM && npc.isHostile ? (
+                          // Jogador vê apenas nome de inimigos
+                          <Badge variant="destructive" className="text-xs mt-1">
+                            <Skull className="h-3 w-3 mr-1" /> Inimigo
+                          </Badge>
+                        ) : (
+                          // DM ou NPCs não hostis: mostrar badges completos
+                          <div className="flex gap-2 flex-wrap">
+                            {npc.type && (
+                              <Badge variant="outline" className="text-xs">
+                                {npc.type}
+                              </Badge>
+                            )}
+                            {npc.challengeRating && (
+                              <Badge variant="outline" className="text-xs">
+                                CR {npc.challengeRating}
+                              </Badge>
+                            )}
+                            {npc.isHostile && (
+                              <Badge variant="destructive" className="text-xs">
+                                <Skull className="h-3 w-3 mr-1" /> Hostil
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -276,9 +294,9 @@ export default function NPCsPage() {
                       </div>
                     )}
 
-                    {!isDM && (
+                    {!isDM && !npc.isHostile && npc.type && (
                       <p className="text-sm text-muted-foreground mt-2">
-                        {npc.isHostile ? "Inimigo" : "NPC"}
+                        NPC - {npc.type}
                       </p>
                     )}
                   </div>
@@ -859,6 +877,7 @@ function CreateNPCForm({
 
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [customName, setCustomName] = useState("");
+  const [npcType, setNpcType] = useState<"npc" | "enemy" | "boss">("npc");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -886,6 +905,7 @@ function CreateNPCForm({
               ...monsterData,
               name: customName || monsterData.name,
             },
+            npcType: npcType,
           }),
         }
       );
@@ -906,42 +926,61 @@ function CreateNPCForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="template">Template de Monstro</Label>
-        <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-          <SelectTrigger id="template">
-            <SelectValue placeholder="Selecione um template" />
-          </SelectTrigger>
-          <SelectContent>
-            {monsterTemplates.map((template) => (
-              <SelectItem key={template.name} value={template.name}>
-                {template.name} (CR {template.cr}, {template.type})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <form onSubmit={handleSubmit} className="flex flex-col h-full">
+      <ScrollArea className="flex-1 pr-4 -mr-4">
+        <div className="space-y-4 pb-4">
+          <div>
+            <Label htmlFor="template">Template de Monstro</Label>
+            <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+              <SelectTrigger id="template">
+                <SelectValue placeholder="Selecione um template" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px] z-[100]">
+                {monsterTemplates.map((template) => (
+                  <SelectItem key={template.name} value={template.name}>
+                    {template.name} (CR {template.cr}, {template.type})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-      {selectedTemplate && (
-        <div>
-          <Label htmlFor="customName">Nome Personalizado (opcional)</Label>
-          <Input
-            id="customName"
-            placeholder={`Deixe vazio para usar "${monsterDataMap[selectedTemplate]?.name}"`}
-            value={customName}
-            onChange={(e) => setCustomName(e.target.value)}
-          />
+          {selectedTemplate && (
+            <>
+              <div>
+                <Label htmlFor="npcType">Tipo</Label>
+                <Select value={npcType} onValueChange={(value) => setNpcType(value as "npc" | "enemy" | "boss")}>
+                  <SelectTrigger id="npcType">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="npc">NPC</SelectItem>
+                    <SelectItem value="enemy">Inimigo</SelectItem>
+                    <SelectItem value="boss">Boss</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="customName">Nome Personalizado (opcional)</Label>
+                <Input
+                  id="customName"
+                  placeholder={`Deixe vazio para usar "${monsterDataMap[selectedTemplate]?.name}"`}
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                />
+              </div>
+            </>
+          )}
         </div>
-      )}
-
-      <div className="flex justify-end gap-2">
+      </ScrollArea>
+      <div className="flex justify-end gap-2 pt-4 border-t mt-4">
         <Button
           type="button"
           variant="outline"
           onClick={() => {
             setSelectedTemplate("");
             setCustomName("");
+            setNpcType("npc");
           }}
         >
           Cancelar
@@ -971,31 +1010,72 @@ function ViewNPCDialog({
   onUpdate: () => void;
 }) {
   if (!isDM) {
-    // Jogador vê apenas informações básicas
+    // Jogador: se for hostil, mostra apenas nome. Se for NPC, mostra ficha completa
+    if (npc.isHostile) {
+      return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+          <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle>{npc.name}</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <Badge variant="destructive" className="mb-4">
+                <Skull className="h-4 w-4 mr-2" /> Inimigo
+              </Badge>
+              <p className="text-muted-foreground">
+                Você encontrou este inimigo, mas ainda não conhece seus detalhes.
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
+      );
+    }
+    
+    // Jogador vê ficha completa de NPCs (não hostis)
     return (
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>{npc.name}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex gap-2 flex-wrap">
-              {npc.type && (
-                <Badge variant="outline">{npc.type}</Badge>
+          <ScrollArea className="flex-1 pr-4">
+            <div className="space-y-4">
+              <div className="flex gap-2 flex-wrap">
+                {npc.type && (
+                  <Badge variant="outline">{npc.type}</Badge>
+                )}
+                {npc.challengeRating && (
+                  <Badge variant="outline">CR {npc.challengeRating}</Badge>
+                )}
+              </div>
+              <p className="text-muted-foreground">
+                Este é um NPC da campanha.
+              </p>
+              {/* Mostrar informações completas do NPC para jogadores */}
+              {(npc.currentHp !== null || npc.maxHp !== null || npc.armorClass !== null) && (
+                <div className="grid grid-cols-2 gap-4">
+                  {npc.currentHp !== null && npc.maxHp !== null && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">PV</Label>
+                      <p className="font-bold">{npc.currentHp} / {npc.maxHp}</p>
+                    </div>
+                  )}
+                  {npc.armorClass !== null && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">CA</Label>
+                      <p className="font-bold">{npc.armorClass}</p>
+                    </div>
+                  )}
+                </div>
               )}
-              {npc.challengeRating && (
-                <Badge variant="outline">CR {npc.challengeRating}</Badge>
-              )}
-              {npc.isHostile && (
-                <Badge variant="destructive">Hostil</Badge>
+              {npc.description && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">Descrição</Label>
+                  <p className="text-sm">{npc.description}</p>
+                </div>
               )}
             </div>
-            <p className="text-muted-foreground">
-              {npc.isHostile
-                ? "Este é um inimigo que você encontrou."
-                : "Este é um NPC da campanha."}
-            </p>
-          </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     );
@@ -1004,11 +1084,11 @@ function ViewNPCDialog({
   // DM vê ficha completa
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl font-cinzel">{npc.name}</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[calc(90vh-120px)]">
+        <ScrollArea className="flex-1 pr-4">
           <div className="space-y-6 pr-4">
             {/* Informações Básicas */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
