@@ -68,6 +68,7 @@ const userColumns = {
     .notNull()
     .default(sql`now()`),
   lastLogin: timestamp("last_login", { withTimezone: true }),
+  isPremium: boolean("is_premium").default(false),
 };
 
 export const users = pgTable("users", userColumns, (table) => ({
@@ -141,6 +142,8 @@ const characterColumns = {
   race: text("race"),
   characterClass: text("character_class").notNull(),
   subclass: text("subclass"),
+  pact: text("pact"), // Para Bruxos: Pacto da Lâmina, Pacto da Corrente, etc.
+  dragonType: text("dragon_type"), // Para Feiticeiros Dracônicos: tipo de dragão ancestral
   level: integer("level").notNull().default(1),
   experiencePoints: integer("experience_points").default(0),
   background: text("background"),
@@ -403,6 +406,24 @@ export const authTokens = pgTable("auth_tokens", authTokenColumns, (table) => ({
   tokenUnique: uniqueIndex("auth_tokens_token_unique").on(table.token),
 }));
 
+export const homebrewContent = pgTable("homebrew_content", {
+  id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // "spell", "item", "monster", "subclass", "background", "race", "class"
+  name: text("name").notNull(),
+  description: text("description"),
+  data: jsonb("data").default(sql`'{}'::jsonb`).notNull(), // Specific fields for each type
+  isPublic: boolean("is_public").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+});
+
 export const insertUserSchema = createInsertSchema(users, {
   email: z.string().email(),
   role: z.enum(["player", "dm", "admin"]).optional(),
@@ -426,3 +447,4 @@ export type Item = typeof items.$inferSelect;
 export type Map = typeof maps.$inferSelect;
 export type Note = typeof notes.$inferSelect;
 export type AuthToken = typeof authTokens.$inferSelect;
+export type HomebrewContent = typeof homebrewContent.$inferSelect;

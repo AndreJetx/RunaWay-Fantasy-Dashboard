@@ -171,7 +171,7 @@ export default function Characters() {
                   transition={{ delay: index * 0.1 }}
                 >
                   <Card 
-                    className="bg-card/40 border-primary/20 backdrop-blur-sm overflow-hidden hover:border-primary/60 transition-all duration-300 group magic-border cursor-pointer"
+                    className="bg-card/40 border-primary/20 backdrop-blur-sm overflow-hidden hover:border-primary/60 transition-all duration-300 cursor-pointer"
                     onClick={() => router.push(`/characters/${char.id}`)}
                   >
                     <div className="relative h-48 overflow-hidden">
@@ -180,7 +180,7 @@ export default function Characters() {
                         src={char.image || avatarPlaceholder}
                         alt={char.name}
                         fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="object-cover transition-transform duration-300 hover:scale-105"
                         sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                       />
                       <Badge className="absolute top-3 right-3 z-20 bg-black/60 border-primary/30 backdrop-blur text-primary">
@@ -198,23 +198,23 @@ export default function Characters() {
                       </p>
                       
                       <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                        <div className="bg-white/5 p-2 rounded border border-white/5">
-                          <Heart className="w-4 h-4 mx-auto mb-1 text-red-400" />
-                          <span className="text-white font-bold">
-                            {char.currentHp}/{char.maxHp}
+                        <div className="bg-white/5 p-2 rounded border border-white/5 overflow-hidden">
+                          <Heart className="w-4 h-4 mx-auto mb-1 text-red-400 flex-shrink-0" />
+                          <span className="text-white font-bold text-[10px] leading-tight block truncate">
+                            {char.currentHp}
                           </span>
                         </div>
-                        <div className="bg-white/5 p-2 rounded border border-white/5">
-                          <Shield className="w-4 h-4 mx-auto mb-1 text-blue-400" />
-                          <span className="text-white font-bold">{char.armorClass}</span>
+                        <div className="bg-white/5 p-2 rounded border border-white/5 overflow-hidden">
+                          <Shield className="w-4 h-4 mx-auto mb-1 text-blue-400 flex-shrink-0" />
+                          <span className="text-white font-bold text-[10px] leading-tight block truncate">{char.armorClass}</span>
                         </div>
-                        <div className="bg-white/5 p-2 rounded border border-white/5">
-                          <Zap className="w-4 h-4 mx-auto mb-1 text-yellow-400" />
-                          <span className="text-white font-bold">{dexterity}</span>
+                        <div className="bg-white/5 p-2 rounded border border-white/5 overflow-hidden">
+                          <Zap className="w-4 h-4 mx-auto mb-1 text-yellow-400 flex-shrink-0" />
+                          <span className="text-white font-bold text-[10px] leading-tight block truncate">{dexterity}</span>
                         </div>
-                        <div className="bg-white/5 p-2 rounded border border-white/5">
-                          <Brain className="w-4 h-4 mx-auto mb-1 text-purple-400" />
-                          <span className="text-white font-bold">{intelligence}</span>
+                        <div className="bg-white/5 p-2 rounded border border-white/5 overflow-hidden">
+                          <Brain className="w-4 h-4 mx-auto mb-1 text-purple-400 flex-shrink-0" />
+                          <span className="text-white font-bold text-[10px] leading-tight block truncate">{intelligence}</span>
                         </div>
                       </div>
                     </CardContent>

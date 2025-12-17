@@ -258,6 +258,8 @@ export async function POST(request: Request) {
         race: parsed.race,
         characterClass: parsed.characterClass,
         subclass: parsed.subclass,
+        pact: (parsed as any).pact,
+        dragonType: (parsed as any).dragonType,
         level: parsed.level ?? 1,
         experiencePoints: parsed.experiencePoints ?? 0,
         background: parsed.background,
@@ -294,6 +296,27 @@ export async function POST(request: Request) {
         notes: parsed.notes,
       })
       .returning();
+
+    // Processar todos os itens do inventário e criar na tabela items
+    if (parsed.inventory && parsed.inventory.length > 0) {
+      const { processInventoryToItems } = await import("@/lib/inventory-helper");
+      await processInventoryToItems(
+        character.id,
+        parsed.campaignId,
+        finalPlayerId,
+        parsed.inventory,
+        parsed.attributes
+      );
+      
+      // Recarregar personagem para pegar CA atualizado
+      const [updatedCharacter] = await db
+        .select()
+        .from(schema.characters)
+        .where(eq(schema.characters.id, character.id))
+        .limit(1);
+      
+      return NextResponse.json(updatedCharacter || character, { status: 201 });
+    }
 
     return NextResponse.json(character, { status: 201 });
   } catch (error) {

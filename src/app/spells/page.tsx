@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Sparkles, Loader2, BookOpen } from "lucide-react";
+import { getSpellIcon } from "@/lib/icon-mapper";
 import {
   Dialog,
   DialogContent,
@@ -241,7 +242,13 @@ export default function SpellsPage() {
                             onClick={() => fetchSpellDetails(spell.url)}
                           >
                             <CardHeader>
-                              <CardTitle className="text-lg">{translateSpell(spell.name)}</CardTitle>
+                              <div className="flex items-center gap-2">
+                                {(() => {
+                                  const SpellIcon = getSpellIcon(spell.name);
+                                  return <SpellIcon className="w-5 h-5 text-primary flex-shrink-0" />;
+                                })()}
+                                <CardTitle className="text-lg">{translateSpell(spell.name)}</CardTitle>
+                              </div>
                             </CardHeader>
                             <CardContent>
                               <Badge variant="outline" className="mb-2">

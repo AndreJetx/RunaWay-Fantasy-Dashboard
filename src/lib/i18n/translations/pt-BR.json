@@ -46,7 +46,8 @@
     "notes": "Notas",
     "shop": "Loja",
     "spells": "Magias",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "customize": "Personalizar"
   },
   "auth": {
     "login": "Entrar",
@@ -400,4 +401,3 @@
     "createError": "Erro ao criar NPC"
   }
 }
-

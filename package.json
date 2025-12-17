@@ -15,6 +15,7 @@
     "diagnose:db": "tsx scripts/diagnose-db.ts",
     "check:campaigns": "tsx scripts/check-campaigns.ts",
     "check:tables": "tsx scripts/check-tables.ts",
+    "check:db": "tsx scripts/verify-database-schema.ts",
     "test:api": "tsx scripts/test-api.ts",
     "migrate": "tsx scripts/run-migration.ts"
   },
@@ -56,6 +57,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.2.3",
     "drizzle-orm": "^0.39.1",
     "drizzle-zod": "^0.7.0",
     "embla-carousel-react": "^8.6.0",

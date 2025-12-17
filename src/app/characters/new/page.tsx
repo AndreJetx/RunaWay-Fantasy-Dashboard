@@ -95,6 +95,8 @@ interface Race {
   guaranteedSkills?: string[]; // Perícias garantidas pela raça
   chooseableSkills?: number; // Número de perícias que o jogador pode escolher
   chooseableAttributes?: number; // Número de atributos que o jogador pode escolher para +1
+  speed?: number;
+  size?: string;
 }
 
 interface RaceExpansion {
@@ -653,6 +655,75 @@ function NewCharacterPageContent() {
   const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
   const [showDragonTypeSelector, setShowDragonTypeSelector] = useState(false);
 
+  // Homebrew Integration State
+  const [allRaceExpansions, setAllRaceExpansions] = useState<RaceExpansion[]>(RACE_EXPANSIONS);
+  const [allCharacterClasses, setAllCharacterClasses] = useState<CharacterClass[]>(CHARACTER_CLASSES);
+
+  useEffect(() => {
+    const fetchHomebrew = async () => {
+      try {
+        // Fetch Homebrew Races
+        const racesRes = await fetch("/api/homebrew?type=race");
+        if (racesRes.ok) {
+          const racesData = await racesRes.json();
+          const homebrewRaces: Race[] = racesData.map((item: any) => ({
+            name: item.data.name,
+            attributeBonuses: item.data.abilityBonuses || {},
+            advantages: Array.isArray(item.data.traits)
+              ? item.data.traits.map((t: any) => `${t.name}: ${t.description}`)
+              : typeof item.data.traits === 'string'
+                ? [item.data.traits]
+                : [],
+            // Map other fields if necessary
+            speed: item.data.speed,
+            size: item.data.size,
+          }));
+
+          if (homebrewRaces.length > 0) {
+            setAllRaceExpansions(prev => [
+              ...RACE_EXPANSIONS,
+              {
+                name: "Homebrew",
+                races: homebrewRaces
+              }
+            ]);
+          }
+        }
+
+        // Fetch Homebrew Classes
+        const classesRes = await fetch("/api/homebrew?type=class");
+        if (classesRes.ok) {
+          const classesData = await classesRes.json();
+          const homebrewClasses: CharacterClass[] = classesData.map((item: any) => ({
+            name: item.data.name,
+            bonuses: {
+              hitDie: parseInt(item.data.hitDie?.replace('d', '') || '8'),
+              hitPoints: parseInt(item.data.hitDie?.replace('d', '') || '8'), // Max HP at level 1
+              armorProficiencies: [], // TODO: Add to form
+              weaponProficiencies: [], // TODO: Add to form
+              savingThrows: Object.keys(item.data.savingThrows || {}).filter(k => item.data.savingThrows[k]),
+              guaranteedSkills: [],
+              chooseableSkills: 2, // Default
+              skillOptions: item.data.skills ? item.data.skills.split(',').map((s: string) => s.trim()) : [],
+              primaryAttributes: [], // TODO: Add to form
+            }
+          }));
+
+          if (homebrewClasses.length > 0) {
+            setAllCharacterClasses(prev => [
+              ...CHARACTER_CLASSES,
+              ...homebrewClasses
+            ]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching homebrew content:", error);
+      }
+    };
+
+    fetchHomebrew();
+  }, []);
+
   const [formData, setFormData] = useState({
     // Informações Básicas
     name: "",
@@ -955,7 +1026,7 @@ function NewCharacterPageContent() {
   useEffect(() => {
     if (!formData.characterClass) return;
 
-    const charClass = CHARACTER_CLASSES.find(c => c.name === formData.characterClass);
+    const charClass = allCharacterClasses.find(c => c.name === formData.characterClass);
     if (!charClass) return;
 
     setFormData(prev => {
@@ -1064,7 +1135,7 @@ function NewCharacterPageContent() {
 
   // Função para aplicar bônus de classe
   const applyClassBonuses = (className: string) => {
-    const charClass = CHARACTER_CLASSES.find(c => c.name === className);
+    const charClass = allCharacterClasses.find(c => c.name === className);
     if (!charClass) return;
 
     setFormData(prev => {
@@ -1187,7 +1258,7 @@ function NewCharacterPageContent() {
   const applyRaceBonuses = (expansionName: string, raceName: string, subraceName?: string, chosenAttributes?: string[]) => {
     // Usar os atributos escolhidos passados como parâmetro ou do estado
     const attributesToUse = chosenAttributes !== undefined ? chosenAttributes : chosenRaceAttributes;
-    const expansion = RACE_EXPANSIONS.find(exp => exp.name === expansionName);
+    const expansion = allRaceExpansions.find(exp => exp.name === expansionName);
     if (!expansion) return;
 
     const race = expansion.races.find(r => r.name === raceName);
@@ -1338,6 +1409,7 @@ function NewCharacterPageContent() {
         initiative: Math.max(0, calculateModifier(newAttributes.dexterity || 0)),
         notes: newNotes,
         skills: newSkills,
+        speed: race.speed || 30, // Apply race speed or default to 30
       };
     });
   };
@@ -2231,7 +2303,7 @@ function NewCharacterPageContent() {
                   required
                 >
                   <option value="">Selecione a expansão...</option>
-                  {RACE_EXPANSIONS.map((exp) => (
+                  {allRaceExpansions.map((exp) => (
                     <option key={exp.name} value={exp.name}>
                       {exp.name}
                     </option>
@@ -2266,7 +2338,7 @@ function NewCharacterPageContent() {
                   required
                 >
                   <option value="">Selecione a raça...</option>
-                  {selectedExpansion && RACE_EXPANSIONS
+                  {selectedExpansion && allRaceExpansions
                     .find(exp => exp.name === selectedExpansion)
                     ?.races.map((race) => (
                       <option key={race.name} value={race.name}>
@@ -2276,7 +2348,7 @@ function NewCharacterPageContent() {
                 </select>
               </div>
               {selectedRace && selectedExpansion && (() => {
-                const expansion = RACE_EXPANSIONS.find(exp => exp.name === selectedExpansion);
+                const expansion = allRaceExpansions.find(exp => exp.name === selectedExpansion);
                 const race = expansion?.races.find(r => r.name === selectedRace);
 
                 if (!race) return null;
@@ -2484,7 +2556,7 @@ function NewCharacterPageContent() {
                   required
                 >
                   <option value="">Selecione...</option>
-                  {CHARACTER_CLASSES.map((cls) => (
+                  {allCharacterClasses.map((cls) => (
                     <option key={cls.name} value={cls.name}>
                       {cls.name}
                     </option>

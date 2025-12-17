@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Dice1, Sparkles, CheckCircle2, Loader2 } from "lucide-react";
+import { Dice1, Sparkles, CheckCircle2, Loader2, Settings, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { getSpellSlots, canCastSpells, getSpellcastingLevel } from "@/lib/spell-slots";
 import { getFeaturesAtLevel } from "@/lib/class-features";
@@ -64,6 +64,7 @@ export default function LevelUpPage() {
   const [showPactSelector, setShowPactSelector] = useState(false);
   const [pendingPact, setPendingPact] = useState<Subclass | null>(null);
   const [saving, setSaving] = useState(false);
+  const [attributeIncreases, setAttributeIncreases] = useState<Record<string, number>>({});
   const { translateSpell } = useTranslation();
 
   const fetchCharacterData = useCallback(async () => {
@@ -82,6 +83,8 @@ export default function LevelUpPage() {
       const currentLevel = characterData.level || 1;
       const calculatedLevel = calculateLevel(currentXP);
 
+      console.log(`[Level Up] Personagem: ${characterData.name}, Nível Atual: ${currentLevel}, XP: ${currentXP}, Nível Calculado: ${calculatedLevel}`);
+
       // Precisa de level up se: flag está true OU nível calculado > nível atual
       const needsLevelUp = characterData.needsLevelUp || calculatedLevel > currentLevel;
 
@@ -89,6 +92,14 @@ export default function LevelUpPage() {
         toast.info("Este personagem não precisa de level up no momento");
         router.push(`/characters/${characterId}`);
         return;
+      }
+
+      // Se o nível calculado está muito à frente, avisar o jogador
+      const levelsToGain = calculatedLevel - currentLevel;
+      if (levelsToGain > 1) {
+        toast.info(`Você tem XP suficiente para ${levelsToGain} níveis! Você subirá um nível por vez.`, {
+          duration: 5000
+        });
       }
 
       // Se o flag não estava true mas o XP é suficiente, atualizar o flag
@@ -211,8 +222,21 @@ export default function LevelUpPage() {
       }
     }
 
-    // Validar seleção de subclasse
+    // Definir targetLevel primeiro
     const targetLevel = character.level + 1;
+
+    // Validar ASI
+    const features = getFeaturesAtLevel(character.characterClass, targetLevel);
+    const hasASI = features.some(f => f.type === "ability_score_improvement");
+    if (hasASI) {
+      const usedPoints = Object.values(attributeIncreases).reduce((sum, val) => sum + val, 0);
+      if (usedPoints !== 2) {
+        toast.error("Você deve distribuir 2 pontos de atributo");
+        return;
+      }
+    }
+
+    // Validar seleção de subclasse
     const subclassLevel = getSubclassLevel(character.characterClass);
     const needsSubclass = !character.subclass && targetLevel >= subclassLevel;
     if (needsSubclass && !pendingSubclass) {
@@ -271,6 +295,19 @@ export default function LevelUpPage() {
       const calculatedLevel = calculateLevel(currentXP);
       const stillNeedsLevelUp = calculatedLevel > targetLevel;
 
+      console.log(`[Level Up Complete] Nível atual: ${character.level}, Novo nível: ${targetLevel}, XP: ${currentXP}, Nível calculado: ${calculatedLevel}, Ainda precisa de level up: ${stillNeedsLevelUp}`);
+
+      // Aplicar aumentos de atributos se houver
+      const currentAttributes = character.attributes || {};
+      const updatedAttributes = { ...currentAttributes };
+      
+      if (Object.keys(attributeIncreases).length > 0) {
+        Object.entries(attributeIncreases).forEach(([attr, increase]) => {
+          const currentValue = updatedAttributes[attr] || 10;
+          updatedAttributes[attr] = Math.min(20, currentValue + increase); // Máximo 20
+        });
+      }
+
       // Preparar objeto base para atualização
       let updateBody: any = {
         level: targetLevel, // Atualizar para o novo nível
@@ -278,6 +315,7 @@ export default function LevelUpPage() {
         currentHp: newCurrentHp,
         needsLevelUp: stillNeedsLevelUp, // Manter true se ainda tiver níveis a subir
         pendingHitDiceRoll: null,
+        attributes: updatedAttributes,
         spellcasting: {
           ...currentSpellcasting,
           knownSpells: newKnownSpells,
@@ -307,16 +345,16 @@ export default function LevelUpPage() {
           .filter(b => b.level <= targetLevel && b.type === 'feature');
 
         subclassFeatures.forEach(b => {
-          if (!newFeatures[character.level]) {
-            newFeatures[character.level] = [];
+          if (!newFeatures[targetLevel]) {
+            newFeatures[targetLevel] = [];
           }
           // Evitar duplicatas
           const featureName = typeof b.value === 'string' ? b.value : b.value[0];
           // Verificar se já existe (simplificado)
-          const exists = newFeatures[character.level].some((f: any) => f.name === featureName);
+          const exists = newFeatures[targetLevel].some((f: any) => f.name === featureName);
 
           if (!exists) {
-            newFeatures[character.level].push({
+            newFeatures[targetLevel].push({
               name: featureName,
               description: b.description || `Habilidade de ${pendingSubclass.name}`,
               type: 'Subclasse'
@@ -345,17 +383,17 @@ export default function LevelUpPage() {
 
         // Adicionar features do pacto
         const pactFeatures = pendingPact.benefits
-          .filter(b => b.level <= character.level && b.type === 'feature');
+          .filter(b => b.level <= targetLevel && b.type === 'feature');
 
         pactFeatures.forEach(b => {
-          if (!newFeatures[character.level]) {
-            newFeatures[character.level] = [];
+          if (!newFeatures[targetLevel]) {
+            newFeatures[targetLevel] = [];
           }
           const featureName = typeof b.value === 'string' ? b.value : b.value[0];
-          const exists = newFeatures[character.level].some((f: any) => f.name === featureName);
+          const exists = newFeatures[targetLevel].some((f: any) => f.name === featureName);
 
           if (!exists) {
-            newFeatures[character.level].push({
+            newFeatures[targetLevel].push({
               name: featureName,
               description: b.description || `Pacto: ${pendingPact.name}`,
               type: 'Subclasse' // Pacto é tecnicamente uma feature de subclasse/classe
@@ -372,13 +410,21 @@ export default function LevelUpPage() {
 
       if (!res.ok) throw new Error("Failed to complete level up");
 
-      toast.success("Level up concluído com sucesso!");
+      toast.success(`Level up concluído! Agora você é nível ${targetLevel}!`);
 
       if (stillNeedsLevelUp) {
-        toast.info("Você ainda tem níveis a subir! Recarregando...");
-        window.location.reload(); // Recarregar para processar o próximo nível
+        const remainingLevels = calculatedLevel - targetLevel;
+        toast.info(`Você ainda tem XP para ${remainingLevels} nível(is)! Preparando próximo level up...`, {
+          duration: 3000
+        });
+        // Aguardar um pouco antes de recarregar para o usuário ver as mensagens
+        setTimeout(() => {
+          window.location.reload(); // Recarregar para processar o próximo nível
+        }, 1500);
       } else {
-        router.push(`/characters/${characterId}`);
+        setTimeout(() => {
+          router.push(`/characters/${characterId}`);
+        }, 1000);
       }
     } catch (error: any) {
       console.error("Error completing level up:", error);
@@ -419,17 +465,56 @@ export default function LevelUpPage() {
   const isDraconic = character && (character.subclass === "Linhagem Dracônica" || pendingSubclass?.name === "Linhagem Dracônica");
   const needsDragonType = isDraconic && !character.dragonType && !pendingDragonType;
   const needsPact = character && character.characterClass === 'Bruxo' && targetLevel >= 3 && !character.pact && !pendingPact;
+  
+  // Verificar se tem ASI neste nível
+  const hasASI = features.some(f => f.type === "ability_score_improvement");
+  const totalASIPoints = hasASI ? 2 : 0;
+  const usedASIPoints = Object.values(attributeIncreases).reduce((sum, val) => sum + val, 0);
+  const remainingASIPoints = totalASIPoints - usedASIPoints;
 
   return (
     <FantasyLayout>
       <div className="space-y-6 max-w-4xl mx-auto">
-        <div>
-          <h1 className="text-3xl font-bold font-cinzel text-primary">
-            Level Up: {character.name}
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Nível {character.level} → Nível {character.level + 1}
-          </p>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-bold font-cinzel text-primary">
+              Level Up: {character.name}
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Nível {character.level} → Nível {character.level + 1}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              XP: {character.experiencePoints || 0}
+            </p>
+          </div>
+          
+          {/* Botão de Corrigir Nível */}
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                toast.info("Recalculando nível baseado no XP...");
+                const res = await fetch(`/api/characters/${characterId}/recalculate-level`, {
+                  method: "POST",
+                });
+                const data = await res.json();
+                if (res.ok) {
+                  toast.success(data.message);
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 1500);
+                } else {
+                  toast.error(data.error || "Erro ao recalcular nível");
+                }
+              } catch (error) {
+                toast.error("Erro ao recalcular nível");
+              }
+            }}
+            className="border-amber-500/30 hover:bg-amber-500/10"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Corrigir Nível
+          </Button>
         </div>
 
         {/* Seleção de Subclasse */}
@@ -558,6 +643,94 @@ export default function LevelUpPage() {
                 <Button variant="outline" onClick={() => setShowPactSelector(true)}>
                   Alterar
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Aumento de Atributo (ASI) */}
+        {hasASI && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${remainingASIPoints === 0 ? 'border-l-green-500' : 'border-l-yellow-500'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-yellow-400" />
+                Aumento de Atributo (ASI)
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Distribua 2 pontos nos seus atributos. Você pode:
+              </p>
+              <ul className="text-sm text-muted-foreground list-disc list-inside ml-2">
+                <li>Aumentar um atributo em +2, OU</li>
+                <li>Aumentar dois atributos diferentes em +1 cada</li>
+              </ul>
+              <p className="text-sm font-bold mt-2">
+                Pontos disponíveis: <span className={remainingASIPoints === 0 ? "text-green-400" : "text-yellow-400"}>{remainingASIPoints}/2</span>
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                {["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"].map((attr) => {
+                  const currentValue = character.attributes?.[attr] || 10;
+                  const increase = attributeIncreases[attr] || 0;
+                  const newValue = currentValue + increase;
+                  const atMax = newValue >= 20;
+
+                  return (
+                    <div key={attr} className="bg-background/50 rounded-lg p-3">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-medium capitalize">
+                          {attr === "strength" && "Força"}
+                          {attr === "dexterity" && "Destreza"}
+                          {attr === "constitution" && "Constituição"}
+                          {attr === "intelligence" && "Inteligência"}
+                          {attr === "wisdom" && "Sabedoria"}
+                          {attr === "charisma" && "Carisma"}
+                        </span>
+                        <span className="text-lg font-bold">
+                          {currentValue} → {newValue}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            if (increase > 0) {
+                              setAttributeIncreases(prev => ({
+                                ...prev,
+                                [attr]: increase - 1
+                              }));
+                            }
+                          }}
+                          disabled={increase === 0}
+                          className="flex-1"
+                        >
+                          -
+                        </Button>
+                        <div className="flex-1 text-center py-1 bg-background rounded">
+                          +{increase}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            if (remainingASIPoints > 0 && !atMax) {
+                              setAttributeIncreases(prev => ({
+                                ...prev,
+                                [attr]: increase + 1
+                              }));
+                            }
+                          }}
+                          disabled={remainingASIPoints === 0 || atMax}
+                          className="flex-1"
+                        >
+                          +
+                        </Button>
+                      </div>
+                      {atMax && <p className="text-xs text-yellow-400 mt-1">Máximo atingido (20)</p>}
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -818,4 +991,3 @@ export default function LevelUpPage() {
     </FantasyLayout>
   );
 }
-

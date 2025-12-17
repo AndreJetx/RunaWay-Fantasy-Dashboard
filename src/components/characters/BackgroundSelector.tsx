@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,37 @@ export function BackgroundSelector({
     onSelect,
 }: BackgroundSelectorProps) {
     const [selectedBackground, setSelectedBackground] = useState<Background | null>(null);
+    const [homebrewBackgrounds, setHomebrewBackgrounds] = useState<Background[]>([]);
+
+    useEffect(() => {
+        if (open) {
+            fetchHomebrewBackgrounds();
+        }
+    }, [open]);
+
+    const fetchHomebrewBackgrounds = async () => {
+        try {
+            const res = await fetch("/api/homebrew?type=background");
+            if (res.ok) {
+                const data = await res.json();
+                const formattedBackgrounds: Background[] = data.map((item: any) => ({
+                    name: item.name,
+                    description: item.description,
+                    skillProficiencies: item.data.skillProficiencies || [],
+                    toolProficiencies: item.data.toolProficiencies || [],
+                    languages: item.data.languages || 0,
+                    equipment: item.data.equipment || [],
+                    feature: item.data.feature || { name: "Feature", description: "Descrição da feature" },
+                    source: "Homebrew"
+                }));
+                setHomebrewBackgrounds(formattedBackgrounds);
+            }
+        } catch (error) {
+            console.error("Error fetching homebrew backgrounds:", error);
+        }
+    };
+
+    const allBackgrounds = [...BACKGROUNDS, ...homebrewBackgrounds];
 
     const handleSelect = () => {
         if (selectedBackground) {
@@ -47,17 +78,24 @@ export function BackgroundSelector({
                     {/* Lista de Antecedentes */}
                     <ScrollArea className="h-full pr-2">
                         <div className="space-y-2">
-                            {BACKGROUNDS.map((background) => (
+                            {allBackgrounds.map((background) => (
                                 <Card
                                     key={background.name}
                                     className={`cursor-pointer transition-all hover:border-primary/50 ${selectedBackground?.name === background.name
-                                            ? 'border-primary bg-primary/5'
-                                            : 'border-border/50'
+                                        ? 'border-primary bg-primary/5'
+                                        : 'border-border/50'
                                         }`}
                                     onClick={() => setSelectedBackground(background)}
                                 >
                                     <CardHeader className="p-3">
-                                        <CardTitle className="text-sm">{background.name}</CardTitle>
+                                        <div className="flex items-start justify-between gap-2">
+                                            <CardTitle className="text-sm">{background.name}</CardTitle>
+                                            {(background as any).source === "Homebrew" && (
+                                                <Badge className="bg-pink-500/20 text-pink-300 border-pink-500/50" variant="outline">
+                                                    Homebrew
+                                                </Badge>
+                                            )}
+                                        </div>
                                         <CardDescription className="text-xs">
                                             <div className="flex flex-wrap gap-1 mt-1">
                                                 {background.skillProficiencies.map((skill) => (

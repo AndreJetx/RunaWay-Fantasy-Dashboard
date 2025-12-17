@@ -36,6 +36,9 @@ import Image from "next/image";
 import avatarPlaceholder from "@assets/generated_images/fantasy_character_silhouette_avatar.png";
 import { canCastSpells, getSpellSlots } from "@/lib/spell-slots";
 import { useTranslation } from "@/lib/i18n/context";
+import { CLASS_FEATURES } from "@/lib/class-features";
+import { ALL_SUBCLASSES } from "@/lib/subclasses";
+import { getDragonType, getDamageTypeLabel } from "@/lib/dragon-types";
 
 // Atributos D&D 5e
 const ATTRIBUTES = [
@@ -340,7 +343,7 @@ export default function CharacterPage() {
         {character.needsLevelUp && isOwner && (
           <Card className="bg-gradient-to-r from-primary/20 to-primary/10 border-primary/50">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-primary/20 rounded-full">
                     <Award className="h-8 w-8 text-primary" />
@@ -354,13 +357,39 @@ export default function CharacterPage() {
                     </p>
                   </div>
                 </div>
-                <Button
-                  onClick={() => router.push(`/characters/${characterId}/level-up`)}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <Award className="h-4 w-4 mr-2" />
-                  Completar Level Up
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        toast.info("Recalculando nível...");
+                        const res = await fetch(`/api/characters/${characterId}/recalculate-level`, {
+                          method: "POST",
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                          toast.success(data.message);
+                          window.location.reload();
+                        } else {
+                          toast.error(data.error || "Erro ao recalcular nível");
+                        }
+                      } catch (error) {
+                        toast.error("Erro ao recalcular nível");
+                      }
+                    }}
+                    className="border-primary/30 hover:bg-primary/10"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Corrigir Nível
+                  </Button>
+                  <Button
+                    onClick={() => router.push(`/characters/${characterId}/level-up`)}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <Award className="h-4 w-4 mr-2" />
+                    Completar Level Up
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -472,10 +501,71 @@ export default function CharacterPage() {
 
           {/* Tab: Atributos */}
           <TabsContent value="atributos">
-            <Card className="bg-card/60 border-white/10">
-              <CardHeader>
-                <CardTitle className="text-xl font-cinzel">Atributos</CardTitle>
-              </CardHeader>
+            <div className="space-y-6">
+              {/* Informações da Classe e Subclasse */}
+              <Card className="bg-card/60 border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-xl font-cinzel flex items-center gap-2">
+                    <Award className="w-5 h-5" />
+                    Classe e Especialização
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="bg-background/50 rounded-lg p-4">
+                      <p className="text-sm text-muted-foreground mb-1">Classe</p>
+                      <p className="text-lg font-bold text-primary">{character.characterClass}</p>
+                    </div>
+                    
+                    {character.subclass && (
+                      <div className="bg-background/50 rounded-lg p-4">
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {character.characterClass === 'Bruxo' ? 'Patrono' : 'Subclasse'}
+                        </p>
+                        <p className="text-lg font-bold text-primary">{character.subclass}</p>
+                      </div>
+                    )}
+                    
+                    {character.characterClass === 'Bruxo' && character.pact && (
+                      <div className="bg-background/50 rounded-lg p-4 border-2 border-primary/30">
+                        <p className="text-sm text-muted-foreground mb-1">Pacto (Nível 3)</p>
+                        <p className="text-lg font-bold text-primary">{character.pact}</p>
+                      </div>
+                    )}
+                    
+                    {character.characterClass === 'Feiticeiro' && character.subclass === 'Linhagem Dracônica' && character.dragonType && (
+                      <div className="bg-background/50 rounded-lg p-4 border-2 border-red-500/30">
+                        <p className="text-sm text-muted-foreground mb-1">Dragão Ancestral</p>
+                        <p className="text-lg font-bold text-red-400">{character.dragonType}</p>
+                        {(() => {
+                          const dragonData = getDragonType(character.dragonType);
+                          if (dragonData) {
+                            return (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Dano: {getDamageTypeLabel(dragonData.damageType)}
+                              </p>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    )}
+                    
+                    {character.background && (
+                      <div className="bg-background/50 rounded-lg p-4">
+                        <p className="text-sm text-muted-foreground mb-1">Antecedente</p>
+                        <p className="text-lg font-bold">{character.background}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Atributos */}
+              <Card className="bg-card/60 border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-xl font-cinzel">Atributos</CardTitle>
+                </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   {ATTRIBUTES.map((attr) => {
@@ -501,24 +591,79 @@ export default function CharacterPage() {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
 
           {/* Tab: Combate */}
           <TabsContent value="combate">
-            <Card className="bg-card/60 border-white/10">
-              <CardHeader>
-                <CardTitle className="text-xl font-cinzel">Informações de Combate</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-6">
+              {/* Dragão Ancestral do Feiticeiro (se aplicável) */}
+              {character.characterClass === 'Feiticeiro' && character.subclass === 'Linhagem Dracônica' && character.dragonType && (
+                <Card className="bg-card/60 border-white/10 border-l-4 border-l-red-500">
+                  <CardHeader>
+                    <CardTitle className="text-xl font-cinzel flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-red-400" />
+                      Linhagem: {character.dragonType}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(() => {
+                      const dragonData = getDragonType(character.dragonType);
+                      
+                      if (!dragonData) return null;
+
+                      return (
+                        <div className="space-y-3">
+                          <div className="bg-red-500/10 rounded-lg p-4 border border-red-500/20">
+                            <div className="grid md:grid-cols-2 gap-3">
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">💥 Tipo de Dano</p>
+                                <p className="text-lg font-bold text-red-400">
+                                  {getDamageTypeLabel(dragonData.damageType)}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">🔥 Arma de Sopro</p>
+                                <p className="text-sm font-medium">
+                                  {dragonData.breathWeapon}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-background/80 rounded-lg p-3 border border-red-500/10">
+                            <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Benefícios em Combate:</p>
+                            <ul className="text-sm space-y-1">
+                              <li className="flex items-start gap-2">
+                                <span className="text-green-400 mt-0.5">✓</span>
+                                <span>Resistência a dano de {getDamageTypeLabel(dragonData.damageType).toLowerCase()}</span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <span className="text-green-400 mt-0.5">✓</span>
+                                <span>+{Math.floor(((character.attributes?.charisma || 10) - 10) / 2)} de dano bônus ao causar dano de {getDamageTypeLabel(dragonData.damageType).toLowerCase()}</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+              )}
+
+              <Card className="bg-card/60 border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-xl font-cinzel">Informações de Combate</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="armorClass">Classe de Armadura (CA)</Label>
                   <Input
                     id="armorClass"
                     type="number"
                     value={character.armorClass || 10}
-                    onChange={(e) => updateField("armorClass", parseInt(e.target.value) || 10)}
-                    disabled={!canEdit}
-                    className={!canEdit ? "bg-muted cursor-not-allowed" : ""}
+                    readOnly
+                    className="bg-muted cursor-not-allowed"
                   />
                 </div>
                 <div>
@@ -527,9 +672,8 @@ export default function CharacterPage() {
                     id="initiative"
                     type="number"
                     value={character.initiative || 0}
-                    onChange={(e) => updateField("initiative", parseInt(e.target.value) || 0)}
-                    disabled={!canEdit}
-                    className={!canEdit ? "bg-muted cursor-not-allowed" : ""}
+                    readOnly
+                    className="bg-muted cursor-not-allowed"
                   />
                 </div>
                 <div>
@@ -538,9 +682,8 @@ export default function CharacterPage() {
                     id="speed"
                     type="number"
                     value={character.speed || 30}
-                    onChange={(e) => updateField("speed", parseInt(e.target.value) || 30)}
-                    disabled={!canEdit}
-                    className={!canEdit ? "bg-muted cursor-not-allowed" : ""}
+                    readOnly
+                    className="bg-muted cursor-not-allowed"
                   />
                 </div>
                 <div>
@@ -549,9 +692,8 @@ export default function CharacterPage() {
                     id="currentHp"
                     type="number"
                     value={currentHp}
-                    onChange={(e) => updateField("currentHp", parseInt(e.target.value) || 0)}
-                    disabled={!canEdit}
-                    className={!canEdit ? "bg-muted cursor-not-allowed" : ""}
+                    readOnly
+                    className="bg-muted cursor-not-allowed"
                   />
                 </div>
                 <div>
@@ -560,9 +702,8 @@ export default function CharacterPage() {
                     id="maxHp"
                     type="number"
                     value={maxHp}
-                    onChange={(e) => updateField("maxHp", parseInt(e.target.value) || 10)}
-                    disabled={!canEdit}
-                    className={!canEdit ? "bg-muted cursor-not-allowed" : ""}
+                    readOnly
+                    className="bg-muted cursor-not-allowed"
                   />
                 </div>
                 <div>
@@ -571,9 +712,8 @@ export default function CharacterPage() {
                     id="tempHp"
                     type="number"
                     value={character.tempHp || 0}
-                    onChange={(e) => updateField("tempHp", parseInt(e.target.value) || 0)}
-                    disabled={!canEdit}
-                    className={!canEdit ? "bg-muted cursor-not-allowed" : ""}
+                    readOnly
+                    className="bg-muted cursor-not-allowed"
                   />
                 </div>
                 {/* Testes de Resistência (apenas os da classe) */}
@@ -605,6 +745,7 @@ export default function CharacterPage() {
                 })}
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
 
           {/* Tab: Perícias */}
@@ -869,12 +1010,198 @@ export default function CharacterPage() {
           {/* Tab: Notas */}
           <TabsContent value="notas">
             <div className="space-y-6">
-              {/* Notas */}
+              {/* Informações da Classe */}
+              <Card className="bg-card/60 border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-xl font-cinzel flex items-center gap-2">
+                    <Award className="w-5 h-5" />
+                    {character.characterClass}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Habilidades de Classe (Nível {character.level})</h3>
+                    <div className="space-y-3">
+                      {CLASS_FEATURES[character.characterClass]
+                        ?.filter(f => f.level <= character.level)
+                        .map((feature, idx) => (
+                          <div key={idx} className="bg-background/50 rounded-lg p-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-primary">
+                                  {feature.name}
+                                </h4>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {feature.description}
+                                </p>
+                              </div>
+                              <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded whitespace-nowrap">
+                                Nv. {feature.level}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Informações da Subclasse */}
+              {character.subclass && (
+                <Card className="bg-card/60 border-white/10">
+                  <CardHeader>
+                    <CardTitle className="text-xl font-cinzel flex items-center gap-2">
+                      <Star className="w-5 h-5" />
+                      {character.subclass}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {(() => {
+                      const subclassData = ALL_SUBCLASSES.find(
+                        s => s.name === character.subclass
+                      );
+                      
+                      if (!subclassData) return null;
+
+                      return (
+                        <>
+                          <div className="bg-background/50 rounded-lg p-3">
+                            <p className="text-sm text-muted-foreground">
+                              {subclassData.description}
+                            </p>
+                          </div>
+                          
+                          <div>
+                            <h3 className="font-semibold text-lg mb-2">Habilidades de Subclasse</h3>
+                            <div className="space-y-3">
+                              {subclassData.features
+                                ?.filter(f => f.level <= character.level)
+                                .map((feature, idx) => (
+                                  <div key={idx} className="bg-background/50 rounded-lg p-3">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex-1">
+                                        <h4 className="font-medium text-primary">
+                                          {feature.name}
+                                        </h4>
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                          {feature.description}
+                                        </p>
+                                      </div>
+                                      <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded whitespace-nowrap">
+                                        Nv. {feature.level}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Pacto (para Bruxo) */}
+              {character.characterClass === 'Bruxo' && character.pact && (
+                <Card className="bg-card/60 border-white/10">
+                  <CardHeader>
+                    <CardTitle className="text-xl font-cinzel flex items-center gap-2">
+                      <Sparkles className="w-5 h-5" />
+                      {character.pact}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(() => {
+                      const pactData = ALL_SUBCLASSES.find(
+                        s => s.name === character.pact && s.type === 'pact'
+                      );
+                      
+                      if (!pactData) return null;
+
+                      return (
+                        <div className="space-y-3">
+                          <div className="bg-background/50 rounded-lg p-3">
+                            <p className="text-sm text-muted-foreground">
+                              {pactData.description}
+                            </p>
+                          </div>
+                          
+                          {pactData.features && pactData.features.length > 0 && (
+                            <div className="space-y-2">
+                              {pactData.features.map((feature, idx) => (
+                                <div key={idx} className="bg-background/50 rounded-lg p-3">
+                                  <h4 className="font-medium text-primary">{feature.name}</h4>
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {feature.description}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Dragão Ancestral (para Feiticeiro Dracônico) */}
+              {character.characterClass === 'Feiticeiro' && character.subclass === 'Linhagem Dracônica' && character.dragonType && (
+                <Card className="bg-card/60 border-white/10 border-l-4 border-l-red-500">
+                  <CardHeader>
+                    <CardTitle className="text-xl font-cinzel flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-red-400" />
+                      Dragão Ancestral
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(() => {
+                      const dragonData = getDragonType(character.dragonType);
+                      
+                      if (!dragonData) return null;
+
+                      return (
+                        <div className="space-y-3">
+                          <div className="bg-background/50 rounded-lg p-4">
+                            <h3 className="text-2xl font-bold text-red-400 mb-2">{dragonData.name}</h3>
+                            <div className="grid md:grid-cols-2 gap-3 mt-3">
+                              <div className="bg-background/80 rounded p-3">
+                                <p className="text-xs text-muted-foreground mb-1">Tipo de Dano</p>
+                                <p className="text-lg font-bold text-primary">
+                                  {getDamageTypeLabel(dragonData.damageType)}
+                                </p>
+                              </div>
+                              <div className="bg-background/80 rounded p-3">
+                                <p className="text-xs text-muted-foreground mb-1">Arma de Sopro</p>
+                                <p className="text-sm font-medium">
+                                  {dragonData.breathWeapon}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-background/50 rounded-lg p-3">
+                            <h4 className="font-medium text-primary mb-2">Benefícios da Linhagem</h4>
+                            <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                              <li>Você pode falar, ler e escrever Dracônico</li>
+                              <li>Resistência a dano de {getDamageTypeLabel(dragonData.damageType).toLowerCase()}</li>
+                              <li>Ao causar dano de {getDamageTypeLabel(dragonData.damageType).toLowerCase()}, você pode adicionar seu modificador de Carisma</li>
+                            </ul>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Notas Personalizadas */}
               <Card className="bg-card/60 border-white/10">
                 <CardHeader>
                   <CardTitle className="text-xl font-cinzel flex items-center gap-2">
                     <FileText className="w-5 h-5" />
-                    Notas
+                    Notas Personalizadas
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

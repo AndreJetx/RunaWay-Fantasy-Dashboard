@@ -119,10 +119,10 @@ export async function POST(
         
         const updateData: any = {
           experiencePoints: newXp,
-          level: newLevel,
+          // NÃO atualizar o level aqui - deixar o jogador fazer level up sequencialmente
         };
         
-        // Marcar que precisa rolar dado de vida se subiu de nível
+        // Marcar que precisa fazer level up se subiu de nível
         if (newLevel > currentLevel) {
           updateData.needsLevelUp = true;
         }
@@ -161,10 +161,10 @@ export async function POST(
         
         const updateData: any = {
           experiencePoints: newXp,
-          level: newLevel,
+          // NÃO atualizar o level aqui - deixar o jogador fazer level up sequencialmente
         };
         
-        // Marcar que precisa rolar dado de vida se subiu de nível
+        // Marcar que precisa fazer level up se subiu de nível
         if (newLevel > currentLevel) {
           updateData.needsLevelUp = true;
         }

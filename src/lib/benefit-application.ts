@@ -20,7 +20,7 @@ export interface Character {
         knownSpells?: string[];
         cantrips?: string[];
     };
-    features?: string[];
+    features?: Record<string, any>; // JSONB object, not array
     resistances?: string[];
 }
 
@@ -40,7 +40,7 @@ export function applySubclassBenefits(
     if (!updatedCharacter.spellcasting) updatedCharacter.spellcasting = {};
     if (!updatedCharacter.spellcasting.knownSpells) updatedCharacter.spellcasting.knownSpells = [];
     if (!updatedCharacter.spellcasting.cantrips) updatedCharacter.spellcasting.cantrips = [];
-    if (!updatedCharacter.features) updatedCharacter.features = [];
+    if (!updatedCharacter.features) updatedCharacter.features = {} as any; // features é um objeto JSONB
     if (!updatedCharacter.resistances) updatedCharacter.resistances = [];
 
     // Aplicar benefícios do nível atual
@@ -110,13 +110,22 @@ export function applySubclassBenefits(
                 break;
 
             case 'feature':
-                // Adicionar feature
+                // Adicionar feature (features é um objeto JSONB, não array)
                 const featureName = typeof benefit.value === 'string'
                     ? benefit.value
                     : benefit.value[0];
 
-                if (!updatedCharacter.features!.includes(featureName)) {
-                    updatedCharacter.features!.push(featureName);
+                if (!updatedCharacter.features) {
+                    updatedCharacter.features = {};
+                }
+                
+                if (!(updatedCharacter.features as any)[featureName]) {
+                    (updatedCharacter.features as any)[featureName] = {
+                        name: featureName,
+                        description: benefit.description || '',
+                        type: 'feature',
+                        level: updatedCharacter.level || 1
+                    };
                 }
                 break;
 

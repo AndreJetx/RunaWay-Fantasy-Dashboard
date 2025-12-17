@@ -28,7 +28,12 @@ export async function GET(
 
     // Verify user has access - similar to overview endpoint
     let dbUser = await db
-      .select()
+      .select({
+        id: schema.users.id,
+        username: schema.users.username,
+        email: schema.users.email,
+        role: schema.users.role,
+      })
       .from(schema.users)
       .where(eq(schema.users.id, user.id))
       .limit(1);
@@ -36,7 +41,12 @@ export async function GET(
     // Se não encontrou por ID, buscar por email
     if (dbUser.length === 0 && user.email) {
       const userByEmail = await db
-        .select()
+        .select({
+          id: schema.users.id,
+          username: schema.users.username,
+          email: schema.users.email,
+          role: schema.users.role,
+        })
         .from(schema.users)
         .where(eq(schema.users.email, user.email))
         .limit(1);
@@ -134,7 +144,12 @@ export async function POST(
 
     // Verify user is DM - similar to overview endpoint
     let dbUser = await db
-      .select()
+      .select({
+        id: schema.users.id,
+        username: schema.users.username,
+        email: schema.users.email,
+        role: schema.users.role,
+      })
       .from(schema.users)
       .where(eq(schema.users.id, user.id))
       .limit(1);
@@ -142,7 +157,12 @@ export async function POST(
     // Se não encontrou por ID, buscar por email
     if (dbUser.length === 0 && user.email) {
       const userByEmail = await db
-        .select()
+        .select({
+          id: schema.users.id,
+          username: schema.users.username,
+          email: schema.users.email,
+          role: schema.users.role,
+        })
         .from(schema.users)
         .where(eq(schema.users.email, user.email))
         .limit(1);

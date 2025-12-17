@@ -104,42 +104,58 @@ export default function ShopPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const { t, translateDnd5e, translateEquipment, locale } = useTranslation();
 
-  const fetchAllItems = useCallback(async () => {
-    try {
-      setLoadingItems(true);
-      const res = await fetch(`${DND_API_BASE}/api/2014/equipment`);
-      if (!res.ok) throw new Error("Failed to fetch equipment");
-      const data = await res.json();
-      setCurrentItems(data.results || []);
-    } catch (error) {
-      console.error("Error fetching all items:", error);
-    } finally {
-      setLoadingItems(false);
-    }
-  }, []);
-
   const fetchCategoryItems = useCallback(async (categoryIndex: string) => {
     try {
       setLoadingItems(true);
       
-      if (categoryIndex === "all") {
-        await fetchAllItems();
-        return;
-      }
-
-      // Buscar itens da categoria específica
-      const res = await fetch(`${DND_API_BASE}/api/2014/equipment-categories/${categoryIndex}`);
-      if (!res.ok) throw new Error("Failed to fetch category items");
-      const data = await res.json();
+      let items: EquipmentItem[] = [];
       
-      setCurrentItems(data.equipment || []);
+      if (categoryIndex === "all") {
+        const res = await fetch(`${DND_API_BASE}/api/2014/equipment`);
+        if (!res.ok) throw new Error("Failed to fetch equipment");
+        const data = await res.json();
+        items = data.results || [];
+      } else {
+        // Buscar itens da categoria específica
+        const res = await fetch(`${DND_API_BASE}/api/2014/equipment-categories/${categoryIndex}`);
+        if (!res.ok) throw new Error("Failed to fetch category items");
+        const data = await res.json();
+        items = data.equipment || [];
+      }
+      
+      setCurrentItems(items);
+      
+      // Pré-carregar detalhes dos primeiros 20 itens para mostrar nos cards
+      const itemsToPreload = items.slice(0, 20);
+      const detailsPromises = itemsToPreload.map(async (item) => {
+        try {
+          const res = await fetch(`${DND_API_BASE}${item.url}`);
+          if (res.ok) {
+            const detail: EquipmentDetail = await res.json();
+            return { index: item.index, detail };
+          }
+        } catch (error) {
+          console.error(`Error preloading ${item.index}:`, error);
+        }
+        return null;
+      });
+      
+      const results = await Promise.all(detailsPromises);
+      const newDetails: Record<string, EquipmentDetail> = {};
+      results.forEach((result) => {
+        if (result) {
+          newDetails[result.index] = result.detail;
+        }
+      });
+      
+      setItemsDetails(prev => ({ ...prev, ...newDetails }));
     } catch (error) {
       console.error(`Error fetching items for category ${categoryIndex}:`, error);
       setCurrentItems([]);
     } finally {
       setLoadingItems(false);
     }
-  }, [fetchAllItems]);
+  }, []);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -148,17 +164,12 @@ export default function ShopPage() {
       if (!res.ok) throw new Error("Failed to fetch categories");
       const data = await res.json();
       setCategories(data.results || []);
-      
-      // Buscar itens de todas as categorias para o "all"
-      if (selectedCategory === "all") {
-        fetchAllItems();
-      }
     } catch (error) {
       console.error("Error fetching categories:", error);
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, fetchAllItems]);
+  }, []);
 
   // Buscar categorias ao carregar
   useEffect(() => {
@@ -279,22 +290,59 @@ export default function ShopPage() {
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {searchFiltered.map((item) => (
-                    <Card
-                      key={item.index}
-                      className="bg-card/60 border-white/10 hover:border-primary/50 transition-colors cursor-pointer"
-                      onClick={() => fetchItemDetails(item.url, item.index)}
-                    >
-                      <CardHeader>
-                        <CardTitle className="text-lg">{translateEquipment(item.name)}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <Button variant="outline" size="sm" className="w-full">
-                          {t("shop.viewDetails") || "Ver Detalhes"}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {searchFiltered.map((item) => {
+                    const detail = itemsDetails[item.index];
+                    return (
+                      <Card
+                        key={item.index}
+                        className="bg-card/60 border-white/10 hover:border-primary/50 transition-colors cursor-pointer group"
+                        onClick={() => fetchItemDetails(item.url, item.index)}
+                      >
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg flex items-start justify-between gap-2">
+                            <span className="flex-1">{translateEquipment(item.name)}</span>
+                            {detail?.cost && (
+                              <Badge variant="secondary" className="shrink-0 flex items-center gap-1">
+                                <Coins className="h-3 w-3" />
+                                {detail.cost.quantity} {translateDnd5e(detail.cost.unit).toLowerCase()}
+                              </Badge>
+                            )}
+                          </CardTitle>
+                          {detail?.equipment_category && (
+                            <p className="text-xs text-muted-foreground">
+                              {translateDnd5e(detail.equipment_category.name)}
+                            </p>
+                          )}
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          {/* Informações específicas de armadura */}
+                          {detail?.armor_class && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Badge variant="outline" className="bg-blue-500/10 border-blue-500/30">
+                                CA: {detail.armor_class.base}
+                                {detail.armor_class.dex_bonus && " + DEX"}
+                                {detail.armor_class.max_bonus && ` (máx +${detail.armor_class.max_bonus})`}
+                              </Badge>
+                            </div>
+                          )}
+                          
+                          {/* Informações específicas de arma */}
+                          {detail?.damage && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Badge variant="outline" className="bg-red-500/10 border-red-500/30">
+                                Dano: {detail.damage.damage_dice}
+                                {detail.damage.damage_type && ` ${translateDnd5e(detail.damage.damage_type.name)}`}
+                              </Badge>
+                            </div>
+                          )}
+                          
+                          <Button variant="outline" size="sm" className="w-full group-hover:bg-primary/10 transition-colors">
+                            {t("shop.viewDetails") || "Ver Detalhes"}
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
 
                 {searchFiltered.length === 0 && !loadingItems && (

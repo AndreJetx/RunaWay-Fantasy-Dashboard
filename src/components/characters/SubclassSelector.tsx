@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +28,35 @@ export function SubclassSelector({
     onSelect,
 }: SubclassSelectorProps) {
     const [selectedSubclass, setSelectedSubclass] = useState<Subclass | null>(null);
-    const availableSubclasses = getSubclassesByClass(className, type);
+    const [homebrewSubclasses, setHomebrewSubclasses] = useState<Subclass[]>([]);
+    const availableSubclasses = [...getSubclassesByClass(className, type), ...homebrewSubclasses];
+
+    useEffect(() => {
+        if (open) {
+            fetchHomebrewSubclasses();
+        }
+    }, [open, className]);
+
+    const fetchHomebrewSubclasses = async () => {
+        try {
+            const res = await fetch("/api/homebrew?type=subclass");
+            if (res.ok) {
+                const data = await res.json();
+                const formattedSubclasses: Subclass[] = data
+                    .filter((item: any) => item.data.baseClass === className)
+                    .map((item: any) => ({
+                        name: item.name,
+                        description: item.description,
+                        source: "Homebrew",
+                        features: item.data.features || [],
+                        benefits: item.data.benefits || []
+                    }));
+                setHomebrewSubclasses(formattedSubclasses);
+            }
+        } catch (error) {
+            console.error("Error fetching homebrew subclasses:", error);
+        }
+    };
 
     const handleSelect = () => {
         if (selectedSubclass) {
@@ -43,6 +71,7 @@ export function SubclassSelector({
             case 'SCAG': return 'bg-purple-500/20 text-purple-300 border-purple-500/50';
             case 'XGtE': return 'bg-green-500/20 text-green-300 border-green-500/50';
             case 'TCoE': return 'bg-amber-500/20 text-amber-300 border-amber-500/50';
+            case 'Homebrew': return 'bg-pink-500/20 text-pink-300 border-pink-500/50';
             default: return 'bg-gray-500/20 text-gray-300 border-gray-500/50';
         }
     };
@@ -82,8 +111,8 @@ export function SubclassSelector({
                                 <Card
                                     key={subclass.name}
                                     className={`cursor-pointer transition-all hover:border-primary/50 ${selectedSubclass?.name === subclass.name
-                                            ? 'border-primary bg-primary/5'
-                                            : 'border-border/50'
+                                        ? 'border-primary bg-primary/5'
+                                        : 'border-border/50'
                                         }`}
                                     onClick={() => setSelectedSubclass(subclass)}
                                 >
