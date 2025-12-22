@@ -56,15 +56,15 @@ export async function GET(
       // Verificar se é membro por DB ID (se diferente)
       userIdToCheck !== user.id
         ? db
-            .select()
-            .from(schema.campaignMembers)
-            .where(
-              and(
-                eq(schema.campaignMembers.campaignId, campaignId),
-                eq(schema.campaignMembers.userId, userIdToCheck)
-              )
+          .select()
+          .from(schema.campaignMembers)
+          .where(
+            and(
+              eq(schema.campaignMembers.campaignId, campaignId),
+              eq(schema.campaignMembers.userId, userIdToCheck)
             )
-            .limit(1)
+          )
+          .limit(1)
         : Promise.resolve([]),
       // Fetch characters - apenas campos necessários
       db
@@ -77,6 +77,9 @@ export async function GET(
           currentHp: schema.characters.currentHp,
           maxHp: schema.characters.maxHp,
           armorClass: schema.characters.armorClass,
+          speed: schema.characters.speed,
+          initiative: schema.characters.initiative,
+          attributes: schema.characters.attributes,
           playerId: schema.characters.playerId,
           image: schema.characters.image,
         })

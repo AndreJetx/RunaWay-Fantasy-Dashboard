@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, Map as MapIcon, Tag } from "lucide-react";
+import { ZoomIn, ZoomOut, Map as MapIcon, Tag, Swords, ArrowLeft } from "lucide-react";
 import mapBg from "@assets/generated_images/fantasy_world_map_parchment.png";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useCampaign } from "@/contexts/CampaignContext";
 import { toast } from "sonner";
 import { useTranslation } from "@/lib/i18n/context";
+import { useSearchParams } from "next/navigation";
+import VTTEngine from "./maps/VTTEngine";
 
 interface Map {
   id: string;
@@ -28,6 +30,16 @@ export default function Maps() {
   const [zoom, setZoom] = useState(1);
   const { t } = useTranslation();
 
+  const searchParams = useSearchParams();
+  const mode = searchParams?.get("mode");
+  const [isVTTMode, setIsVTTMode] = useState(mode === "vtt");
+
+  useEffect(() => {
+    if (mode === "vtt") {
+      setIsVTTMode(true);
+    }
+  }, [mode]);
+
   useEffect(() => {
     if (!activeCampaign) {
       setMaps([]);
@@ -38,7 +50,6 @@ export default function Maps() {
     const fetchMaps = async () => {
       try {
         setLoading(true);
-        // Usar rota otimizada de maps
         const res = await fetch(`/api/maps?campaignId=${activeCampaign.id}`);
         if (res.ok) {
           const campaignMaps = await res.json();
@@ -58,8 +69,23 @@ export default function Maps() {
       }
     };
 
-    fetchMaps();
-  }, [activeCampaign, t, selectedMap]);
+    if (!isVTTMode) {
+      fetchMaps();
+    } else {
+      setLoading(false);
+    }
+  }, [activeCampaign, t, selectedMap, isVTTMode]);
+
+  if (isVTTMode) {
+    return (
+      <>
+        <VTTEngine
+          initialCampaignId={activeCampaign?.id}
+          onExit={() => setIsVTTMode(false)}
+        />
+      </>
+    );
+  }
 
   if (!activeCampaign) {
     return (
@@ -99,6 +125,13 @@ export default function Maps() {
           </div>
           <div className="flex gap-2">
             <Button
+              className="bg-primary text-primary-foreground"
+              onClick={() => setIsVTTMode(true)}
+            >
+              <Swords className="mr-2 h-4 w-4" /> Jogar Sessão (VTT)
+            </Button>
+
+            <Button
               variant="outline"
               size="icon"
               onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
@@ -112,7 +145,7 @@ export default function Maps() {
             >
               <ZoomIn className="w-4 h-4" />
             </Button>
-            <Button className="bg-primary text-primary-foreground">
+            <Button variant="outline">
               <MapIcon className="mr-2 h-4 w-4" /> {t("maps.uploadMap")}
             </Button>
           </div>
