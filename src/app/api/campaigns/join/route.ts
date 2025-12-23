@@ -5,7 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
 const joinCampaignSchema = z.object({
-  inviteCode: z.string().min(1),
+  inviteCode: z.string().optional(),
+  campaignId: z.string().uuid().optional(),
+}).refine(data => data.inviteCode || data.campaignId, {
+  message: "Either inviteCode or campaignId must be provided"
 });
 
 export async function POST(request: NextRequest) {
@@ -46,7 +49,7 @@ export async function POST(request: NextRequest) {
         .from(schema.users)
         .where(eq(schema.users.email, user.email))
         .limit(1);
-      
+
       if (userByEmail.length > 0) {
         // Usuário existe mas com ID diferente - usar o que foi encontrado
         dbUser = userByEmail;
@@ -71,10 +74,10 @@ export async function POST(request: NextRequest) {
         console.log("New user created:", newUser.id);
       } catch (insertError: any) {
         // Se der erro de duplicação (email ou ID), buscar novamente
-        const isDuplicateError = insertError?.code === '23505' || 
-                                 insertError?.message?.includes('duplicate') ||
-                                 insertError?.message?.includes('unique');
-        
+        const isDuplicateError = insertError?.code === '23505' ||
+          insertError?.message?.includes('duplicate') ||
+          insertError?.message?.includes('unique');
+
         if (isDuplicateError) {
           console.log("User already exists (duplicate error), fetching...");
           // Tentar buscar por ID novamente
@@ -83,7 +86,7 @@ export async function POST(request: NextRequest) {
             .from(schema.users)
             .where(eq(schema.users.id, user.id))
             .limit(1);
-          
+
           if (userById.length > 0) {
             dbUser = userById;
           } else if (user.email) {
@@ -97,7 +100,7 @@ export async function POST(request: NextRequest) {
               dbUser = userByEmail;
             }
           }
-          
+
           // Se ainda não encontrou, retornar erro
           if (dbUser.length === 0) {
             console.error("Could not find user after duplicate error");
@@ -110,28 +113,49 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Buscar campanha pelo código de convite (case-insensitive)
-    // Normalizar o código para maiúsculas
-    const normalizedCode = parsed.inviteCode.toUpperCase().trim();
-    
-    // Buscar todas as campanhas com código de convite
-    const allCampaigns = await db
-      .select()
-      .from(schema.campaigns)
-      .where(sql`${schema.campaigns.inviteCode} IS NOT NULL`);
+    // Buscar campanha pelo código ou ID
+    let campaign: any;
 
-    // Filtrar por código (case-insensitive)
-    const campaign = allCampaigns.find(
-      (c) => c.inviteCode && c.inviteCode.toUpperCase() === normalizedCode
-    );
+    if (parsed.campaignId) {
+      // Buscar por ID e verificar se é pública
+      const campaigns = await db
+        .select()
+        .from(schema.campaigns)
+        .where(eq(schema.campaigns.id, parsed.campaignId))
+        .limit(1);
 
-    if (!campaign || !campaign.inviteCode) {
-      console.error(`Invite code not found: ${normalizedCode}`);
-      console.error(`Available codes:`, allCampaigns.map(c => c.inviteCode).filter(Boolean));
-      return NextResponse.json(
-        { error: "Código de convite inválido ou não encontrado" },
-        { status: 404 }
+      campaign = campaigns[0];
+
+      if (!campaign) {
+        return NextResponse.json({ error: "Campanha não encontrada" }, { status: 404 });
+      }
+
+      // Se é por ID, tem que ser pública
+      if (campaign.visibility !== "public") {
+        return NextResponse.json(
+          { error: "Esta campanha é privada e exige código de convite" },
+          { status: 403 }
+        );
+      }
+    } else if (parsed.inviteCode) {
+      // Buscar campanha pelo código de convite (case-insensitive)
+      const normalizedCode = parsed.inviteCode.toUpperCase().trim();
+
+      const allCampaigns = await db
+        .select()
+        .from(schema.campaigns)
+        .where(sql`${schema.campaigns.inviteCode} IS NOT NULL`);
+
+      campaign = allCampaigns.find(
+        (c) => c.inviteCode && c.inviteCode.toUpperCase() === normalizedCode
       );
+
+      if (!campaign) {
+        return NextResponse.json(
+          { error: "Código de convite inválido ou não encontrado" },
+          { status: 404 }
+        );
+      }
     }
 
     // Usar o ID do usuário do banco de dados (pode ser diferente do Supabase ID)
@@ -195,7 +219,7 @@ export async function POST(request: NextRequest) {
     console.error("Error joining campaign:", error);
     const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
     return NextResponse.json(
-      { 
+      {
         error: "Erro ao entrar na campanha",
         details: process.env.NODE_ENV === "development" ? errorMessage : undefined
       },

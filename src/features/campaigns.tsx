@@ -5,7 +5,7 @@ import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Scroll, Clock, Users, MapPin, ChevronRight, Copy, Key, UserPlus, Trash2 } from "lucide-react";
+import { Scroll, Clock, Users, MapPin, ChevronRight, Copy, Key, UserPlus, Trash2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import mapBg from "@assets/generated_images/fantasy_world_map_parchment.png";
 import Image from "next/image";
@@ -59,6 +59,8 @@ export default function Campaigns() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deletingCampaign, setDeletingCampaign] = useState<string | null>(null);
   const [confirmCampaignTitle, setConfirmCampaignTitle] = useState("");
+  const [discoverableCampaigns, setDiscoverableCampaigns] = useState<Campaign[]>([]);
+  const [loadingDiscoverable, setLoadingDiscoverable] = useState(false);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -73,7 +75,24 @@ export default function Campaigns() {
         console.error("Error checking role:", error);
       }
     };
+
+    const fetchDiscoverable = async () => {
+      setLoadingDiscoverable(true);
+      try {
+        const res = await fetch("/api/campaigns");
+        if (res.ok) {
+          const data = await res.json();
+          setDiscoverableCampaigns(data);
+        }
+      } catch (error) {
+        console.error("Error fetching discoverable campaigns:", error);
+      } finally {
+        setLoadingDiscoverable(false);
+      }
+    };
+
     checkRole();
+    fetchDiscoverable();
   }, []);
 
   const handleSelectCampaign = (campaign: Campaign | any) => {
@@ -90,7 +109,7 @@ export default function Campaigns() {
     try {
       // Normalizar código para maiúsculas
       const normalizedCode = inviteCode.trim().toUpperCase();
-      
+
       const res = await fetch("/api/campaigns/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -112,6 +131,38 @@ export default function Campaigns() {
       await refreshCampaigns();
     } catch (error) {
       console.error("Error joining campaign:", error);
+      toast.error(t("campaigns.connectionError"));
+    } finally {
+      setJoining(false);
+    }
+  };
+
+  const handleJoinPublic = async (campaignId: string) => {
+    setJoining(true);
+    try {
+      const res = await fetch("/api/campaigns/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campaignId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || t("campaigns.connectionError"));
+        return;
+      }
+
+      toast.success(t("campaigns.enterCampaign") + ": " + data.campaign.title);
+      await refreshCampaigns();
+      // Re-fetch discoverable to remove the one just joined
+      const discRes = await fetch("/api/campaigns");
+      if (discRes.ok) {
+        const discData = await discRes.json();
+        setDiscoverableCampaigns(discData);
+      }
+    } catch (error) {
+      console.error("Error joining public campaign:", error);
       toast.error(t("campaigns.connectionError"));
     } finally {
       setJoining(false);
@@ -280,7 +331,7 @@ export default function Campaigns() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.2 }}
               >
-                <Card 
+                <Card
                   className="bg-card/60 border-white/10 overflow-hidden hover:border-primary/40 transition-colors group cursor-pointer"
                   onClick={() => handleSelectCampaign(camp)}
                 >
@@ -455,6 +506,78 @@ export default function Campaigns() {
                 </Card>
               </motion.div>
             ))}
+          </div>
+        )}
+
+        {/* Campanhas Públicas Disponíveis */}
+        {!isDM && (
+          <div className="pt-12 border-t border-white/5">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold font-cinzel text-primary flex items-center gap-2">
+                <Sparkles className="w-6 h-6" />
+                {t("campaigns.discoverPublic")}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {t("campaigns.discoverPublicDesc")}
+              </p>
+            </div>
+
+            {loadingDiscoverable ? (
+              <div className="text-center py-12 text-muted-foreground italic">
+                {t("common.loading")}
+              </div>
+            ) : discoverableCampaigns.length === 0 ? (
+              <Card className="bg-card/20 border-dashed border-white/10 p-8 text-center">
+                <p className="text-muted-foreground italic text-sm">
+                  {t("campaigns.noPublicFound")}
+                </p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {discoverableCampaigns.map((camp, i) => (
+                  <motion.div
+                    key={camp.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    <Card className="bg-card/40 border-primary/10 overflow-hidden flex flex-col h-full hover:border-primary/30 transition-all">
+                      <div className="h-32 relative shrink-0">
+                        <Image
+                          src={camp.image || mapBg}
+                          alt={camp.title}
+                          fill
+                          className="object-cover opacity-60 sepia-[.2]"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+                      </div>
+                      <CardContent className="p-4 flex flex-col flex-1">
+                        <h3 className="text-lg font-bold font-cinzel text-primary truncate mb-1">
+                          {camp.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-4 flex-1">
+                          {camp.description || "Uma nova saga aguarda por você..."}
+                        </p>
+                        <div className="flex justify-between items-center mt-auto pt-2 border-t border-white/5">
+                          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                            {camp.system}
+                          </span>
+                          <Button
+                            size="sm"
+                            className="h-8 bg-primary/20 hover:bg-primary text-primary hover:text-primary-foreground border border-primary/20 transition-all"
+                            onClick={() => handleJoinPublic(camp.id)}
+                            disabled={joining}
+                          >
+                            <UserPlus className="w-3 h-3 mr-1" />
+                            {t("campaigns.joinButton")}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -155,7 +155,8 @@
     "allCharacters": "Todos os personagens",
     "allMembers": "Todos os membros",
     "allItems": "Todos os itens",
-    "allMaps": "Todos os mapas"
+    "allMaps": "Todos os mapas",
+    "activeCampaign": "Campanha Ativa"
   },
   "spell": {
     "select": "Selecionar Magias",
@@ -275,7 +276,11 @@
     "inviteCopied": "Código copiado para a área de transferência!",
     "inviteError": "Erro ao gerar código de convite",
     "nextSession": "Próxima sessão",
-    "storyProgress": "Progresso da História"
+    "storyProgress": "Progresso da História",
+    "discoverPublic": "Explorar Crônicas Públicas",
+    "discoverPublicDesc": "Descubra novas aventuras abertas para todos os jogadores.",
+    "noPublicFound": "Nenhuma outra campanha pública disponível no momento.",
+    "joinButton": "Participar"
   },
   "inventory": {
     "campaignInventory": "Inventário da Campanha",
@@ -358,6 +363,12 @@
     "enemyDescription": "Descrição",
     "mustHaveOneChapter": "A campanha deve ter pelo menos um capítulo",
     "creating": "Criando...",
+    "maxPlayers": "Máximo de Jogadores",
+    "maxPlayersDesc": "Define o limite de jogadores que podem participar desta campanha.",
+    "visibility": "Visibilidade da Campanha",
+    "visibilityDesc": "Campanhas públicas aparecem na busca. Campanhas privadas exigem código de convite.",
+    "public": "Pública (Aberta para todos)",
+    "private": "Privada (Apenas com código)",
     "createCampaign": "Criar Campanha",
     "createSuccess": "Campanha criada com sucesso!",
     "createError": "Erro ao criar campanha",

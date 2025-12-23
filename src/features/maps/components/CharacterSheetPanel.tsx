@@ -1,9 +1,10 @@
 import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Shield, Heart, Zap } from "lucide-react";
+import { X, Shield, Heart, Zap, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
+import { rollAttack, rollDamage } from "@/lib/dice-helper";
 
 interface CharacterData {
     id: string;
@@ -17,10 +18,24 @@ interface CharacterData {
         ac: number;
         speed: number;
         attributes: Record<string, number>;
+        attacks?: Array<{
+            name: string;
+            bonus: number;
+            damage: string;
+            type: string;
+            description: string;
+        }>;
     };
     ac?: number;
     speed?: number;
     attributes?: Record<string, number>;
+    attacks?: Array<{
+        name: string;
+        bonus: number;
+        damage: string;
+        type: string;
+        description: string;
+    }>;
     characterClass?: string;
 }
 

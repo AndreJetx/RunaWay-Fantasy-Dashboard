@@ -4,6 +4,7 @@ import { db, schema } from "@/lib/db";
 import { campaignStatusEnum } from "@shared/schema";
 import { createClient } from "@/lib/supabase/server";
 import { eq } from "drizzle-orm";
+import { getDbUser } from "@/lib/user-helper";
 
 const campaignStatusValues = campaignStatusEnum.enumValues as [
   string,
@@ -42,6 +43,8 @@ const createCampaignSchema = z.object({
   totalChapters: z.number().int().min(1).default(10).optional(),
   attributeSystem: z.enum(["fixed", "point_buy", "roll_4d6"]).default("fixed").optional(),
   initialMoney: z.string().default("0").optional(),
+  maxPlayers: z.number().int().min(1).max(100).default(6).optional(),
+  visibility: z.enum(["public", "private"]).default("private").optional(),
   // Mapa inicial
   initialMap: z.object({
     title: z.string().min(1),
@@ -55,18 +58,57 @@ const createCampaignSchema = z.object({
 });
 
 export async function GET() {
-  const campaigns = await db
-    .select()
-    .from(schema.campaigns)
-    .limit(50);
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  return NextResponse.json(campaigns);
+    // Buscar campanhas públicas
+    let query = db
+      .select()
+      .from(schema.campaigns)
+      .where(eq(schema.campaigns.visibility, "public"));
+
+    const campaigns = await query.limit(50);
+
+    // Se o usuário estiver logado, podemos filtrar para não mostrar o que ele já participa
+    if (user) {
+      const dbUser = await getDbUser(user.id, user.email);
+      const userId = dbUser?.id || user.id;
+
+      // Buscar IDs das campanhas que ele já participa
+      const myCampaigns = await db
+        .select({ id: schema.campaignMembers.campaignId })
+        .from(schema.campaignMembers)
+        .where(eq(schema.campaignMembers.userId, userId));
+
+      const myDmCampaigns = await db
+        .select({ id: schema.campaigns.id })
+        .from(schema.campaigns)
+        .where(eq(schema.campaigns.dmId, userId));
+
+      const myIds = new Set([
+        ...myCampaigns.map(c => c.id),
+        ...myDmCampaigns.map(c => c.id)
+      ]);
+
+      // Filtrar a lista final
+      const filteredCampaigns = campaigns.filter(c => !myIds.has(c.id));
+      return NextResponse.json(filteredCampaigns);
+    }
+
+    return NextResponse.json(campaigns);
+  } catch (error) {
+    console.error("Error fetching discoverable campaigns:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
   try {
     console.log("📥 Recebendo requisição para criar campanha...");
-    
+
     const supabase = await createClient();
     const {
       data: { user },
@@ -92,7 +134,7 @@ export async function POST(request: Request) {
       console.log("⚠️  Usuário não encontrado na tabela users, criando...");
       console.log("   ID do Supabase:", user.id);
       console.log("   Email:", user.email);
-      
+
       // Criar usuário na tabela users com dados do Supabase Auth
       const [newUser] = await db
         .insert(schema.users)
@@ -104,7 +146,7 @@ export async function POST(request: Request) {
           role: "dm", // Default para DM já que está criando campanha
         })
         .returning();
-      
+
       console.log("✅ Usuário criado na tabela users:", newUser.id);
       dbUser = [newUser];
     } else {
@@ -114,7 +156,7 @@ export async function POST(request: Request) {
 
     const payload = await request.json();
     console.log("📦 Payload recebido:", JSON.stringify(payload, null, 2));
-    
+
     // Limpar campos vazios antes de validar
     if (payload.image === "") {
       delete payload.image;
@@ -122,7 +164,7 @@ export async function POST(request: Request) {
     if (payload.description === "") {
       delete payload.description;
     }
-    
+
     console.log("🔍 Validando payload...");
     const parsed = createCampaignSchema.parse(payload);
     console.log("✅ Payload validado com sucesso");
@@ -139,6 +181,8 @@ export async function POST(request: Request) {
       totalChapters: payload.totalChapters || 10,
       attributeSystem: parsed.attributeSystem ?? "fixed",
       initialMoney: parsed.initialMoney ?? "0",
+      maxPlayers: parsed.maxPlayers ?? 6,
+      visibility: parsed.visibility ?? "private",
     };
 
     // Adicionar campos opcionais apenas se definidos
@@ -146,12 +190,12 @@ export async function POST(request: Request) {
     if (parsed.image) campaignValues.image = parsed.image;
 
     console.log("💾 Valores da campanha:", JSON.stringify(campaignValues, null, 2));
-    
+
     const [campaign] = await db
       .insert(schema.campaigns)
       .values(campaignValues)
       .returning();
-    
+
     console.log("✅ Campanha criada:", campaign.id);
 
     // Criar mapa inicial se fornecido
@@ -165,12 +209,12 @@ export async function POST(request: Request) {
         isInitialMap: true,
         visibleToPlayers: true,
       };
-      
+
       // Adicionar notas apenas se definidas
       if (parsed.initialMap.notes) {
         mapValues.notes = parsed.initialMap.notes;
       }
-      
+
       await db.insert(schema.maps).values(mapValues);
       console.log("✅ Mapa inicial criado");
     }
@@ -184,12 +228,12 @@ export async function POST(request: Request) {
         chapterNumber: chapterData.chapterNumber,
         title: chapterData.title,
       };
-      
+
       // Adicionar descrição apenas se definida
       if (chapterData.description) {
         chapterValues.description = chapterData.description;
       }
-      
+
       console.log(`  📖 Criando capítulo ${chapterData.chapterNumber}: ${chapterData.title}`);
       const [chapter] = await db
         .insert(schema.campaignChapters)
@@ -246,24 +290,24 @@ export async function POST(request: Request) {
     }
 
     console.error("Error creating campaign:", error);
-    
+
     // Retornar mais detalhes do erro em desenvolvimento
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     const errorStack = error instanceof Error ? error.stack : undefined;
-    
+
     // Verificar tipos de erro
     const isDbConnectionError = errorMessage.toLowerCase().includes("fetch failed") ||
-                                errorMessage.toLowerCase().includes("connection") ||
-                                errorMessage.toLowerCase().includes("network") ||
-                                errorMessage.toLowerCase().includes("timeout");
-    
-    const isDbError = errorMessage.toLowerCase().includes("relation") || 
-                      errorMessage.toLowerCase().includes("does not exist") ||
-                      errorMessage.toLowerCase().includes("column") ||
-                      errorMessage.toLowerCase().includes("syntax") ||
-                      errorMessage.toLowerCase().includes("undefined table") ||
-                      (errorMessage.toLowerCase().includes("table") && errorMessage.toLowerCase().includes("not exist"));
-    
+      errorMessage.toLowerCase().includes("connection") ||
+      errorMessage.toLowerCase().includes("network") ||
+      errorMessage.toLowerCase().includes("timeout");
+
+    const isDbError = errorMessage.toLowerCase().includes("relation") ||
+      errorMessage.toLowerCase().includes("does not exist") ||
+      errorMessage.toLowerCase().includes("column") ||
+      errorMessage.toLowerCase().includes("syntax") ||
+      errorMessage.toLowerCase().includes("undefined table") ||
+      (errorMessage.toLowerCase().includes("table") && errorMessage.toLowerCase().includes("not exist"));
+
     // Log detalhado do erro
     console.error("Error details:", {
       message: errorMessage,
@@ -272,10 +316,10 @@ export async function POST(request: Request) {
       isDbConnectionError,
       isDbError,
     });
-    
+
     let userMessage = "Internal Server Error";
     let hint: string | undefined;
-    
+
     if (isDbConnectionError) {
       userMessage = "Erro de conexão com o banco de dados";
       hint = "Verifique se a DATABASE_URL está correta e se o banco está acessível. Se estiver usando Neon, certifique-se de usar a URL de conexão HTTP.";
@@ -283,9 +327,9 @@ export async function POST(request: Request) {
       userMessage = "Database error - verifique se a migração foi executada";
       hint = "Execute a migração SQL em migrations/add_chapters_and_npc_expansion.sql";
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         message: userMessage,
         error: process.env.NODE_ENV === "development" ? errorMessage : undefined,
         stack: process.env.NODE_ENV === "development" ? errorStack : undefined,

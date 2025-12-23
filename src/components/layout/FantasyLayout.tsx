@@ -170,7 +170,13 @@ export function FantasyLayout({ children }: { children: React.ReactNode }) {
 
           {/* Campaign Selector */}
           {!campaignsLoading && campaigns.length > 0 && (
-            <div className="px-4 mb-4 z-10">
+            <div className="px-4 mb-6 z-10">
+              <div className="flex items-center gap-2 mb-2 px-1">
+                <Scroll className="w-4 h-4 text-primary/70" />
+                <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-muted-foreground/70">
+                  {t("campaign.activeCampaign") || "Campanha Ativa"}
+                </span>
+              </div>
               <Select
                 value={activeCampaign?.id || ""}
                 onValueChange={(value) => {
@@ -178,17 +184,37 @@ export function FantasyLayout({ children }: { children: React.ReactNode }) {
                   if (campaign) setActiveCampaign(campaign);
                 }}
               >
-                <SelectTrigger className="w-full bg-background/50 border-border/50">
-                  <SelectValue placeholder={t("campaign.selectCampaign") || "Selecione uma campanha"} />
+                <SelectTrigger className="w-full bg-black/40 border-primary/20 hover:border-primary/40 transition-all duration-300 backdrop-blur-sm group h-12 shadow-inner ring-offset-background focus:ring-1 focus:ring-primary/30">
+                  <div className="flex items-center gap-2 overflow-hidden w-full">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0 shadow-[0_0_8px_rgba(var(--primary),0.8)]" />
+                    <div className="truncate text-left flex-1 font-cinzel text-sm tracking-wide text-foreground/90 group-hover:text-primary transition-colors">
+                      {activeCampaign?.title || t("campaign.selectCampaign") || "Selecione uma campanha"}
+                    </div>
+                  </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-card/95 border-primary/20 backdrop-blur-md">
                   {campaigns.map((campaign) => (
-                    <SelectItem key={campaign.id} value={campaign.id}>
-                      {campaign.title}
+                    <SelectItem
+                      key={campaign.id}
+                      value={campaign.id}
+                      className="focus:bg-primary/20 focus:text-primary transition-colors cursor-pointer py-3 px-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-1.5 h-1.5 rounded-full transition-all",
+                          activeCampaign?.id === campaign.id
+                            ? "bg-primary shadow-[0_0_5px_rgba(var(--primary),0.5)]"
+                            : "bg-muted-foreground/20 border border-muted-foreground/10"
+                        )} />
+                        <span className="font-cinzel text-sm tracking-wide">{campaign.title}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Subtle decorative glow line */}
+              <div className="mt-4 mx-auto w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-50" />
             </div>
           )}
 

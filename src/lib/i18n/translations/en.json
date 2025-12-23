@@ -153,7 +153,8 @@
     "allCharacters": "All characters",
     "allMembers": "All members",
     "allItems": "All items",
-    "allMaps": "All maps"
+    "allMaps": "All maps",
+    "activeCampaign": "Active Campaign"
   },
   "spell": {
     "select": "Select Spells",
@@ -272,7 +273,11 @@
     "inviteCopied": "Code copied to clipboard!",
     "inviteError": "Error generating invite code",
     "nextSession": "Next session",
-    "storyProgress": "Story Progress"
+    "storyProgress": "Story Progress",
+    "discoverPublic": "Explore Public Chronicles",
+    "discoverPublicDesc": "Discover new adventures open to all players.",
+    "noPublicFound": "No other public campaigns available at the moment.",
+    "joinButton": "Join"
   },
   "inventory": {
     "campaignInventory": "Campaign Inventory",
@@ -355,6 +360,12 @@
     "enemyDescription": "Description",
     "mustHaveOneChapter": "Campaign must have at least one chapter",
     "creating": "Creating...",
+    "maxPlayers": "Max Players",
+    "maxPlayersDesc": "Defines the limit of players who can participate in this campaign.",
+    "visibility": "Campaign Visibility",
+    "visibilityDesc": "Public campaigns appear in search. Private campaigns require an invite code.",
+    "public": "Public (Open to everyone)",
+    "private": "Private (Invite code only)",
     "createCampaign": "Create Campaign",
     "createSuccess": "Campaign created successfully!",
     "createError": "Error creating campaign",
@@ -398,4 +409,3 @@
     "createError": "Error creating NPC"
   }
 }
-

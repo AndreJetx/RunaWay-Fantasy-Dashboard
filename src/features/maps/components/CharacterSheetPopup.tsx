@@ -6,11 +6,12 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X } from "lucide-react";
+import { X, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
+import { rollAttack, rollDamage } from "@/lib/dice-helper";
 
 interface CharacterData {
     id: string;
@@ -24,10 +25,24 @@ interface CharacterData {
         ac: number;
         speed: number;
         attributes: Record<string, number>;
+        attacks?: Array<{
+            name: string;
+            bonus: number;
+            damage: string;
+            type: string;
+            description: string;
+        }>;
     };
     ac?: number;
     speed?: number;
     attributes?: Record<string, number>;
+    attacks?: Array<{
+        name: string;
+        bonus: number;
+        damage: string;
+        type: string;
+        description: string;
+    }>;
     characterClass?: string; // Alternativa para class
     // Pode ser estendido com mais dados reais da ficha
 }
@@ -123,6 +138,50 @@ export function CharacterSheetPopup({
                                         </div>
                                     ))}
                                 </div>
+
+                                {/* Ataques/Ações - Excluisivo para Inimigos/NPCs que possuem attacks */}
+                                {character.attacks && character.attacks.length > 0 && (
+                                    <div className="space-y-3">
+                                        <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+                                            <Swords className="w-3 h-3" /> Ações de Ataque
+                                        </p>
+                                        <div className="space-y-2">
+                                            {character.attacks.map((attack, idx) => (
+                                                <div key={`${attack.name}-${idx}`} className="p-3 rounded bg-white/5 border border-white/5 space-y-2 hover:bg-white/10 transition-colors">
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <p className="text-primary/90 font-bold text-xs">{attack.name}</p>
+                                                            <p className="text-[10px] text-muted-foreground italic">{attack.type}</p>
+                                                        </div>
+                                                        <div className="flex gap-1">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="h-7 text-[10px] px-2 bg-primary/10 border-primary/30 hover:bg-primary/20"
+                                                                onClick={() => rollAttack(attack.name, attack.bonus)}
+                                                            >
+                                                                Acerto ({formatMod(attack.bonus)})
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="h-7 text-[10px] px-2 bg-red-500/10 border-red-500/30 hover:bg-red-500/20"
+                                                                onClick={() => rollDamage(attack.name, attack.damage, attack.type)}
+                                                            >
+                                                                Dano ({attack.damage})
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    {attack.description && (
+                                                        <p className="text-[10px] text-white/50 leading-tight border-t border-white/5 pt-1 mt-1">
+                                                            {attack.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Simulação de conteúdo extra (ataques, skills) */}
                                 <div className="bg-card/20 p-3 rounded text-sm text-muted-foreground text-center italic">

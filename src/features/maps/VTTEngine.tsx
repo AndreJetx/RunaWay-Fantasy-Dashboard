@@ -23,6 +23,7 @@ import { TokenMarker } from "./components/TokenMarker";
 import { InitiativeTracker, Combatant } from "./components/InitiativeTracker";
 import { CharacterSheetPanel } from "./components/CharacterSheetPanel";
 import { DamageDialog } from "./components/DamageDialog";
+import { AttackRollDialog } from "./components/AttackRollDialog";
 import { useCampaign } from "@/contexts/CampaignContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
@@ -54,6 +55,13 @@ interface VTTToken {
         speed: number;
         initiativeBonus: number; // Bônus total de iniciativa vindo da ficha
         attributes: Record<string, number>;
+        attacks?: Array<{
+            name: string;
+            bonus: number;
+            damage: string;
+            type: string;
+            description: string;
+        }>;
     };
 }
 
@@ -88,6 +96,7 @@ export default function VTTEngine({ initialMapImage, initialCampaignId, onExit }
     const [fullscreen, setFullscreen] = useState(false);
     const [isSidebarVisible, setIsSidebarVisible] = useState(true);
     const [damageTokenId, setDamageTokenId] = useState<string | null>(null);
+    const [attackTokenId, setAttackTokenId] = useState<string | null>(null);
     const [currentTurnId, setCurrentTurnId] = useState<string | null>(null);
 
     // Referências
@@ -245,7 +254,8 @@ export default function VTTEngine({ initialMapImage, initialCampaignId, onExit }
                 initiativeBonus: (entity.initiative !== undefined && entity.initiative !== null && Number(entity.initiative) !== 0)
                     ? Number(entity.initiative)
                     : dexMod,
-                attributes: safeAttributes
+                attributes: safeAttributes,
+                attacks: entity.attacks || []
             }
         };
 
@@ -534,6 +544,7 @@ export default function VTTEngine({ initialMapImage, initialCampaignId, onExit }
                                     }}
                                     onDragEnd={moveToken.bind(null, token.id)}
                                     onApplyDamage={() => setDamageTokenId(token.id)}
+                                    onRollAttacks={() => setAttackTokenId(token.id)}
                                     isHostile={token.type === 'enemy'}
                                     isDead={token.isDead}
                                     isCurrentTurn={currentTurnId === token.id}
@@ -711,6 +722,14 @@ export default function VTTEngine({ initialMapImage, initialCampaignId, onExit }
                     </Card>
                 </div>
             )}
+
+            {/* --- Dialog de Ataques --- */}
+            <AttackRollDialog
+                isOpen={!!attackTokenId}
+                onClose={() => setAttackTokenId(null)}
+                tokenName={tokens.find(t => t.id === attackTokenId)?.name || ""}
+                attacks={tokens.find(t => t.id === attackTokenId)?.stats.attacks || []}
+            />
 
             {/* --- Dialog de Dano/Cura --- */}
             <DamageDialog

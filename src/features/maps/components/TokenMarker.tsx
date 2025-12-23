@@ -25,7 +25,8 @@ interface TokenMarkerProps {
     isCurrentTurn?: boolean;
     onSelect?: () => void;
     onDragEnd?: (x: number, y: number) => void;
-    onApplyDamage?: (amount: number) => void;
+    onApplyDamage?: () => void;
+    onRollAttacks?: () => void;
 }
 
 export function TokenMarker({
@@ -43,6 +44,7 @@ export function TokenMarker({
     onSelect,
     onDragEnd,
     onApplyDamage,
+    onRollAttacks,
 }: TokenMarkerProps) {
     const constraintsRef = useRef(null);
 
@@ -126,9 +128,13 @@ export function TokenMarker({
                     </div>
                 </ContextMenuTrigger>
                 <ContextMenuContent className="w-48">
-                    <ContextMenuItem onClick={() => onApplyDamage?.(0)} className="flex items-center gap-2">
-                        <Swords className="w-4 h-4 text-red-500" />
+                    <ContextMenuItem onClick={() => onApplyDamage?.()} className="flex items-center gap-2">
+                        <HeartPulse className="w-4 h-4 text-green-500" />
                         Aplica Dano/Cura
+                    </ContextMenuItem>
+                    <ContextMenuItem onClick={() => onRollAttacks?.()} className="flex items-center gap-2">
+                        <Swords className="w-4 h-4 text-red-500" />
+                        Rolar Ataques
                     </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem disabled className="text-[10px] text-muted-foreground">
