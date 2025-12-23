@@ -93,6 +93,8 @@ const campaignColumns = {
   inviteCode: varchar("invite_code"),
   attributeSystem: text("attribute_system").default("fixed"), // "fixed", "point_buy", "roll_4d6"
   initialMoney: text("initial_money").default("0"), // Quantidade de dinheiro inicial em nível 1
+  maxPlayers: integer("max_players").default(6), // Número máximo de jogadores
+  visibility: text("visibility").default("private"), // "public" ou "private"
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .default(sql`now()`),

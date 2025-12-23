@@ -530,12 +530,14 @@ interface CreateEnemyDialogProps {
   campaignId: string;
   chapterId?: string | null;
   onEnemyCreated?: () => void;
+  trigger?: React.ReactNode;
 }
 
 export function CreateEnemyDialog({
   campaignId,
   chapterId,
   onEnemyCreated,
+  trigger,
 }: CreateEnemyDialogProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -577,7 +579,7 @@ export function CreateEnemyDialog({
       // Preparar dados do inimigo para envio
       const hpMatch = selectedEnemy.hp?.match(/\d+/);
       const hpValue = hpMatch ? parseInt(hpMatch[0], 10) : 10;
-      
+
       const speedMatch = selectedEnemy.speed?.match(/\d+/);
       const speedValue = speedMatch ? parseInt(speedMatch[0], 10) : 30;
 
@@ -644,9 +646,11 @@ export function CreateEnemyDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-primary text-primary-foreground">
-          <Plus className="mr-2 h-4 w-4" /> Criar Inimigo
-        </Button>
+        {trigger || (
+          <Button className="bg-primary text-primary-foreground">
+            <Plus className="mr-2 h-4 w-4" /> Criar Inimigo
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader className="flex-shrink-0">
@@ -691,11 +695,10 @@ export function CreateEnemyDialog({
                   <div
                     key={enemy.name}
                     onClick={() => handleSelectEnemy(enemy)}
-                    className={`p-3 rounded-md cursor-pointer transition-colors ${
-                      selectedEnemy?.name === enemy.name
+                    className={`p-3 rounded-md cursor-pointer transition-colors ${selectedEnemy?.name === enemy.name
                         ? "bg-primary/10 border-2 border-primary"
                         : "bg-card/40 border-2 border-transparent hover:bg-card/60"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -808,30 +811,30 @@ export function CreateEnemyDialog({
                     {(selectedEnemy.damage_resistances?.length > 0 ||
                       selectedEnemy.damage_immunities?.length > 0 ||
                       selectedEnemy.damage_vulnerabilities?.length > 0) && (
-                      <div>
-                        <h4 className="font-semibold">Resistências/Imunidades</h4>
-                        <div className="space-y-1 mt-1 text-sm">
-                          {selectedEnemy.damage_resistances?.length > 0 && (
-                            <div>
-                              <span className="font-medium">Resistências: </span>
-                              {selectedEnemy.damage_resistances.join(", ")}
-                            </div>
-                          )}
-                          {selectedEnemy.damage_immunities?.length > 0 && (
-                            <div>
-                              <span className="font-medium">Imunidades: </span>
-                              {selectedEnemy.damage_immunities.join(", ")}
-                            </div>
-                          )}
-                          {selectedEnemy.damage_vulnerabilities?.length > 0 && (
-                            <div>
-                              <span className="font-medium">Vulnerabilidades: </span>
-                              {selectedEnemy.damage_vulnerabilities.join(", ")}
-                            </div>
-                          )}
+                        <div>
+                          <h4 className="font-semibold">Resistências/Imunidades</h4>
+                          <div className="space-y-1 mt-1 text-sm">
+                            {selectedEnemy.damage_resistances?.length > 0 && (
+                              <div>
+                                <span className="font-medium">Resistências: </span>
+                                {selectedEnemy.damage_resistances.join(", ")}
+                              </div>
+                            )}
+                            {selectedEnemy.damage_immunities?.length > 0 && (
+                              <div>
+                                <span className="font-medium">Imunidades: </span>
+                                {selectedEnemy.damage_immunities.join(", ")}
+                              </div>
+                            )}
+                            {selectedEnemy.damage_vulnerabilities?.length > 0 && (
+                              <div>
+                                <span className="font-medium">Vulnerabilidades: </span>
+                                {selectedEnemy.damage_vulnerabilities.join(", ")}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 </ScrollArea>
               </>

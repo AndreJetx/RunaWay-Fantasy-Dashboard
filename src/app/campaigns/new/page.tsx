@@ -53,6 +53,8 @@ export default function NewCampaignPage() {
     initialMapTitle: "",
     initialMapUrl: "",
     initialMapNotes: "",
+    maxPlayers: 6,
+    visibility: "private" as "public" | "private",
   });
   const [chapters, setChapters] = useState<Chapter[]>([
     { chapterNumber: 1, title: `${t("newCampaign.chapter")} 1`, description: "" },
@@ -176,6 +178,8 @@ export default function NewCampaignPage() {
           imageUrl: formData.initialMapUrl,
           notes: formData.initialMapNotes || undefined,
         },
+        maxPlayers: formData.maxPlayers,
+        visibility: formData.visibility,
         chapters: chapters.map((ch) => ({
           chapterNumber: ch.chapterNumber,
           title: ch.title,
@@ -209,7 +213,7 @@ export default function NewCampaignPage() {
         const error = await res.json();
         console.error("Erro da API:", error);
         // Mostrar mais detalhes do erro em desenvolvimento
-        const errorMessage = error.error 
+        const errorMessage = error.error
           ? `${error.message}\n\nDetalhes: ${error.error}`
           : error.message || "Erro ao criar campanha";
         throw new Error(errorMessage);
@@ -218,14 +222,14 @@ export default function NewCampaignPage() {
       const data = await res.json();
       // Atualizar a lista de campanhas no contexto
       await refreshCampaigns();
-      
+
       // Mostrar toast de sucesso
       toast.success(t("newCampaign.createSuccess"));
-      
+
       // Aguardar um pouco para garantir que o toast seja exibido
       // e evitar erro de removeChild do React
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       router.push(`/campaigns`);
     } catch (error: any) {
       console.error("Error creating campaign:", error);
@@ -350,6 +354,43 @@ export default function NewCampaignPage() {
                 <p className="text-xs text-muted-foreground mt-1">
                   {t("newCampaign.initialMoneyDesc")}
                 </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div>
+                  <Label htmlFor="maxPlayers">{t("newCampaign.maxPlayers")} *</Label>
+                  <Input
+                    id="maxPlayers"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={formData.maxPlayers}
+                    onChange={(e) =>
+                      setFormData({ ...formData, maxPlayers: parseInt(e.target.value) || 6 })
+                    }
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("newCampaign.maxPlayersDesc")}
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="visibility">{t("newCampaign.visibility")} *</Label>
+                  <select
+                    id="visibility"
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                    value={formData.visibility}
+                    onChange={(e) =>
+                      setFormData({ ...formData, visibility: e.target.value as "public" | "private" })
+                    }
+                    required
+                  >
+                    <option value="private">{t("newCampaign.private")}</option>
+                    <option value="public">{t("newCampaign.public")}</option>
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("newCampaign.visibilityDesc")}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Users,
   Sword,
+  Swords,
   Shield,
   Skull,
   Plus,
@@ -204,7 +205,7 @@ export default function CampaignDetailsPage() {
       if (!res.ok) throw new Error("Failed to update chapter");
 
       const data = await res.json();
-      
+
       // Atualizar estado local
       setChapters((prev) =>
         prev.map((ch) =>
@@ -231,7 +232,7 @@ export default function CampaignDetailsPage() {
     try {
       // Preparar XP individual (filtrar apenas os que têm XP > 0)
       const xpToSend = characterXP.filter(xp => xp.experiencePoints > 0);
-      
+
       const res = await fetch(
         `/api/campaigns/${campaignId}/chapters/${completingChapter}/complete`,
         {
@@ -248,7 +249,7 @@ export default function CampaignDetailsPage() {
       if (!res.ok) throw new Error("Failed to complete chapter");
 
       const data = await res.json();
-      
+
       // Atualizar estado local
       setChapters((prev) =>
         prev.map((ch) =>
@@ -262,7 +263,7 @@ export default function CampaignDetailsPage() {
       await fetchCampaignData();
 
       toast.success("Capítulo concluído com sucesso!");
-      
+
       // Mostrar informações de level ups
       if (data.levelUps && data.levelUps.length > 0) {
         data.levelUps.forEach((levelUp: any) => {
@@ -272,14 +273,14 @@ export default function CampaignDetailsPage() {
           );
         });
       }
-      
+
       if (xpToSend.length > 0) {
         const totalXP = xpToSend.reduce((sum, xp) => sum + xp.experiencePoints, 0);
         toast.info(`XP distribuído: ${totalXP} total`);
       } else if (xpToDistribute > 0) {
         toast.info(`${xpToDistribute} XP distribuído para todos os personagens`);
       }
-      
+
       if (itemsToDistribute.length > 0) {
         toast.info(`${itemsToDistribute.length} item(ns) distribuído(s)`);
       }
@@ -314,7 +315,7 @@ export default function CampaignDetailsPage() {
 
   const handleSaveTotalChapters = async () => {
     if (!campaign) return;
-    
+
     setSavingTotalChapters(true);
     try {
       const res = await fetch(`/api/campaigns/${campaignId}`, {
@@ -390,7 +391,7 @@ export default function CampaignDetailsPage() {
   const heroes = characters.filter((c) => !c.playerId || members.some((m) => m.userId === c.playerId));
   const friendlyNpcs = npcs.filter((n) => !n.isHostile && n.type === "npc");
   const enemies = npcs.filter((n) => n.isHostile || n.type === "enemy" || n.type === "boss");
-  
+
   // Filtrar NPCs por capítulo selecionado
   const currentChapter = chapters.find((ch) => ch.chapterNumber === selectedChapter);
   const chapterNpcs = currentChapter
@@ -423,8 +424,8 @@ export default function CampaignDetailsPage() {
                   campaign.status === "Active"
                     ? "border-green-500/50 text-green-400"
                     : campaign.status === "Paused"
-                    ? "border-yellow-500/50 text-yellow-400"
-                    : "border-gray-500/50 text-gray-400"
+                      ? "border-yellow-500/50 text-yellow-400"
+                      : "border-gray-500/50 text-gray-400"
                 }
               >
                 {campaign.status}
@@ -544,16 +545,16 @@ export default function CampaignDetailsPage() {
                   NPCs
                 </h2>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => router.push(`/campaigns/${campaignId}/npcs`)}
                   >
                     Ver Todos
                   </Button>
                   {isDM && (
-                    <Button 
-                      onClick={() => router.push(`/campaigns/${campaignId}/npcs`)} 
+                    <Button
+                      onClick={() => router.push(`/campaigns/${campaignId}/npcs`)}
                       size="sm"
                     >
                       <Plus className="w-4 h-4 mr-2" />
@@ -701,9 +702,8 @@ export default function CampaignDetailsPage() {
                 {chapters.map((chapter) => (
                   <Card
                     key={chapter.id}
-                    className={`bg-card/60 border-white/10 ${
-                      chapter.isCompleted ? "border-green-500/50" : ""
-                    }`}
+                    className={`bg-card/60 border-white/10 ${chapter.isCompleted ? "border-green-500/50" : ""
+                      }`}
                   >
                     <CardHeader>
                       <div className="flex items-center justify-between">
@@ -744,6 +744,15 @@ export default function CampaignDetailsPage() {
                                   <CheckCircle2 className="w-4 h-4 mr-2" />
                                   Concluir Capítulo
                                 </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-primary/50 text-white hover:bg-primary/20"
+                                  onClick={() => router.push(`/maps?mode=vtt&chapterId=${chapter.id}`)}
+                                >
+                                  <Swords className="w-4 h-4 mr-2" />
+                                  Jogar Sessão
+                                </Button>
                                 <Dialog
                                   open={completingChapter === chapter.id}
                                   onOpenChange={(open) => {
@@ -755,7 +764,7 @@ export default function CampaignDetailsPage() {
                                     }
                                   }}
                                 >
-                                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                                     <DialogHeader>
                                       <DialogTitle>Concluir Capítulo: {chapter.title}</DialogTitle>
                                       <DialogDescription>

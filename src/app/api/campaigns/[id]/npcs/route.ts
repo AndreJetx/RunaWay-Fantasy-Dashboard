@@ -10,6 +10,8 @@ const createNpcSchema = z.object({
   name: z.string().min(1),
   challengeRating: z.string().optional(),
   type: z.string().optional(),
+  race: z.string().optional(),
+  characterClass: z.string().optional(),
   size: z.string().optional(),
   alignment: z.string().optional(),
   armorClass: z.coerce.number().int().optional(),
@@ -193,6 +195,8 @@ export async function POST(
     const npcData = {
       campaignId,
       name: parsed.name,
+      race: parsed.race || null,
+      characterClass: parsed.characterClass || null,
       challengeRating: parsed.challengeRating || null,
       type: parsed.type || null,
       alignment: parsed.alignment || null,
@@ -225,8 +229,8 @@ export async function POST(
       chapterId: parsed.chapterId || null,
       // isHostile: se não fornecido, usar false (NPCs não são hostis por padrão)
       // Se o tipo for enemy ou boss, será true apenas se explicitamente definido
-      isHostile: parsed.isHostile !== undefined 
-        ? parsed.isHostile 
+      isHostile: parsed.isHostile !== undefined
+        ? parsed.isHostile
         : (parsed.type === "enemy" || parsed.type === "boss"),
     };
 
