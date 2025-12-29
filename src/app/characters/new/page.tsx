@@ -1159,7 +1159,7 @@ function NewCharacterPageContent() {
 
       // Remover APENAS perícias anteriores da classe (preservando raça e background)
       const newSkills = { ...prev.skills };
-      
+
       // Remove apenas as perícias que vieram da classe anterior
       [...previousClassSkills, ...chosenClassSkills].forEach(skillKey => {
         delete newSkills[skillKey];
@@ -2112,8 +2112,9 @@ function NewCharacterPageContent() {
       <FantasyLayout>
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-5 w-5" />
+            <Button variant="outline" onClick={() => router.back()} className="gap-2 border-primary/30 hover:bg-primary/10 hover:border-primary/50">
+              <ArrowLeft className="h-4 w-4" />
+              Voltar
             </Button>
             <div>
               <h1 className="text-3xl font-bold font-cinzel text-primary">
@@ -2165,8 +2166,9 @@ function NewCharacterPageContent() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5" />
+          <Button variant="outline" onClick={() => router.back()} className="gap-2 border-primary/30 hover:bg-primary/10 hover:border-primary/50">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
           </Button>
           <div>
             <h1 className="text-3xl font-bold font-cinzel text-primary">

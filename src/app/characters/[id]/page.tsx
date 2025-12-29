@@ -1,5 +1,6 @@
 "use client";
 
+import { PreparedSpellsManager } from "@/components/characters/PreparedSpellsManager";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
@@ -316,12 +317,26 @@ export default function CharacterPage() {
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button
-            variant="ghost"
-            size="icon"
+            variant="outline"
             onClick={() => router.back()}
+            className="gap-2 border-primary/30 hover:bg-primary/10 hover:border-primary/50"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
           </Button>
+
+          {/* Profile Picture */}
+          {character.image && (
+            <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary/30 shadow-lg shrink-0">
+              <Image
+                src={character.image}
+                alt={character.name}
+                fill
+                className="object-cover"
+              />
+            </div>
+          )}
+
           <div className="flex-1">
             <h1 className="text-4xl font-bold font-cinzel text-primary">
               {character.name || "Personagem Sem Nome"}
@@ -518,7 +533,7 @@ export default function CharacterPage() {
                       <p className="text-sm text-muted-foreground mb-1">Classe</p>
                       <p className="text-lg font-bold text-primary">{character.characterClass}</p>
                     </div>
-                    
+
                     {character.subclass && (
                       <div className="bg-background/50 rounded-lg p-4">
                         <p className="text-sm text-muted-foreground mb-1">
@@ -527,14 +542,14 @@ export default function CharacterPage() {
                         <p className="text-lg font-bold text-primary">{character.subclass}</p>
                       </div>
                     )}
-                    
+
                     {character.characterClass === 'Bruxo' && character.pact && (
                       <div className="bg-background/50 rounded-lg p-4 border-2 border-primary/30">
                         <p className="text-sm text-muted-foreground mb-1">Pacto (Nível 3)</p>
                         <p className="text-lg font-bold text-primary">{character.pact}</p>
                       </div>
                     )}
-                    
+
                     {character.characterClass === 'Feiticeiro' && character.subclass === 'Linhagem Dracônica' && character.dragonType && (
                       <div className="bg-background/50 rounded-lg p-4 border-2 border-red-500/30">
                         <p className="text-sm text-muted-foreground mb-1">Dragão Ancestral</p>
@@ -552,7 +567,7 @@ export default function CharacterPage() {
                         })()}
                       </div>
                     )}
-                    
+
                     {character.background && (
                       <div className="bg-background/50 rounded-lg p-4">
                         <p className="text-sm text-muted-foreground mb-1">Antecedente</p>
@@ -615,31 +630,31 @@ export default function CharacterPage() {
                 <CardHeader>
                   <CardTitle className="text-xl font-cinzel">Atributos</CardTitle>
                 </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  {ATTRIBUTES.map((attr) => {
-                    const value = attributes[attr.key] || 10;
-                    const modifier = calculateModifier(value);
-                    const IconComponent = attr.Icon;
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    {ATTRIBUTES.map((attr) => {
+                      const value = attributes[attr.key] || 10;
+                      const modifier = calculateModifier(value);
+                      const IconComponent = attr.Icon;
 
-                    return (
-                      <Card key={attr.key} className="bg-card/40 border-border">
-                        <CardContent className="p-4 text-center">
-                          <div className="flex justify-center mb-2">
-                            <IconComponent className="w-8 h-8 text-primary" />
-                          </div>
-                          <div className="text-sm text-muted-foreground mb-1">{attr.label}</div>
-                          <div className="text-3xl font-bold mb-2">{value}</div>
-                          <div className="text-lg font-semibold text-primary">
-                            {modifier >= 0 ? "+" : ""}{modifier}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                      return (
+                        <Card key={attr.key} className="bg-card/40 border-border">
+                          <CardContent className="p-4 text-center">
+                            <div className="flex justify-center mb-2">
+                              <IconComponent className="w-8 h-8 text-primary" />
+                            </div>
+                            <div className="text-sm text-muted-foreground mb-1">{attr.label}</div>
+                            <div className="text-3xl font-bold mb-2">{value}</div>
+                            <div className="text-lg font-semibold text-primary">
+                              {modifier >= 0 ? "+" : ""}{modifier}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -658,7 +673,7 @@ export default function CharacterPage() {
                   <CardContent>
                     {(() => {
                       const dragonData = getDragonType(character.dragonType);
-                      
+
                       if (!dragonData) return null;
 
                       return (
@@ -679,7 +694,7 @@ export default function CharacterPage() {
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="bg-background/80 rounded-lg p-3 border border-red-500/10">
                             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Benefícios em Combate:</p>
                             <ul className="text-sm space-y-1">
@@ -705,95 +720,95 @@ export default function CharacterPage() {
                   <CardTitle className="text-xl font-cinzel">Informações de Combate</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="armorClass">Classe de Armadura (CA)</Label>
-                  <Input
-                    id="armorClass"
-                    type="number"
-                    value={character.armorClass || 10}
-                    readOnly
-                    className="bg-muted cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="initiative">Iniciativa</Label>
-                  <Input
-                    id="initiative"
-                    type="number"
-                    value={character.initiative || 0}
-                    readOnly
-                    className="bg-muted cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="speed">Deslocamento</Label>
-                  <Input
-                    id="speed"
-                    type="number"
-                    value={character.speed || 30}
-                    readOnly
-                    className="bg-muted cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="currentHp">PV Atuais</Label>
-                  <Input
-                    id="currentHp"
-                    type="number"
-                    value={currentHp}
-                    readOnly
-                    className="bg-muted cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="maxHp">PV Máximos</Label>
-                  <Input
-                    id="maxHp"
-                    type="number"
-                    value={maxHp}
-                    readOnly
-                    className="bg-muted cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="tempHp">PV Temporários</Label>
-                  <Input
-                    id="tempHp"
-                    type="number"
-                    value={character.tempHp || 0}
-                    readOnly
-                    className="bg-muted cursor-not-allowed"
-                  />
-                </div>
-                {/* Testes de Resistência (apenas os da classe) */}
-                {getClassSavingThrows().map((attrKey) => {
-                  const attr = ATTRIBUTES.find(a => a.key === attrKey);
-                  if (!attr) return null;
+                  <div>
+                    <Label htmlFor="armorClass">Classe de Armadura (CA)</Label>
+                    <Input
+                      id="armorClass"
+                      type="number"
+                      value={character.armorClass || 10}
+                      readOnly
+                      className="bg-muted cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="initiative">Iniciativa</Label>
+                    <Input
+                      id="initiative"
+                      type="number"
+                      value={character.initiative || 0}
+                      readOnly
+                      className="bg-muted cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="speed">Deslocamento</Label>
+                    <Input
+                      id="speed"
+                      type="number"
+                      value={character.speed || 30}
+                      readOnly
+                      className="bg-muted cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="currentHp">PV Atuais</Label>
+                    <Input
+                      id="currentHp"
+                      type="number"
+                      value={currentHp}
+                      readOnly
+                      className="bg-muted cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="maxHp">PV Máximos</Label>
+                    <Input
+                      id="maxHp"
+                      type="number"
+                      value={maxHp}
+                      readOnly
+                      className="bg-muted cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="tempHp">PV Temporários</Label>
+                    <Input
+                      id="tempHp"
+                      type="number"
+                      value={character.tempHp || 0}
+                      readOnly
+                      className="bg-muted cursor-not-allowed"
+                    />
+                  </div>
+                  {/* Testes de Resistência (apenas os da classe) */}
+                  {getClassSavingThrows().map((attrKey) => {
+                    const attr = ATTRIBUTES.find(a => a.key === attrKey);
+                    if (!attr) return null;
 
-                  const modifier = getSavingThrowModifier(attrKey);
-                  const baseModifier = calculateModifier(attributes[attrKey as keyof typeof attributes] || 0);
-                  const proficiencyBonus = character.proficiencyBonus || 2;
+                    const modifier = getSavingThrowModifier(attrKey);
+                    const baseModifier = calculateModifier(attributes[attrKey as keyof typeof attributes] || 0);
+                    const proficiencyBonus = character.proficiencyBonus || 2;
 
-                  return (
-                    <div key={attrKey}>
-                      <Label htmlFor={`savingThrow-${attrKey}`}>
-                        Teste de {attr.label} ({attr.abbr})
-                      </Label>
-                      <Input
-                        id={`savingThrow-${attrKey}`}
-                        type="number"
-                        value={modifier}
-                        readOnly
-                        className="bg-muted cursor-not-allowed"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {baseModifier >= 0 ? "+" : ""}{baseModifier} + {proficiencyBonus} prof.
-                      </p>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
+                    return (
+                      <div key={attrKey}>
+                        <Label htmlFor={`savingThrow-${attrKey}`}>
+                          Teste de {attr.label} ({attr.abbr})
+                        </Label>
+                        <Input
+                          id={`savingThrow-${attrKey}`}
+                          type="number"
+                          value={modifier}
+                          readOnly
+                          className="bg-muted cursor-not-allowed"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {baseModifier >= 0 ? "+" : ""}{baseModifier} + {proficiencyBonus} prof.
+                        </p>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -875,6 +890,13 @@ export default function CharacterPage() {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Magias Preparadas */}
+                <PreparedSpellsManager
+                  character={character}
+                  spellDetails={spellDetails}
+                  onUpdate={fetchCharacter}
+                />
 
                 {/* Magias Conhecidas */}
                 <Card className="bg-card/60 border-white/10">
@@ -1109,7 +1131,7 @@ export default function CharacterPage() {
                       const subclassData = ALL_SUBCLASSES.find(
                         s => s.name === character.subclass
                       );
-                      
+
                       if (!subclassData) return null;
 
                       return (
@@ -1119,7 +1141,7 @@ export default function CharacterPage() {
                               {subclassData.description}
                             </p>
                           </div>
-                          
+
                           <div>
                             <h3 className="font-semibold text-lg mb-2">Habilidades de Subclasse</h3>
                             <div className="space-y-3">
@@ -1165,7 +1187,7 @@ export default function CharacterPage() {
                       const pactData = ALL_SUBCLASSES.find(
                         s => s.name === character.pact && s.type === 'pact'
                       );
-                      
+
                       if (!pactData) return null;
 
                       return (
@@ -1175,7 +1197,7 @@ export default function CharacterPage() {
                               {pactData.description}
                             </p>
                           </div>
-                          
+
                           {pactData.features && pactData.features.length > 0 && (
                             <div className="space-y-2">
                               {pactData.features.map((feature, idx) => (
@@ -1207,7 +1229,7 @@ export default function CharacterPage() {
                   <CardContent>
                     {(() => {
                       const dragonData = getDragonType(character.dragonType);
-                      
+
                       if (!dragonData) return null;
 
                       return (
@@ -1229,7 +1251,7 @@ export default function CharacterPage() {
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="bg-background/50 rounded-lg p-3">
                             <h4 className="font-medium text-primary mb-2">Benefícios da Linhagem</h4>
                             <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
@@ -1261,7 +1283,7 @@ export default function CharacterPage() {
                       const backgroundData = BACKGROUNDS.find(
                         (b: any) => b.name === character.background
                       );
-                      
+
                       if (!backgroundData) return (
                         <p className="text-muted-foreground">
                           Informações do antecedente não disponíveis.

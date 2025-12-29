@@ -19,6 +19,9 @@ import {
   CheckCircle2,
   Package,
   Sparkles,
+  Trash2,
+  Edit,
+  Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -46,7 +49,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { CreateEnemyDialog } from "@/components/campaigns/CreateEnemyDialog";
-import { Trash2 } from "lucide-react";
+import { CampaignCalendar } from "@/components/campaigns/CampaignCalendar";
+
 
 interface Character {
   id: string;
@@ -95,6 +99,8 @@ interface Campaign {
   progress: number;
   totalChapters: number | null;
   image: string | null;
+  campaignDate?: string;
+  campaignTime?: string;
 }
 
 interface CampaignMember {
@@ -125,6 +131,10 @@ export default function CampaignDetailsPage() {
   const [itemsToDistribute, setItemsToDistribute] = useState<
     Array<{ characterId: string; itemName: string; quantity: number }>
   >([]);
+  const [deletingNpcId, setDeletingNpcId] = useState<string | null>(null);
+  const [editingImageNpcId, setEditingImageNpcId] = useState<string | null>(null);
+  const [editingImageCharId, setEditingImageCharId] = useState<string | null>(null);
+  const [newImageUrl, setNewImageUrl] = useState("");
   const [editingTotalChapters, setEditingTotalChapters] = useState(false);
   const [totalChaptersValue, setTotalChaptersValue] = useState(10);
   const [savingTotalChapters, setSavingTotalChapters] = useState(false);
@@ -313,6 +323,74 @@ export default function CampaignDetailsPage() {
     }
   };
 
+  const handleDeleteNpc = async (npcId: string) => {
+    setDeletingNpcId(npcId);
+    try {
+      const res = await fetch(`/api/campaigns/${campaignId}/npcs/${npcId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Erro ao excluir NPC");
+      }
+
+      toast.success("NPC excluído com sucesso!");
+      await handleEnemyCreated();
+    } catch (error: any) {
+      console.error("Error deleting NPC:", error);
+      toast.error(error.message || "Erro ao excluir NPC");
+    } finally {
+      setDeletingNpcId(null);
+    }
+  };
+
+  const handleUpdateNpcImage = async (npcId: string) => {
+    try {
+      const res = await fetch(`/api/campaigns/${campaignId}/npcs/${npcId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: newImageUrl }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Erro ao atualizar imagem");
+      }
+
+      toast.success("Imagem atualizada com sucesso!");
+      setEditingImageNpcId(null);
+      setNewImageUrl("");
+      await handleEnemyCreated();
+    } catch (error: any) {
+      console.error("Error updating NPC image:", error);
+      toast.error(error.message || "Erro ao atualizar imagem");
+    }
+  };
+
+  const handleUpdateCharacterImage = async (charId: string) => {
+    try {
+      const res = await fetch(`/api/characters/${charId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: newImageUrl }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Erro ao atualizar imagem");
+      }
+
+      toast.success("Imagem atualizada com sucesso!");
+      setEditingImageCharId(null);
+      setNewImageUrl("");
+      await fetchCampaignData();
+    } catch (error: any) {
+      console.error("Error updating character image:", error);
+      toast.error(error.message || "Erro ao atualizar imagem");
+    }
+  };
+
   const handleSaveTotalChapters = async () => {
     if (!campaign) return;
 
@@ -404,11 +482,12 @@ export default function CampaignDetailsPage() {
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button
-            variant="ghost"
-            size="icon"
+            variant="outline"
             onClick={() => router.back()}
+            className="gap-2 border-primary/30 hover:bg-primary/10 hover:border-primary/50"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
           </Button>
           <div className="flex-1">
             <div className="flex items-center gap-3">
@@ -603,6 +682,30 @@ export default function CampaignDetailsPage() {
                             </span>
                           )}
                         </div>
+                        {isDM && (
+                          <div className="flex gap-2 mt-3">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingImageNpcId(npc.id);
+                                setNewImageUrl(npc.image || "");
+                              }}
+                            >
+                              <ImageIcon className="w-4 h-4 mr-1" />
+                              Editar Imagem
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteNpc(npc.id)}
+                              disabled={deletingNpcId === npc.id}
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              {deletingNpcId === npc.id ? "Excluindo..." : "Excluir"}
+                            </Button>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -671,6 +774,30 @@ export default function CampaignDetailsPage() {
                             </span>
                           )}
                         </div>
+                        {isDM && (
+                          <div className="flex gap-2 mt-3">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingImageNpcId(enemy.id);
+                                setNewImageUrl(enemy.image || "");
+                              }}
+                            >
+                              <ImageIcon className="w-4 h-4 mr-1" />
+                              Editar Imagem
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteNpc(enemy.id)}
+                              disabled={deletingNpcId === enemy.id}
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              {deletingNpcId === enemy.id ? "Excluindo..." : "Excluir"}
+                            </Button>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -1015,6 +1142,15 @@ export default function CampaignDetailsPage() {
                     </p>
                   </div>
 
+                  {/* Calendário da Campanha */}
+                  <div className="mt-6">
+                    <CampaignCalendar
+                      campaignId={campaignId}
+                      initialDate={campaign?.campaignDate}
+                      initialTime={campaign?.campaignTime}
+                    />
+                  </div>
+
                   {/* Jogadores */}
                   <div>
                     <h3 className="font-semibold mb-2">Jogadores</h3>
@@ -1094,7 +1230,82 @@ export default function CampaignDetailsPage() {
           )}
         </Tabs>
       </div>
-    </FantasyLayout>
+
+      {/* Dialog para editar imagem de NPC */}
+      <Dialog open={editingImageNpcId !== null} onOpenChange={(open) => {
+        if (!open) {
+          setEditingImageNpcId(null);
+          setNewImageUrl("");
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Imagem do NPC</DialogTitle>
+            <DialogDescription>
+              Insira a URL da nova imagem
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>URL da Imagem</Label>
+              <Input
+                value={newImageUrl}
+                onChange={(e) => setNewImageUrl(e.target.value)}
+                placeholder="https://exemplo.com/imagem.jpg"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setEditingImageNpcId(null);
+              setNewImageUrl("");
+            }}>
+              Cancelar
+            </Button>
+            <Button onClick={() => editingImageNpcId && handleUpdateNpcImage(editingImageNpcId)}>
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para editar imagem de Personagem */}
+      <Dialog open={editingImageCharId !== null} onOpenChange={(open) => {
+        if (!open) {
+          setEditingImageCharId(null);
+          setNewImageUrl("");
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Imagem do Personagem</DialogTitle>
+            <DialogDescription>
+              Insira a URL da nova imagem
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>URL da Imagem</Label>
+              <Input
+                value={newImageUrl}
+                onChange={(e) => setNewImageUrl(e.target.value)}
+                placeholder="https://exemplo.com/imagem.jpg"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setEditingImageCharId(null);
+              setNewImageUrl("");
+            }}>
+              Cancelar
+            </Button>
+            <Button onClick={() => editingImageCharId && handleUpdateCharacterImage(editingImageCharId)}>
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </FantasyLayout >
   );
 }
-

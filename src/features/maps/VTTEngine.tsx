@@ -31,6 +31,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateEnemyDialog } from "@/components/campaigns/CreateEnemyDialog";
 import { CreateNPCDialog } from "@/components/campaigns/CreateNPCDialog";
+import { VTTCalendarDisplay } from "@/components/vtt/VTTCalendarDisplay";
 import { motion, AnimatePresence } from "framer-motion";
 import mapBg from "@assets/generated_images/fantasy_world_map_parchment.png";
 
@@ -553,6 +554,11 @@ export default function VTTEngine({ initialMapImage, initialCampaignId, onExit }
                         </div>
                     </div>
                 </div>
+
+                {/* Calendar Display */}
+                {(activeCampaign?.id || initialCampaignId) && (
+                    <VTTCalendarDisplay campaignId={activeCampaign?.id || initialCampaignId || ""} />
+                )}
             </div>
 
             {/* --- Sidebar Toggle Button (Floating when sidebar hidden) --- */}

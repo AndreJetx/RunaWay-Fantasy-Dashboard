@@ -14,6 +14,7 @@ const updateNpcSchema = z.object({
   initiative: z.coerce.number().int().optional(),
   notes: z.string().optional(),
   isHostile: z.boolean().optional(),
+  image: z.string().url().optional().or(z.literal("")),
   // Permite atualizar qualquer campo
 }).passthrough();
 

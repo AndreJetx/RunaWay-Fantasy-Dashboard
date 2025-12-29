@@ -25,8 +25,9 @@ export default function CreateHomebrewPage() {
         <FantasyLayout>
             <div className="space-y-6 max-w-4xl mx-auto">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                    <Button variant="outline" onClick={() => router.back()} className="gap-2 border-primary/30 hover:bg-primary/10 hover:border-primary/50">
                         <ArrowLeft className="h-4 w-4" />
+                        Voltar
                     </Button>
                     <div>
                         <h1 className="text-3xl font-bold font-cinzel text-primary">{getTitle(type)}</h1>

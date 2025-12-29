@@ -37,7 +37,7 @@ export default function NewChapterPage() {
 
       let chapterNumber = 1;
       let totalChapters = 10;
-      
+
       if (campaignRes.ok) {
         const campaignData = await campaignRes.json();
         if (campaignData?.campaign?.totalChapters) {
@@ -52,7 +52,7 @@ export default function NewChapterPage() {
             ...chaptersData.chapters.map((ch: any) => ch.chapterNumber)
           );
           chapterNumber = maxChapter + 1;
-          
+
           // Verificar se já atingiu o limite
           if (chaptersData.chapters.length >= totalChapters) {
             toast.error(t("newChapter.maxChaptersReached", { total: totalChapters }));
@@ -91,8 +91,9 @@ export default function NewChapterPage() {
     <FantasyLayout>
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5" />
+          <Button variant="outline" onClick={() => router.back()} className="gap-2 border-primary/30 hover:bg-primary/10 hover:border-primary/50">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
           </Button>
           <div>
             <h1 className="text-3xl font-bold font-cinzel text-primary">
