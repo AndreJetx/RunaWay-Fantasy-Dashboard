@@ -95,6 +95,9 @@ const campaignColumns = {
   initialMoney: text("initial_money").default("0"), // Quantidade de dinheiro inicial em nível 1
   maxPlayers: integer("max_players").default(6), // Número máximo de jogadores
   visibility: text("visibility").default("private"), // "public" ou "private"
+  campaignDate: text("campaign_date").default("1-1-1490"), // Data atual da campanha (formato: dia-mês-ano)
+  campaignTime: text("campaign_time").default("08:00"), // Hora atual da campanha (formato: HH:mm)
+  calendarSystem: text("calendar_system").default("faerun"), // Sistema de calendário: "faerun" ou "custom"
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .default(sql`now()`),
@@ -181,6 +184,8 @@ const characterColumns = {
   backstory: text("backstory"),
   notes: text("notes"),
   feats: jsonb("feats").default(sql`'[]'::jsonb`), // Array de feats escolhidos
+  preparedSpells: jsonb("prepared_spells").default(sql`'[]'::jsonb`), // Array de magias preparadas (apenas para classes que preparam)
+  lastSpellPrepDate: text("last_spell_prep_date"), // Última data em que magias foram preparadas
   needsLevelUp: boolean("needs_level_up").default(false),
   pendingHitDiceRoll: integer("pending_hit_dice_roll"),
   createdAt: timestamp("created_at", { withTimezone: true })

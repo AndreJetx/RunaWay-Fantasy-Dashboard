@@ -74,7 +74,7 @@ export async function GET(
     const dmIdStr = String(campaign.dmId || "");
     const userIdStr = String(user.id || "");
     const dbUserIdStr = dbUser.length > 0 ? String(dbUser[0].id || "") : "";
-    
+
     const isDM = dmIdStr === userIdStr || dmIdStr === dbUserIdStr;
 
     // Verificar se é o dono do personagem
@@ -86,7 +86,7 @@ export async function GET(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       character,
       isOwner,
       isDM,
@@ -172,7 +172,7 @@ export async function PUT(
     const dmIdStr = String(campaign.dmId || "");
     const userIdStr = String(user.id || "");
     const dbUserIdStr = dbUser.length > 0 ? String(dbUser[0].id || "") : "";
-    
+
     const isDM = dmIdStr === userIdStr || dmIdStr === dbUserIdStr;
 
     // Verificar se é o dono do personagem
@@ -232,6 +232,10 @@ export async function PUT(
     if (body.feats !== undefined) updateData.feats = body.feats;
     if (body.needsLevelUp !== undefined) updateData.needsLevelUp = body.needsLevelUp;
     if (body.pendingHitDiceRoll !== undefined) updateData.pendingHitDiceRoll = body.pendingHitDiceRoll;
+    if (body.inventory !== undefined) updateData.inventory = body.inventory;
+    if (body.preparedSpells !== undefined) updateData.preparedSpells = body.preparedSpells;
+    if (body.lastSpellPrepDate !== undefined) updateData.lastSpellPrepDate = body.lastSpellPrepDate;
+
 
     const [updatedCharacter] = await db
       .update(schema.characters)

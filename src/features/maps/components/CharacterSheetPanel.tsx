@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Shield, Heart, Zap, Swords } from "lucide-react";
+import { X, Shield, Heart, Zap, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import { rollAttack, rollDamage } from "@/lib/dice-helper";
+import { canPrepareSpells } from "@/lib/prepared-spells-helper";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface CharacterData {
     id: string;
@@ -37,6 +39,7 @@ interface CharacterData {
         description: string;
     }>;
     characterClass?: string;
+    referenceId?: string; // ID do personagem original no banco
 }
 
 interface CharacterSheetPanelProps {
@@ -45,6 +48,53 @@ interface CharacterSheetPanelProps {
 }
 
 export function CharacterSheetPanel({ character, onClose }: CharacterSheetPanelProps) {
+    const [preparedSpells, setPreparedSpells] = useState<string[]>([]);
+    const [spellDetails, setSpellDetails] = useState<Record<string, any>>({});
+    const [loadingSpells, setLoadingSpells] = useState(false);
+    const [isPreparedSpellsOpen, setIsPreparedSpellsOpen] = useState(false);
+
+    useEffect(() => {
+        if (character?.referenceId) {
+            loadPreparedSpells();
+        }
+    }, [character?.referenceId]);
+
+    const loadPreparedSpells = async () => {
+        if (!character?.referenceId) return;
+
+        try {
+            setLoadingSpells(true);
+            const res = await fetch(`/api/characters/${character.referenceId}`);
+            if (res.ok) {
+                const data = await res.json();
+                const prepared = data.character?.preparedSpells || data.character?.prepared_spells || [];
+                setPreparedSpells(prepared);
+
+                // Buscar detalhes das magias preparadas
+                if (prepared.length > 0) {
+                    const details: Record<string, any> = {};
+                    await Promise.all(
+                        prepared.map(async (spellIndex: string) => {
+                            try {
+                                const spellRes = await fetch(`https://www.dnd5eapi.co/api/spells/${spellIndex}`);
+                                if (spellRes.ok) {
+                                    details[spellIndex] = await spellRes.json();
+                                }
+                            } catch (err) {
+                                console.error(`Error fetching spell ${spellIndex}:`, err);
+                            }
+                        })
+                    );
+                    setSpellDetails(details);
+                }
+            }
+        } catch (error) {
+            console.error("Error loading prepared spells:", error);
+        } finally {
+            setLoadingSpells(false);
+        }
+    };
+
     if (!character) return null;
 
     const stats = character.stats || {
@@ -62,6 +112,22 @@ export function CharacterSheetPanel({ character, onClose }: CharacterSheetPanelP
 
     const getMod = (score: number) => Math.floor((score - 10) / 2);
     const formatMod = (mod: number) => (mod >= 0 ? `+${mod}` : `${mod}`);
+
+    const showPreparedSpells = canPrepareSpells(className);
+
+    // Tradução simples de nomes de magias
+    const translateSpell = (name: string) => {
+        const translations: Record<string, string> = {
+            "cure wounds": "Curar Ferimentos",
+            "healing word": "Palavra Curativa",
+            "shield": "Escudo",
+            "magic missile": "Mísseis Mágicos",
+            "fireball": "Bola de Fogo",
+            "bless": "Bênção",
+            "guiding bolt": "Raio Guiador",
+        };
+        return translations[name.toLowerCase()] || name;
+    };
 
     return (
         <Card className="flex flex-col h-full bg-black/60 border-0 border-r border-white/10 rounded-none w-80 animate-in slide-in-from-right duration-300">
@@ -137,6 +203,63 @@ export function CharacterSheetPanel({ character, onClose }: CharacterSheetPanelP
                             );
                         })}
                     </div>
+
+                    {/* Magias Preparadas */}
+                    {showPreparedSpells && (
+                        <Collapsible open={isPreparedSpellsOpen} onOpenChange={setIsPreparedSpellsOpen}>
+                            <div className="space-y-2 bg-purple-500/5 p-3 rounded-lg border border-purple-500/10">
+                                <CollapsibleTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full flex items-center justify-between p-0 h-auto hover:bg-transparent"
+                                    >
+                                        <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-bold text-purple-400/80">
+                                            <Sparkles className="w-3 h-3" />
+                                            Magias Preparadas
+                                            <Badge variant="outline" className="ml-1 border-purple-500/30 text-purple-400">
+                                                {preparedSpells.length}
+                                            </Badge>
+                                        </div>
+                                        {isPreparedSpellsOpen ? (
+                                            <ChevronUp className="w-4 h-4 text-purple-400/50" />
+                                        ) : (
+                                            <ChevronDown className="w-4 h-4 text-purple-400/50" />
+                                        )}
+                                    </Button>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="space-y-2 mt-2">
+                                    {loadingSpells ? (
+                                        <p className="text-xs text-muted-foreground text-center py-2">Carregando...</p>
+                                    ) : preparedSpells.length === 0 ? (
+                                        <p className="text-xs text-muted-foreground text-center py-2">
+                                            Nenhuma magia preparada
+                                        </p>
+                                    ) : (
+                                        <div className="space-y-1 max-h-40 overflow-y-auto">
+                                            {preparedSpells.map((spellIndex) => {
+                                                const detail = spellDetails[spellIndex];
+                                                return (
+                                                    <div
+                                                        key={spellIndex}
+                                                        className="p-2 rounded bg-white/5 text-[11px] border border-purple-500/10 hover:bg-purple-500/10 transition-colors"
+                                                    >
+                                                        <p className="text-purple-300 font-bold">
+                                                            {detail ? translateSpell(detail.name) : spellIndex}
+                                                        </p>
+                                                        {detail && (
+                                                            <p className="text-white/40 text-[10px] mt-0.5">
+                                                                Nível {detail.level} • {detail.school?.name || ""}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </CollapsibleContent>
+                            </div>
+                        </Collapsible>
+                    )}
 
                     {/* Divisória Decorativa */}
                     <div className="relative py-4 flex items-center">

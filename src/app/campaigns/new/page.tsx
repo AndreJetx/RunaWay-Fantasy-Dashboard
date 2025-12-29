@@ -8,10 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, Trash2, X, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useCampaign } from "@/contexts/CampaignContext";
 import { useTranslation } from "@/lib/i18n/context";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { BestiarySelector } from "@/components/campaigns/BestiarySelector";
+import { BestiaryEnemy } from "@/lib/dnd/bestiary";
 
 interface Chapter {
   chapterNumber: number;
@@ -60,6 +63,8 @@ export default function NewCampaignPage() {
     { chapterNumber: 1, title: `${t("newCampaign.chapter")} 1`, description: "" },
   ]);
   const [chapter1Enemies, setChapter1Enemies] = useState<Enemy[]>([]);
+  const [bestiaryDialogOpen, setBestiaryDialogOpen] = useState(false);
+  const [selectedBestiaryEnemy, setSelectedBestiaryEnemy] = useState<BestiaryEnemy | null>(null);
 
   useEffect(() => {
     const checkRole = async () => {
@@ -135,6 +140,38 @@ export default function NewCampaignPage() {
         isHostile: true,
       },
     ]);
+  };
+
+  const addEnemyFromBestiary = (enemy: BestiaryEnemy) => {
+    const hpMatch = enemy.hp?.match(/\d+/);
+    const hpValue = hpMatch ? parseInt(hpMatch[0], 10) : 10;
+
+    setChapter1Enemies([
+      ...chapter1Enemies,
+      {
+        name: enemy.name,
+        race: enemy.type,
+        type: "enemy",
+        challengeRating: enemy.cr?.toString(),
+        alignment: enemy.alignment,
+        armorClass: enemy.ac,
+        maxHp: hpValue,
+        attributes: {
+          strength: enemy.abilities.str,
+          dexterity: enemy.abilities.dex,
+          constitution: enemy.abilities.con,
+          intelligence: enemy.abilities.int,
+          wisdom: enemy.abilities.wis,
+          charisma: enemy.abilities.cha,
+        },
+        attacks: enemy.actions,
+        abilities: enemy.special_traits,
+        isHostile: true,
+      },
+    ]);
+    setBestiaryDialogOpen(false);
+    setSelectedBestiaryEnemy(null);
+    toast.success(`${enemy.name} adicionado!`);
   };
 
   const removeEnemy = (index: number) => {
@@ -494,9 +531,14 @@ export default function NewCampaignPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{t("newCampaign.chapter1Enemies")}</CardTitle>
-              <Button type="button" onClick={addEnemy} size="sm">
-                <Plus className="h-4 w-4 mr-2" /> {t("newCampaign.addEnemy")}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="button" onClick={() => setBestiaryDialogOpen(true)} size="sm" variant="outline">
+                  <Search className="h-4 w-4 mr-2" /> Buscar no Bestiário
+                </Button>
+                <Button type="button" onClick={addEnemy} size="sm">
+                  <Plus className="h-4 w-4 mr-2" /> {t("newCampaign.addEnemy")}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {chapter1Enemies.length === 0 ? (
@@ -634,6 +676,58 @@ export default function NewCampaignPage() {
             </Button>
           </div>
         </form>
+
+        {/* Bestiary Dialog */}
+        <Dialog open={bestiaryDialogOpen} onOpenChange={setBestiaryDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle>Selecionar Inimigo do Bestiário</DialogTitle>
+              <DialogDescription>
+                Escolha um inimigo pré-definido para adicionar ao Capítulo 1
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4 flex-1 min-h-0">
+              <BestiarySelector
+                onSelect={setSelectedBestiaryEnemy}
+                selectedEnemy={selectedBestiaryEnemy}
+              />
+              <div className="flex flex-col space-y-4 min-h-0">
+                {selectedBestiaryEnemy ? (
+                  <>
+                    <div className="flex-1 border rounded-md p-4 overflow-y-auto">
+                      <h3 className="font-bold text-lg mb-2">{selectedBestiaryEnemy.name}</h3>
+                      <div className="space-y-2 text-sm">
+                        <p><strong>Tipo:</strong> {selectedBestiaryEnemy.type}</p>
+                        <p><strong>CR:</strong> {selectedBestiaryEnemy.cr}</p>
+                        <p><strong>CA:</strong> {selectedBestiaryEnemy.ac}</p>
+                        <p><strong>HP:</strong> {selectedBestiaryEnemy.hp}</p>
+                        <p><strong>Velocidade:</strong> {selectedBestiaryEnemy.speed}</p>
+                        <div>
+                          <strong>Atributos:</strong>
+                          <div className="grid grid-cols-3 gap-2 mt-1">
+                            <span>FOR: {selectedBestiaryEnemy.abilities.str}</span>
+                            <span>DES: {selectedBestiaryEnemy.abilities.dex}</span>
+                            <span>CON: {selectedBestiaryEnemy.abilities.con}</span>
+                            <span>INT: {selectedBestiaryEnemy.abilities.int}</span>
+                            <span>SAB: {selectedBestiaryEnemy.abilities.wis}</span>
+                            <span>CAR: {selectedBestiaryEnemy.abilities.cha}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <Button onClick={() => addEnemyFromBestiary(selectedBestiaryEnemy)}>
+                      Adicionar {selectedBestiaryEnemy.name}
+                    </Button>
+                  </>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                    Selecione um inimigo para ver os detalhes
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </FantasyLayout>
   );
