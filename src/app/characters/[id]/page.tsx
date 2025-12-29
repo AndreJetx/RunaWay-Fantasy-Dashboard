@@ -1,6 +1,7 @@
 "use client";
 
 import { PreparedSpellsManager } from "@/components/characters/PreparedSpellsManager";
+import { SpellSlotTracker } from "@/components/characters/SpellSlotTracker";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
@@ -890,6 +891,13 @@ export default function CharacterPage() {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Rastreador de Slots de Magia */}
+                <SpellSlotTracker
+                  character={character}
+                  onUpdate={fetchCharacter}
+                  canEdit={canEdit}
+                />
 
                 {/* Magias Preparadas */}
                 <PreparedSpellsManager
