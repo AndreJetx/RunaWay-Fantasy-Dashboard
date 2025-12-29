@@ -136,8 +136,7 @@ export const campaignMembers = pgTable(
 
 const characterColumns = {
   id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
-  campaignId: uuid("campaign_id")
-    .notNull()
+  campaignId: uuid("campaign_id") // Nullable for standalone characters
     .references(() => campaigns.id, { onDelete: "cascade" }),
   playerId: uuid("player_id")
     .notNull()

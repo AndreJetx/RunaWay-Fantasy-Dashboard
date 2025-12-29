@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeft, Save, RotateCcw, Sparkles, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
@@ -18,7 +20,9 @@ import { SubclassSelector } from "@/components/characters/SubclassSelector";
 import { BackgroundSelector } from "@/components/characters/BackgroundSelector";
 import { DragonTypeSelector } from "@/components/characters/DragonTypeSelector";
 import { ShopDialog } from "@/components/characters/ShopDialog";
+import { CharacterTypeSelection } from "@/components/characters/CharacterTypeSelection";
 import { canCastSpells, getSpellSlots, getSpellcastingLevel, getCantripsCount, getSpellsCount, getSpellType } from "@/lib/spell-slots";
+import { getXPForLevel } from "@/lib/xp-helper";
 import { getClassFeatures } from "@/lib/class-features";
 import { getSubclassLevel, needsSubclassSelection } from "@/lib/subclasses";
 import { applySubclassBenefits, applyBackgroundBenefits } from "@/lib/benefit-application";
@@ -654,6 +658,8 @@ function NewCharacterPageContent() {
   const [showSubclassSelector, setShowSubclassSelector] = useState(false);
   const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
   const [showDragonTypeSelector, setShowDragonTypeSelector] = useState(false);
+  const [characterType, setCharacterType] = useState<"campaign" | "standalone">("campaign");
+  const [hasExistingCharacter, setHasExistingCharacter] = useState(false);
 
   // Homebrew Integration State
   const [allRaceExpansions, setAllRaceExpansions] = useState<RaceExpansion[]>(RACE_EXPANSIONS);
@@ -1984,6 +1990,7 @@ function NewCharacterPageContent() {
       }
 
       // Preparar payload removendo campos vazios
+      const finalCampaignId = characterType === "standalone" ? null : (selectedCampaignId || campaignId);
       const payload: any = {
         campaignId: finalCampaignId,
         playerId: finalUserId,
@@ -2186,45 +2193,23 @@ function NewCharacterPageContent() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Seleção de Campanha (apenas se não tiver campaignId na URL e não for DM) */}
-          {!campaignId && !isDM && (
-            <Card className="bg-card/60 border-white/10">
-              <CardHeader>
-                <CardTitle className="text-xl font-cinzel">Selecionar Campanha</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div>
-                  <Label htmlFor="campaign">Campanha *</Label>
-                  <Select
-                    value={selectedCampaignId}
-                    onValueChange={(value) => {
-                      setSelectedCampaignId(value);
-                      router.push(`/characters/new?campaignId=${value}`);
-                    }}
-                  >
-                    <SelectTrigger id="campaign" className={validationErrors.campaign ? "border-red-500 border-2" : ""}>
-                      <SelectValue placeholder="Selecione uma campanha" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableCampaigns.map((campaign) => (
-                        <SelectItem key={campaign.id} value={campaign.id}>
-                          {campaign.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {validationErrors.campaign && (
-                    <p className="text-xs text-red-400 mt-1">Selecione uma campanha</p>
-                  )}
-                  {availableCampaigns.length === 0 && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Você não está em nenhuma campanha. Entre em uma campanha primeiro.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Character Type and Campaign Selection */}
+          <CharacterTypeSelection
+            characterType={characterType}
+            onCharacterTypeChange={setCharacterType}
+            selectedCampaignId={selectedCampaignId}
+            onCampaignChange={(id) => {
+              setSelectedCampaignId(id);
+              if (!campaignId) {
+                router.push(`/characters/new?campaignId=${id}`);
+              }
+            }}
+            availableCampaigns={availableCampaigns}
+            hasExistingCharacter={hasExistingCharacter}
+            userId={userId}
+            startingLevel={formData.level}
+            onLevelChange={(level) => setFormData(prev => ({ ...prev, level }))}
+          />
 
           {/* Informações Básicas */}
           <Card className="bg-card/60 border-white/10">

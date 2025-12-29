@@ -38,7 +38,7 @@ export async function GET() {
         .from(schema.users)
         .where(eq(schema.users.email, user.email))
         .limit(1);
-      
+
       if (usersByEmail.length > 0) {
         dbUser = usersByEmail[0];
       }
@@ -50,7 +50,7 @@ export async function GET() {
         supabaseId: user.id,
         email: user.email,
       });
-      
+
       try {
         const [newUser] = await db
           .insert(schema.users)
@@ -67,7 +67,7 @@ export async function GET() {
             email: schema.users.email,
             role: schema.users.role,
           });
-        
+
         dbUser = newUser;
         console.log("User created automatically:", dbUser.id);
       } catch (insertError: any) {
@@ -84,7 +84,7 @@ export async function GET() {
             .from(schema.users)
             .where(eq(schema.users.id, user.id))
             .limit(1);
-          
+
           if (userById.length > 0) {
             dbUser = userById[0];
           } else if (user.email) {
@@ -98,13 +98,13 @@ export async function GET() {
               .from(schema.users)
               .where(eq(schema.users.email, user.email))
               .limit(1);
-            
+
             if (userByEmail.length > 0) {
               dbUser = userByEmail[0];
             }
           }
         }
-        
+
         if (!dbUser) {
           console.error("Failed to create or find user:", insertError);
           return NextResponse.json(
@@ -125,7 +125,7 @@ export async function GET() {
     // Se for DM de alguma campanha, força o role para "dm"
     // (mesmo que o role no banco esteja como "player")
     let role = dbUser.role?.toLowerCase() === "admin" ? "admin" : "player";
-    
+
     if (campaignAsDM) {
       role = "dm";
       // Atualiza o role no banco se estiver diferente
@@ -137,9 +137,9 @@ export async function GET() {
       }
     } else {
       // Normaliza o role do banco
-      role = dbUser.role?.toLowerCase() === "dm" ? "dm" : 
-             dbUser.role?.toLowerCase() === "admin" ? "admin" : 
-             "player";
+      role = dbUser.role?.toLowerCase() === "dm" ? "dm" :
+        dbUser.role?.toLowerCase() === "admin" ? "admin" :
+          "player";
     }
 
     return NextResponse.json({
