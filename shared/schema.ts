@@ -186,6 +186,7 @@ const characterColumns = {
   feats: jsonb("feats").default(sql`'[]'::jsonb`), // Array de feats escolhidos
   preparedSpells: jsonb("prepared_spells").default(sql`'[]'::jsonb`), // Array de magias preparadas (apenas para classes que preparam)
   lastSpellPrepDate: text("last_spell_prep_date"), // Última data em que magias foram preparadas
+  usedSpellSlots: jsonb("used_spell_slots").default(sql`'{}'::jsonb`), // Slots de magia usados por nível
   needsLevelUp: boolean("needs_level_up").default(false),
   pendingHitDiceRoll: integer("pending_hit_dice_roll"),
   createdAt: timestamp("created_at", { withTimezone: true })

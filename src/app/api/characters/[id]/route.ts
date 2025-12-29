@@ -235,6 +235,7 @@ export async function PUT(
     if (body.inventory !== undefined) updateData.inventory = body.inventory;
     if (body.preparedSpells !== undefined) updateData.preparedSpells = body.preparedSpells;
     if (body.lastSpellPrepDate !== undefined) updateData.lastSpellPrepDate = body.lastSpellPrepDate;
+    if (body.usedSpellSlots !== undefined) updateData.usedSpellSlots = body.usedSpellSlots;
 
 
     const [updatedCharacter] = await db
