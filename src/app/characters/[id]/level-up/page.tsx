@@ -29,6 +29,7 @@ import type { FightingStyle } from "@/lib/fighting-styles";
 import { getFightingStylesForClass, needsFightingStyleSelection } from "@/lib/fighting-styles";
 import { FightingStyleSelector } from "@/components/characters/FightingStyleSelector";
 import { useTranslation } from "@/lib/i18n/context";
+import { applyAutoFeatures } from "@/lib/auto-features";
 
 const DND_API_BASE = "https://www.dnd5eapi.co";
 
@@ -343,6 +344,7 @@ export default function LevelUpPage() {
 
       console.log(`[Level Up Complete] Nível atual: ${character.level}, Novo nível: ${targetLevel}, XP: ${currentXP}, Nível calculado: ${calculatedLevel}, Ainda precisa de level up: ${stillNeedsLevelUp}`);
 
+
       // Aplicar aumentos de atributos ou Feat
       const currentAttributes = character.attributes || {};
       const updatedAttributes = { ...currentAttributes };
@@ -384,11 +386,45 @@ export default function LevelUpPage() {
         }
       }
 
+      // APLICAR FEATURES AUTOMÁTICAS (ex: Campeão Primitivo do Bárbaro nível 20)
+      const autoUpdatedAttributes = applyAutoFeatures(character.characterClass, targetLevel, updatedAttributes);
+      Object.assign(updatedAttributes, autoUpdatedAttributes);
+
+      // RECALCULAR HP se o modificador de CON mudou (retroativo para todos os níveis)
+      const oldConMod = Math.floor(((character.attributes?.constitution || 10) - 10) / 2);
+      const newConMod = Math.floor(((updatedAttributes.constitution || 10) - 10) / 2);
+      const conModChanged = oldConMod !== newConMod;
+
+      let finalMaxHp: number;
+      let finalCurrentHp: number;
+
+      if (conModChanged) {
+        // Se CON mudou, recalcular HP total retroativamente
+        // HP = (Dado máximo no nível 1) + (média do dado × (nível - 1)) + (mod CON × nível)
+        const hitDiceMatch = character.hitDice?.match(/1d(\d+)/);
+        const hitDiceSize = hitDiceMatch ? parseInt(hitDiceMatch[1]) : 8;
+        const averageRoll = Math.floor(hitDiceSize / 2) + 1; // Média arredondada para cima
+
+        // HP retroativo: dado máximo no nível 1 + média nos outros níveis + (novo mod CON × nível total)
+        finalMaxHp = hitDiceSize + (averageRoll * (targetLevel - 1)) + (newConMod * targetLevel);
+
+        // Ajustar currentHp proporcionalmente
+        const hpPercentage = character.maxHp > 0 ? (character.currentHp || 0) / character.maxHp : 1;
+        finalCurrentHp = Math.max(1, Math.floor(finalMaxHp * hpPercentage));
+
+        console.log(`[HP Recalculation] CON mudou de ${character.attributes?.constitution} (${oldConMod}) para ${updatedAttributes.constitution} (${newConMod})`);
+        console.log(`[HP Recalculation] HP antigo: ${character.maxHp}, HP novo: ${finalMaxHp} (ganho retroativo: ${finalMaxHp - (character.maxHp || 0)})`);
+      } else {
+        // Se CON não mudou, apenas adicionar o HP do level up
+        finalMaxHp = newMaxHp;
+        finalCurrentHp = newCurrentHp;
+      }
+
       // Preparar objeto base para atualização
       let updateBody: any = {
         level: targetLevel, // Atualizar para o novo nível
-        maxHp: newMaxHp,
-        currentHp: newCurrentHp,
+        maxHp: finalMaxHp,
+        currentHp: finalCurrentHp,
         needsLevelUp: stillNeedsLevelUp, // Manter true se ainda tiver níveis a subir
         pendingHitDiceRoll: stillNeedsLevelUp ? null : null, // Limpar dado pendente quando level up completo
         attributes: updatedAttributes,
