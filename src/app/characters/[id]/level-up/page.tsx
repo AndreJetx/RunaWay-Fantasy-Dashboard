@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { getSpellsByClassPTBR, getSpellDetails } from "@/lib/data/spell-data";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -174,8 +175,7 @@ export default function LevelUpPage() {
 
   const fetchAvailableSpells = async (className: string, level: number) => {
     try {
-      // Usar a base de dados local (INSTANTÂNEO!)
-      const { getSpellsByClassPTBR, getSpellDetails } = require('@/lib/data/spell-data');
+      // Usar a base de dados local
 
       // Nível máximo de magia que pode aprender
       const maxSpellLevel = getSpellcastingLevel(className, level);

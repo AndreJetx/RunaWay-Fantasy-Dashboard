@@ -39,7 +39,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Flecha Ácida"
+    "namePT": "Flecha Ácida",
+    "descriptionPT": "Uma flecha verde cintilante que atinge um alvo, causando 4d4 de dano ácido imediato e 2d4 no final do próximo turno."
   },
   "acid-splash": {
     "index": "acid-splash",
@@ -84,7 +85,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Borrifada Ácida"
+    "namePT": "Borrifada Ácida",
+    "descriptionPT": "Você arremessa uma bolha de ácido em uma ou duas criaturas, causando 1d6 de dano ácido."
   },
   "aid": {
     "index": "aid",
@@ -111,7 +113,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Auxílio"
+    "namePT": "Auxílio",
+    "descriptionPT": "Sua magia fortalece seus aliados. O máximo de pontos de vida e os pontos de vida atuais de até três criaturas aumentam em 5 pela duração."
   },
   "alarm": {
     "index": "alarm",
@@ -141,7 +144,8 @@
       "type": "cube",
       "size": 20
     },
-    "namePT": "Alarme"
+    "namePT": "Alarme",
+    "descriptionPT": "Você configura um alarme contra intrusões. Um alarme (mental ou sonoro) alerta você sempre que uma criatura entrar na área protegida."
   },
   "alter-self": {
     "index": "alter-self",
@@ -167,7 +171,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Alterar-se"
+    "namePT": "Alterar-se",
+    "descriptionPT": "Você adapta sua forma física para respirar na água, mudar sua aparência ou ganhar armas naturais."
   },
   "animal-friendship": {
     "index": "animal-friendship",
@@ -202,7 +207,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Amizade Animal"
+    "namePT": "Amizade Animal",
+    "descriptionPT": "Convence uma besta de que você não significa mal, deixando-a enfeitiçada por você."
   },
   "animal-messenger": {
     "index": "animal-messenger",
@@ -230,7 +236,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Mensageiro Animal"
+    "namePT": "Mensageiro Animal",
+    "descriptionPT": "Usa um animal minúsculo para entregar uma mensagem curta em um local específico."
   },
   "animal-shapes": {
     "index": "animal-shapes",
@@ -255,7 +262,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Forma Animal"
+    "namePT": "Forma Animal",
+    "descriptionPT": "Você transforma qualquer número de criaturas voluntárias em bestas de nível de desafio 4 ou inferior pela duração da magia."
   },
   "animate-dead": {
     "index": "animate-dead",
@@ -282,7 +290,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Animar Mortos"
+    "namePT": "Animar Mortos",
+    "descriptionPT": "Esta magia cria um servo morto-vivo. Você imbuí um cadáver ou pilha de ossos com uma imitação vil de vida, erguendo-o como zumbi ou esqueleto."
   },
   "animate-objects": {
     "index": "animate-objects",
@@ -309,7 +318,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Animar Objetos"
+    "namePT": "Animar Objetos",
+    "descriptionPT": "Objetos ganham vida ao seu comando. Escolha até dez objetos não-mágicos que não estejam sendo usados ou carregados para se tornarem criaturas."
   },
   "antilife-shell": {
     "index": "antilife-shell",
@@ -337,7 +347,8 @@
       "type": "sphere",
       "size": 10
     },
-    "namePT": "Concha Antinatural"
+    "namePT": "Concha Antinatural",
+    "descriptionPT": "Uma barreira cintilante se estende de você até um raio de 3 metros e se move com você, permanecendo centrada em você e impedindo outras criaturas de passar ou alcançar através dela. Criaturas vivas não podem passar pela barreira ou alcançar através dela. Tais criaturas podem conjurar magias ou fazer ataques com armas de longo alcance ou alcance através da barreira. Se você se mover de modo que uma criatura viva seja forçada a passar pela barreira, a magia termina."
   },
   "antimagic-field": {
     "index": "antimagic-field",
@@ -367,7 +378,8 @@
       "type": "sphere",
       "size": 10
     },
-    "namePT": "Campo Antimagia"
+    "namePT": "Campo Antimagia",
+    "descriptionPT": "Uma esfera invisível de 3 metros de raio de antimagia envolve você. Esta área é separada da energia mágica que permeia o multiverso. Dentro da esfera, magias não podem ser conjuradas, itens mágicos se tornam mundanos e poderes mágicos e efeitos mágicos são suprimidos. Até a magia terminar, a esfera se move com você, centrada em você. Magias e outros efeitos mágicos, exceto aqueles criados por um artefato ou uma divindade, são suprimidos na esfera e não podem penetrar nela."
   },
   "antipathy-sympathy": {
     "index": "antipathy-sympathy",
@@ -397,7 +409,8 @@
       "type": "cube",
       "size": 200
     },
-    "namePT": "Antipatia/Simpatia"
+    "namePT": "Antipatia/Simpatia",
+    "descriptionPT": "Esta magia atrai ou repele criaturas de sua escolha. Você escolhe um alvo dentro do alcance, seja um objeto Enorme ou menor ou uma área que não seja maior que um cubo de 60 metros. Então especifique um tipo de criatura inteligente, como dragões vermelhos, goblins ou vampiros. Você investe o alvo com uma aura que atrai ou repele as criaturas especificadas pela duração. Escolha antipatia ou simpatia como efeito da aura."
   },
   "arcane-eye": {
     "index": "arcane-eye",
@@ -427,7 +440,8 @@
       "type": "sphere",
       "size": 30
     },
-    "namePT": "Olho Arcano"
+    "namePT": "Olho Arcano",
+    "descriptionPT": "Você cria um olho mágico invisível dentro do alcance que paira no ar pela duração. Você recebe mentalmente informação visual do olho, que tem visão normal e visão no escuro até 9 metros. O olho pode olhar em todas as direções. Como uma ação, você pode mover o olho até 9 metros em qualquer direção. Não há limite para quão longe o olho pode se mover de você, mas ele não pode entrar em outro plano de existência. Uma barreira sólida bloqueia o movimento do olho, mas o olho pode passar através de uma abertura tão pequena quanto 2,5 centímetros de diâmetro."
   },
   "arcane-hand": {
     "index": "arcane-hand",
@@ -452,7 +466,8 @@
     "castingTime": "1 action",
     "damage": null,
     "dc": null,
-    "area_of_effect": null
+    "area_of_effect": null,
+    "descriptionPT": "Cria uma mão de força Grande que pode socar, empurrar, agarrar ou proteger."
   },
   "arcane-lock": {
     "index": "arcane-lock",
@@ -478,7 +493,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Tranca Arcana"
+    "namePT": "Tranca Arcana",
+    "descriptionPT": "Você toca uma porta, janela, portão, baú ou outra entrada fechada, e ela fica trancada pela duração. Você e as criaturas que você designar quando conjurar esta magia podem abrir o objeto normalmente. Você também pode definir uma senha que, quando falada a 1,5 metro do objeto, suprime esta magia por 1 minuto. Caso contrário, é intransponível até ser quebrado ou a magia ser dissipada ou suprimida. Conjurar Arrombar no objeto suprime Tranca Arcana por 10 minutos. Enquanto afetado por esta magia, o objeto é mais difícil de quebrar ou forçar; a CD para quebrá-lo ou arrombá-lo aumenta em 10."
   },
   "arcane-sword": {
     "index": "arcane-sword",
@@ -513,7 +529,8 @@
       }
     },
     "dc": null,
-    "area_of_effect": null
+    "area_of_effect": null,
+    "descriptionPT": "Cria uma espada de força que flutua e corta seus inimigos ao seu comando."
   },
   "arcanists-magic-aura": {
     "index": "arcanists-magic-aura",
@@ -538,7 +555,8 @@
     "castingTime": "1 action",
     "damage": null,
     "dc": null,
-    "area_of_effect": null
+    "area_of_effect": null,
+    "descriptionPT": "Altera a aura mágica de um objeto ou criatura para enganar magias de detecção."
   },
   "astral-projection": {
     "index": "astral-projection",
@@ -566,7 +584,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Projeção Astral"
+    "namePT": "Projeção Astral",
+    "descriptionPT": "Você e até oito criaturas voluntárias dentro do alcance projetam seus corpos astrais no Plano Astral (a magia falha e a conjuração é desperdiçada se você já estiver naquele plano). O corpo material que você deixa para trás fica inconsciente e em um estado de animação suspensa; ele não precisa de comida ou ar e não envelhece. Seu corpo astral se assemelha à sua forma mortal em quase todos os sentidos, replicando suas estatísticas de jogo e posses. A principal diferença é a adição de um cordão prateado que se estende de entre suas omoplatas e trilha atrás de você, desaparecendo de vista após 30 centímetros. Este cordão é seu elo ao seu corpo material. Enquanto o elo permanecer intacto, você pode encontrar seu caminho de volta para casa. Se o cordão for cortado - algo que só pode acontecer quando um efeito especificamente declara que o faz - sua alma e corpo são separados, matando você instantaneamente."
   },
   "augury": {
     "index": "augury",
@@ -592,7 +611,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Augúrio"
+    "namePT": "Augúrio",
+    "descriptionPT": "Você pede um sinal de uma entidade cósmica sobre o resultado de um curso de ação que você planeja tomar nos próximos 30 minutos."
   },
   "awaken": {
     "index": "awaken",
@@ -619,7 +639,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Despertar"
+    "namePT": "Despertar",
+    "descriptionPT": "Você toca uma besta ou planta e concede a ela inteligência humana e a habilidade de falar um idioma que você conheça."
   },
   "bane": {
     "index": "bane",
@@ -653,7 +674,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Maldição"
+    "namePT": "Maldição",
+    "descriptionPT": "Você amaldiçoa até três criaturas que possa ver dentro do alcance. Cada alvo deve ser bem-sucedido em um teste de resistência de Carisma ou, sempre que fizer uma jogada de ataque ou um teste de resistência antes da magia terminar, o alvo deve subtrair 1d4 da jogada."
   },
   "banishment": {
     "index": "banishment",
@@ -690,7 +712,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Banimento"
+    "namePT": "Banimento",
+    "descriptionPT": "Você tenta enviar uma criatura para outro plano de existência. Se o alvo for nativo do plano atual, ele é enviado para um semiplano inofensivo."
   },
   "barkskin": {
     "index": "barkskin",
@@ -717,7 +740,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Pele de Árvore"
+    "namePT": "Pele de Árvore",
+    "descriptionPT": "Você toca uma criatura voluntária. Até a magia acabar, a pele do alvo fica áspera como casca de árvore e sua CA não pode ser menor que 16."
   },
   "beacon-of-hope": {
     "index": "beacon-of-hope",
@@ -742,7 +766,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Farol de Esperança"
+    "namePT": "Farol de Esperança",
+    "descriptionPT": "Esta magia emite esperança e vitalidade. Alvos ganham vantagem em testes de resistência de Sabedoria e contra morte, e cura máxima."
   },
   "bestow-curse": {
     "index": "bestow-curse",
@@ -777,7 +802,8 @@
       "desc": "On fail, become cursed for the duration of the spell."
     },
     "area_of_effect": null,
-    "namePT": "Rogar Maldição"
+    "namePT": "Rogar Maldição",
+    "descriptionPT": "Você toca uma criatura e ela deve fazer um teste de resistência de Sabedoria ou ficará amaldiçoada pela duração da magia."
   },
   "black-tentacles": {
     "index": "black-tentacles",
@@ -823,7 +849,8 @@
       "type": "cube",
       "size": 20
     },
-    "namePT": "Tentáculos Negros"
+    "namePT": "Tentáculos Negros",
+    "descriptionPT": "Tentáculos de ébano surgem do chão. Criaturas na área devem fazer um teste de Destreza ou ficarão presas e sofrerão dano de concussão."
   },
   "blade-barrier": {
     "index": "blade-barrier",
@@ -867,7 +894,8 @@
       "type": "line",
       "size": 100
     },
-    "namePT": "Barreira de Lâminas"
+    "namePT": "Barreira de Lâminas",
+    "descriptionPT": "Você cria uma parede vertical de lâminas giratórias e afiadas feitas de força mágica que causam dano cortante massivo."
   },
   "bless": {
     "index": "bless",
@@ -894,7 +922,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Benção"
+    "namePT": "Benção",
+    "descriptionPT": "Você abençoa até três criaturas que possa ver dentro do alcance. Sempre que um alvo fizer uma jogada de ataque ou um teste de resistência antes da magia terminar, o alvo pode adicionar 1d4 à jogada."
   },
   "blight": {
     "index": "blight",
@@ -943,7 +972,8 @@
       "dc_success": "half"
     },
     "area_of_effect": null,
-    "namePT": "Praga"
+    "namePT": "Praga",
+    "descriptionPT": "Energia necromante drena a vida de uma criatura. O alvo sofre 8d8 de dano necrótico. Plantas têm desvantagem e sofrem dano máximo."
   },
   "blindness-deafness": {
     "index": "blindness-deafness",
@@ -977,7 +1007,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Cegueira/Surdez"
+    "namePT": "Cegueira/Surdez",
+    "descriptionPT": "Você pode cegar ou ensurdecer um oponente. O alvo deve fazer um teste de Constituição para evitar o efeito."
   },
   "blink": {
     "index": "blink",
@@ -1003,7 +1034,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Piscar"
+    "namePT": "Piscar",
+    "descriptionPT": "No final de cada um de seus turnos, você rola um d20. Com 11 ou mais, você desaparece do seu plano atual e entra no Plano Etéreo."
   },
   "blur": {
     "index": "blur",
@@ -1028,7 +1060,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Borrão"
+    "namePT": "Borrão",
+    "descriptionPT": "Seu corpo se torna trêmulo e indistinto. Pela duração, qualquer criatura tem desvantagem nas jogadas de ataque contra você."
   },
   "branding-smite": {
     "index": "branding-smite",
@@ -1068,7 +1101,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Golpe Marcador"
+    "namePT": "Golpe Marcador",
+    "descriptionPT": "Seu próximo ataque com arma brilha com luz, causando 2d6 de dano radiante e impedindo invisibilidade."
   },
   "burning-hands": {
     "index": "burning-hands",
@@ -1121,7 +1155,8 @@
       "type": "cone",
       "size": 15
     },
-    "namePT": "Mãos Flamejantes"
+    "namePT": "Mãos Flamejantes",
+    "descriptionPT": "Enquanto seus polegares se tocam e seus dedos estão abertos, uma fina camada de chamas sai das pontas dos seus dedos. Cada criatura em um cone de 4,5 metros deve fazer um teste de resistência de Destreza. Uma criatura sofre 3d6 de dano de fogo em uma falha, ou metade em um sucesso."
   },
   "call-lightning": {
     "index": "call-lightning",
@@ -1164,7 +1199,8 @@
       "type": "sphere",
       "size": 5
     },
-    "namePT": "Convocar Relâmpagos"
+    "namePT": "Convocar Relâmpagos",
+    "descriptionPT": "Uma nuvem de tempestade aparece na forma de um cilindro. Relâmpagos caem da nuvem em pontos de sua escolha, causando 3d10 de dano de relâmpago em criaturas que falharem no teste de resistência de Destreza."
   },
   "calm-emotions": {
     "index": "calm-emotions",
@@ -1200,7 +1236,8 @@
       "type": "sphere",
       "size": 20
     },
-    "namePT": "Acalmar Emoções"
+    "namePT": "Acalmar Emoções",
+    "descriptionPT": "Você tenta suprimir emoções fortes em um grupo de pessoas. Cada humanoide em uma esfera de 6 metros deve fazer um teste de resistência de Carisma."
   },
   "chain-lightning": {
     "index": "chain-lightning",
@@ -1243,7 +1280,8 @@
       "dc_success": "half"
     },
     "area_of_effect": null,
-    "namePT": "Relâmpago em Cadeia"
+    "namePT": "Relâmpago em Cadeia",
+    "descriptionPT": "Você lança um relâmpago que atinge um alvo e depois salta para até três outros alvos. Cada alvo sofre 10d8 de dano de relâmpago."
   },
   "charm-person": {
     "index": "charm-person",
@@ -1279,7 +1317,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Enfeitiçar Pessoa"
+    "namePT": "Enfeitiçar Pessoa",
+    "descriptionPT": "Você tenta enfeitiçar um humanoide que possa ver. Ele deve fazer um teste de resistência de Sabedoria com vantagem se você estiver lutando contra ele."
   },
   "chill-touch": {
     "index": "chill-touch",
@@ -1318,7 +1357,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Toque Arrepiante"
+    "namePT": "Toque Arrepiante",
+    "descriptionPT": "Você cria uma mão esquelética fantasmagórica no espaço de uma criatura. Faça um ataque de magia à distância. Causa 1d8 de dano necrótico e impede a cura por 1 turno."
   },
   "circle-of-death": {
     "index": "circle-of-death",
@@ -1368,7 +1408,8 @@
       "type": "sphere",
       "size": 60
     },
-    "namePT": "Círculo da Morte"
+    "namePT": "Círculo da Morte",
+    "descriptionPT": "Uma esfera de energia negativa negativa explode em um raio de 18 metros, causando dano necrótico massivo."
   },
   "clairvoyance": {
     "index": "clairvoyance",
@@ -1397,7 +1438,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Clarividência"
+    "namePT": "Clarividência",
+    "descriptionPT": "Você cria um sensor invisível em uma localização familiar ou óbvia para ver ou ouvir o que acontece lá."
   },
   "clone": {
     "index": "clone",
@@ -1423,7 +1465,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Clone"
+    "namePT": "Clone",
+    "descriptionPT": "Esta magia cria uma duplicata inerte de uma criatura viva como salvaguarda contra a morte. Se a criatura morrer, sua alma viaja para o clone."
   },
   "cloudkill": {
     "index": "cloudkill",
@@ -1473,7 +1516,8 @@
       "type": "sphere",
       "size": 20
     },
-    "namePT": "Névoa Mortífera"
+    "namePT": "Névoa Mortífera",
+    "descriptionPT": "Você cria uma esfera de gás verde venenoso e amarelado. A nuvem se move para longe de você a cada turno e mata criaturas instantaneamente."
   },
   "color-spray": {
     "index": "color-spray",
@@ -1503,7 +1547,8 @@
       "type": "cone",
       "size": 15
     },
-    "namePT": "Borrifo de Cores"
+    "namePT": "Borrifo de Cores",
+    "descriptionPT": "Uma matriz deslumbrante de luzes coloridas sai de sua mão. Role 6d10; o total é o número de pontos de vida de criaturas que você pode cegar."
   },
   "command": {
     "index": "command",
@@ -1535,7 +1580,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Comando"
+    "namePT": "Comando",
+    "descriptionPT": "Você fala um comando de uma única palavra para uma criatura que possa ver dentro do alcance. O alvo deve ser bem-sucedido em um teste de resistência de Sabedoria ou seguirá o comando no próximo turno dele (Ex: Parem, Caiam, Fujam)."
   },
   "commune": {
     "index": "commune",
@@ -1561,7 +1607,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Comunhão"
+    "namePT": "Comunhão",
+    "descriptionPT": "Você entra em contato com sua divindade e faz até três perguntas que possam ser respondidas com sim ou não."
   },
   "commune-with-nature": {
     "index": "commune-with-nature",
@@ -1586,7 +1633,8 @@
     "castingTime": "1 minute",
     "damage": null,
     "dc": null,
-    "area_of_effect": null
+    "area_of_effect": null,
+    "descriptionPT": "Você se torna um com a natureza para aprender fatos sobre o território ao seu redor."
   },
   "comprehend-languages": {
     "index": "comprehend-languages",
@@ -1615,7 +1663,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Compreender Idiomas"
+    "namePT": "Compreender Idiomas",
+    "descriptionPT": "Pela duração, você entende o significado literal de qualquer linguagem falada que ouvir e entende qualquer linguagem escrita que vir."
   },
   "compulsion": {
     "index": "compulsion",
@@ -1647,7 +1696,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Compulsão"
+    "namePT": "Compulsão",
+    "descriptionPT": "Criaturas de sua escolha em um raio de 9 metros devem fazer um teste de resistência de Sabedoria ou serão forçadas a se mover em uma direção."
   },
   "cone-of-cold": {
     "index": "cone-of-cold",
@@ -1738,7 +1788,8 @@
       "type": "sphere",
       "size": 10
     },
-    "namePT": "Confusão"
+    "namePT": "Confusão",
+    "descriptionPT": "Esta magia ataca e confunde as mentes das criaturas, gerando delírios e ações impulsivas. Alvos falham no teste de resistência de Sabedoria ficam confusas."
   },
   "conjure-animals": {
     "index": "conjure-animals",
@@ -1764,7 +1815,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Conjurar Animais"
+    "namePT": "Conjurar Animais",
+    "descriptionPT": "Você invoca espíritos feéricos que assumem a forma de bestas e aparecem em espaços desocupados que você possa ver dentro do alcance."
   },
   "conjure-celestial": {
     "index": "conjure-celestial",
@@ -1789,7 +1841,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Conjurar Celestial"
+    "namePT": "Conjurar Celestial",
+    "descriptionPT": "Você invoca uma criatura celestial de nível de desafio 4 ou inferior que aparece em um espaço desocupado dentro do alcance."
   },
   "conjure-elemental": {
     "index": "conjure-elemental",
@@ -1819,7 +1872,8 @@
       "type": "cube",
       "size": 10
     },
-    "namePT": "Conjurar Elemental"
+    "namePT": "Conjurar Elemental",
+    "descriptionPT": "Você invoca um elemental de nível de desafio 5 ou inferior, que aparece em uma área de ar, terra, fogo ou água dentro do alcance."
   },
   "conjure-fey": {
     "index": "conjure-fey",
@@ -1845,7 +1899,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Conjurar Fada"
+    "namePT": "Conjurar Fada",
+    "descriptionPT": "Você invoca uma criatura feérica poderosa."
   },
   "conjure-minor-elementals": {
     "index": "conjure-minor-elementals",
@@ -1871,7 +1926,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Conjurar Elementais Menores"
+    "namePT": "Conjurar Elementais Menores",
+    "descriptionPT": "Você invoca vários elementais menores."
   },
   "conjure-woodland-beings": {
     "index": "conjure-woodland-beings",
@@ -1898,7 +1954,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Conjurar Seres da Floresta"
+    "namePT": "Conjurar Seres da Floresta",
+    "descriptionPT": "Você invoca criaturas da floresta."
   },
   "contact-other-plane": {
     "index": "contact-other-plane",
@@ -1931,7 +1988,8 @@
       "desc": "On a failure, you take 6d6 psychic damage and are insane until you finish a long rest."
     },
     "area_of_effect": null,
-    "namePT": "Contatar Outro Plano"
+    "namePT": "Contatar Outro Plano",
+    "descriptionPT": "Você envia sua mente para outro plano de existência para falar com uma entidade poderosa e fazer cinco perguntas."
   },
   "contagion": {
     "index": "contagion",
@@ -1965,7 +2023,8 @@
       "desc": "After succeeding on three of these saving throws, the creature recovers from the disease, and the spell ends."
     },
     "area_of_effect": null,
-    "namePT": "Contágio"
+    "namePT": "Contágio",
+    "descriptionPT": "Seu toque transmite uma doença horrível à sua escolha."
   },
   "contingency": {
     "index": "contingency",
@@ -1991,7 +2050,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Contingência"
+    "namePT": "Contingência",
+    "descriptionPT": "Você prepara uma magia para ser ativada automaticamente sob certas condições."
   },
   "continual-flame": {
     "index": "continual-flame",
@@ -2018,7 +2078,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Chama Contínua"
+    "namePT": "Chama Contínua",
+    "descriptionPT": "Você cria uma chama mágica que não queima e nunca se apaga."
   },
   "control-water": {
     "index": "control-water",
@@ -2065,7 +2126,8 @@
       "type": "cube",
       "size": 100
     },
-    "namePT": "Controlar Água"
+    "namePT": "Controlar Água",
+    "descriptionPT": "Você controla grandes massas de água, criando redemoinhos ou dividindo o mar."
   },
   "control-weather": {
     "index": "control-weather",
@@ -2093,7 +2155,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Controlar o Clima"
+    "namePT": "Controlar o Clima",
+    "descriptionPT": "Você altera as condições climáticas em uma grande área ao longo de horas."
   },
   "counterspell": {
     "index": "counterspell",
@@ -2147,7 +2210,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Criar Comida e Água"
+    "namePT": "Criar Comida e Água",
+    "descriptionPT": "Você cria sustento básico para até 15 humanos ou 5 cavalos."
   },
   "create-or-destroy-water": {
     "index": "create-or-destroy-water",
@@ -2177,7 +2241,8 @@
       "type": "cube",
       "size": 30
     },
-    "namePT": "Criar ou Destruir Água"
+    "namePT": "Criar ou Destruir Água",
+    "descriptionPT": "Você cria ou faz desaparecer 40 litros de água."
   },
   "create-undead": {
     "index": "create-undead",
@@ -2205,7 +2270,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Criar Morto-Vivo"
+    "namePT": "Criar Morto-Vivo",
+    "descriptionPT": "Você ergue ghouls, carniçais ou múmias sob seu controle."
   },
   "creation": {
     "index": "creation",
@@ -2235,7 +2301,8 @@
       "type": "cube",
       "size": 5
     },
-    "namePT": "Criação"
+    "namePT": "Criação",
+    "descriptionPT": "Você puxa matéria do Plano das Sombras para criar um objeto não-mágico de material vegetal ou mineral."
   },
   "cure-wounds": {
     "index": "cure-wounds",
@@ -2265,7 +2332,7 @@
     "dc": null,
     "area_of_effect": null,
     "namePT": "Curar Ferimentos",
-    "descriptionPT": "Uma criatura que você tocar recupera um número de pontos de vida igual a 1d8 + seu modificador de habilidade de conjuração. Esta magia não tem efeito em mortos-vivos ou constructos.\n\nEm Níveis Superiores: Quando você conjura esta magia usando um espaço de magia de 2º nível ou superior, a cura aumenta em 1d8 para cada nível de espaço acima do 1º."
+    "descriptionPT": "Uma criatura que você toca recupera um número de pontos de vida igual a 1d8 + seu modificador de habilidade de conjuração. Esta magia não tem efeito em mortos-vivos ou construtos."
   },
   "dancing-lights": {
     "index": "dancing-lights",
@@ -2293,7 +2360,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Luzes Dançantes"
+    "namePT": "Luzes Dançantes",
+    "descriptionPT": "Você cria quatro luzes flutuantes que você pode mover."
   },
   "darkness": {
     "index": "darkness",
@@ -2323,7 +2391,8 @@
       "type": "sphere",
       "size": 15
     },
-    "namePT": "Escuridão"
+    "namePT": "Escuridão",
+    "descriptionPT": "Névoa mágica e escuridão emanam de um ponto à sua escolha. Criaturas com visão no escuro não podem ver através desta escuridão."
   },
   "darkvision": {
     "index": "darkvision",
@@ -2352,7 +2421,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Visão no Escuro"
+    "namePT": "Visão no Escuro",
+    "descriptionPT": "Você toca uma criatura e concede a ela a habilidade de ver no escuro até um alcance de 18 metros."
   },
   "daylight": {
     "index": "daylight",
@@ -2384,7 +2454,8 @@
       "type": "sphere",
       "size": 60
     },
-    "namePT": "Luz do Dia"
+    "namePT": "Luz do Dia",
+    "descriptionPT": "Uma esfera de luz brilhante de 18 metros de raio emana de um ponto à sua escolha. Esta luz é considerada luz do dia."
   },
   "death-ward": {
     "index": "death-ward",
@@ -2410,7 +2481,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Proteção contra a Morte"
+    "namePT": "Proteção contra a Morte",
+    "descriptionPT": "Você toca uma criatura e a protege da morte. A primeira vez que ela cair para 0 pontos de vida, ela cai para 1 ponto de vida em vez disso."
   },
   "delayed-blast-fireball": {
     "index": "delayed-blast-fireball",
@@ -2458,7 +2530,8 @@
       "type": "sphere",
       "size": 20
     },
-    "namePT": "Bola de Fogo Retardada"
+    "namePT": "Bola de Fogo Retardada",
+    "descriptionPT": "Um feixe de luz amarela sai do seu dedo e se condensa em uma conta brilhante. A conta explode causando dano massivo de fogo."
   },
   "demiplane": {
     "index": "demiplane",
@@ -2483,7 +2556,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Semiplano"
+    "namePT": "Semiplano",
+    "descriptionPT": "Você cria uma porta que leva a um semiplano vazio, uma sala de 9 metros feita de pedra, madeira ou metal."
   },
   "detect-evil-and-good": {
     "index": "detect-evil-and-good",
@@ -2512,7 +2586,8 @@
       "type": "sphere",
       "size": 30
     },
-    "namePT": "Detectar Bem e Mal"
+    "namePT": "Detectar Bem e Mal",
+    "descriptionPT": "Pela duração, você sabe se há uma aberração, celestial, corruptor, elemental, fada ou morto-vivo a até 9 metros de você."
   },
   "detect-magic": {
     "index": "detect-magic",
@@ -2547,7 +2622,7 @@
       "size": 30
     },
     "namePT": "Detectar Magia",
-    "descriptionPT": "Pela duração, você sente a presença de magia a até 30 pés de você. Se você sentir magia desta forma, você pode usar sua ação para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que carregue magia, e você aprende sua escola de magia, se houver.\n\nA magia pode penetrar a maioria das barreiras, mas é bloqueada por 1 pé de pedra, 1 polegada de metal comum, uma fina camada de chumbo, ou 3 pés de madeira ou terra."
+    "descriptionPT": "Pela duração, você sente a presença de magia a até 9 metros de você. Se você sentir magia desta forma, você pode usar sua ação para ver uma aura fraca ao redor de qualquer criatura ou objeto visível na área que contenha magia."
   },
   "detect-poison-and-disease": {
     "index": "detect-poison-and-disease",
@@ -2579,7 +2654,8 @@
       "type": "sphere",
       "size": 30
     },
-    "namePT": "Detectar Veneno e Doença"
+    "namePT": "Detectar Veneno e Doença",
+    "descriptionPT": "Sente a presença de venenos e doenças."
   },
   "detect-thoughts": {
     "index": "detect-thoughts",
@@ -2607,7 +2683,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Detectar Pensamentos"
+    "namePT": "Detectar Pensamentos",
+    "descriptionPT": "Você lê os pensamentos superficiais de uma criatura. Você também pode tentar ler pensamentos mais profundos se o alvo falhar num teste de Sabedoria."
   },
   "dimension-door": {
     "index": "dimension-door",
@@ -2643,7 +2720,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Portal Dimensional"
+    "namePT": "Portal Dimensional",
+    "descriptionPT": "Você se teletransporta de sua localização atual para qualquer outro ponto dentro do alcance (150 metros). Você chega exatamente no local pretendido."
   },
   "disguise-self": {
     "index": "disguise-self",
@@ -2670,7 +2748,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Disfarçar-se"
+    "namePT": "Disfarçar-se",
+    "descriptionPT": "Você faz com que você pareça diferente, incluindo suas roupas e equipamentos, até a magia acabar ou você usar uma ação para encerrá-la."
   },
   "disintegrate": {
     "index": "disintegrate",
@@ -2716,7 +2795,8 @@
       "type": "cube",
       "size": 10
     },
-    "namePT": "Desintegrar"
+    "namePT": "Desintegrar",
+    "descriptionPT": "Um raio verde fino sai do seu dedo. O alvo sofre 10d6 + 40 de dano de força. Se isso reduzir os pontos de vida a 0, o alvo é desintegrado."
   },
   "dispel-evil-and-good": {
     "index": "dispel-evil-and-good",
@@ -2751,7 +2831,8 @@
       "desc": "The creature must succeed on a charisma saving throw or be sent back to its home plane (if it isn't there already)"
     },
     "area_of_effect": null,
-    "namePT": "Dissipar Bem e Mal"
+    "namePT": "Dissipar Bem e Mal",
+    "descriptionPT": "Protege contra seres planares e pode bani-los de volta."
   },
   "dispel-magic": {
     "index": "dispel-magic",
@@ -2782,7 +2863,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Dissipar Magia"
+    "namePT": "Dissipar Magia",
+    "descriptionPT": "Escolha uma criatura, objeto ou efeito mágico dentro do alcance. Qualquer magia de 3º nível ou inferior no alvo termina."
   },
   "divination": {
     "index": "divination",
@@ -2808,7 +2890,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Adivinhação"
+    "namePT": "Adivinhação",
+    "descriptionPT": "Sua magia e sua oferenda colocam você em contato com um deus ou servo divino. Você pode fazer uma pergunta sobre uma atividade futura."
   },
   "divine-favor": {
     "index": "divine-favor",
@@ -2842,7 +2925,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Favor Divino"
+    "namePT": "Favor Divino",
+    "descriptionPT": "Sua oração imbui você com poder divino. Até a magia acabar, seus ataques com armas causam 1d4 de dano radiante adicional em um acerto."
   },
   "divine-word": {
     "index": "divine-word",
@@ -2874,7 +2958,8 @@
       "desc": "On a failed save, a creature suffers an effect based on its current hit points."
     },
     "area_of_effect": null,
-    "namePT": "Palavra Divina"
+    "namePT": "Palavra Divina",
+    "descriptionPT": "Você pronuncia uma palavra divina, imbuída com o poder que moldou o mundo. Criaturas de sua escolha sofrem efeitos baseados em seus pontos de vida."
   },
   "dominate-beast": {
     "index": "dominate-beast",
@@ -2907,7 +2992,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Dominar Besta"
+    "namePT": "Dominar Besta",
+    "descriptionPT": "Você tenta controlar mentalmente uma besta que possa ver. Ela deve fazer um teste de Resistência de Sabedoria ou será controlada."
   },
   "dominate-monster": {
     "index": "dominate-monster",
@@ -2943,7 +3029,8 @@
       "desc": "On failure, the creature is charmed by you for the duration."
     },
     "area_of_effect": null,
-    "namePT": "Dominar Monstro"
+    "namePT": "Dominar Monstro",
+    "descriptionPT": "Você tenta controlar mentalmente uma criatura que possa ver. Ela deve ser bem-sucedida num teste de resistência de Sabedoria ou será controlada."
   },
   "dominate-person": {
     "index": "dominate-person",
@@ -2978,7 +3065,8 @@
       "desc": "Each time the target takes damage, it makes a new wisdom saving throw against the spell. If the saving throw succeeds, the spell ends."
     },
     "area_of_effect": null,
-    "namePT": "Dominar Pessoa"
+    "namePT": "Dominar Pessoa",
+    "descriptionPT": "Você tenta controlar um humanoide. Ele deve ser bem-sucedido num teste de resistência de Sabedoria ou será controlado por você."
   },
   "dream": {
     "index": "dream",
@@ -3023,7 +3111,8 @@
       "desc": "On a failed save, echoes of the phantasmal monstrosity spawn a nightmare that lasts the duration of the target's sleep and prevents the target from gaining any benefit from that rest."
     },
     "area_of_effect": null,
-    "namePT": "Sonho"
+    "namePT": "Sonho",
+    "descriptionPT": "Esta magia molda os sonhos de uma criatura. Escolha uma criatura conhecida por você como o alvo da magia. Você ou um mensageiro entra no sonho."
   },
   "druidcraft": {
     "index": "druidcraft",
@@ -3048,7 +3137,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Druidismo"
+    "namePT": "Druidismo",
+    "descriptionPT": "Pequenos truques naturais como prever o tempo ou abrir flores."
   },
   "earthquake": {
     "index": "earthquake",
@@ -3079,7 +3169,8 @@
       "type": "sphere",
       "size": 100
     },
-    "namePT": "Terremoto"
+    "namePT": "Terremoto",
+    "descriptionPT": "Você cria um tremor intenso no solo, derrubando criaturas e destruindo estruturas."
   },
   "eldritch-blast": {
     "index": "eldritch-blast",
@@ -3146,7 +3237,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Aprimorar Habilidade"
+    "namePT": "Aprimorar Habilidade",
+    "descriptionPT": "Você toca uma criatura e concede a ela um aprimoramento mágico. Escolha entre: Força do Touro, Graça do Gato, Esplendor da Águia, etc."
   },
   "enlarge-reduce": {
     "index": "enlarge-reduce",
@@ -3180,7 +3272,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Aumentar/Reduzir"
+    "namePT": "Aumentar/Reduzir",
+    "descriptionPT": "Você faz uma criatura ou objeto ficar maior ou menor. Alvos aumentados ganham vantagem em testes de Força e causam dano extra."
   },
   "entangle": {
     "index": "entangle",
@@ -3215,7 +3308,8 @@
       "type": "cube",
       "size": 20
     },
-    "namePT": "Enredar"
+    "namePT": "Enredar",
+    "descriptionPT": "Vinhas e ervas daninhas surgem do chão. Criaturas na área devem fazer um teste de Força ou ficarão impedidas pela vegetação."
   },
   "enthrall": {
     "index": "enthrall",
@@ -3248,7 +3342,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Fascinar"
+    "namePT": "Fascinar",
+    "descriptionPT": "Você tece uma corda de palavras desconcertantes, atraindo a atenção das criaturas. Alvos têm desvantagem em testes de Percepção."
   },
   "etherealness": {
     "index": "etherealness",
@@ -3277,7 +3372,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Forma Etérea"
+    "namePT": "Forma Etérea",
+    "descriptionPT": "Você entra nas bordas do Plano Etéreo, onde se torna invisível e pode passar através de objetos sólidos do Plano Material."
   },
   "expeditious-retreat": {
     "index": "expeditious-retreat",
@@ -3304,7 +3400,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Retirada Expedita"
+    "namePT": "Retirada Expedita",
+    "descriptionPT": "Esta magia permite que você se mova em um ritmo incrível. Quando conjura, e como ação bônus nos turnos seguintes, você pode Correr."
   },
   "eyebite": {
     "index": "eyebite",
@@ -3340,7 +3437,8 @@
       "desc": "On failure, the target can be affected by one of the following effects of your choice for the duration. [Asleep. The target falls unconscious. It wakes up if it takes any damage or if another creature uses its action to shake the sleeper awake.] [Panicked. The target is frightened of you. On each of its turns, the frightened creature must take the Dash action and move away from you by the safest and shortest available route, unless there is nowhere to move. If the target moves to a place at least 60 feet away from you where it can no longer see you, this effect ends.] [Sickened. The target has disadvantage on attack rolls and ability checks. At the end of each of its turns, it can make another wisdom saving throw. If it succeeds, the effect ends.]"
     },
     "area_of_effect": null,
-    "namePT": "Olhar Terrível"
+    "namePT": "Olhar Terrível",
+    "descriptionPT": "Seus olhos lançam maldições de pavor, sono ou enjoo."
   },
   "fabricate": {
     "index": "fabricate",
@@ -3365,7 +3463,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Fabricar"
+    "namePT": "Fabricar",
+    "descriptionPT": "Você converte materiais brutos em produtos acabados (madeira em ponte, metal em armadura, linho em roupas)."
   },
   "faerie-fire": {
     "index": "faerie-fire",
@@ -3399,7 +3498,8 @@
       "type": "cube",
       "size": 20
     },
-    "namePT": "Fogo das Fadas"
+    "namePT": "Fogo das Fadas",
+    "descriptionPT": "Um brilho suave azul, verde ou violeta circunda objetos e criaturas na área. Ataques contra alvos afetados têm vantagem."
   },
   "faithful-hound": {
     "index": "faithful-hound",
@@ -3434,7 +3534,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Cão Fiel"
+    "namePT": "Cão Fiel",
+    "descriptionPT": "Você invoca um cão de guarda invisível em um espaço vazio, que late para intrusos e ataca criaturas próximas."
   },
   "false-life": {
     "index": "false-life",
@@ -3461,7 +3562,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Vida Falsa"
+    "namePT": "Vida Falsa",
+    "descriptionPT": "Com um gesto necromante, você ganha 1d4 + 4 pontos de vida temporários pela duração da magia."
   },
   "fear": {
     "index": "fear",
@@ -3501,7 +3603,8 @@
       "type": "cone",
       "size": 30
     },
-    "namePT": "Medo"
+    "namePT": "Medo",
+    "descriptionPT": "Você projeta uma imagem fantasmagórica dos piores medos de uma criatura. Criaturas na área devem fugir de você enquanto estiverem amedrontadas."
   },
   "feather-fall": {
     "index": "feather-fall",
@@ -3528,7 +3631,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Queda Suave"
+    "namePT": "Queda Suave",
+    "descriptionPT": "Escolha até cinco criaturas caindo dentro do alcance. A velocidade da queda de cada criatura diminui para 18 metros por rodada."
   },
   "feeblemind": {
     "index": "feeblemind",
@@ -3574,7 +3678,8 @@
       "desc": "The target always takes the damage. On a failed save, the creature's Intelligence and Charisma scores become 1."
     },
     "area_of_effect": null,
-    "namePT": "Debilitar Intelecto"
+    "namePT": "Debilitar Intelecto",
+    "descriptionPT": "Você ataca a mente de uma criatura. O alvo sofre 4d6 de dano psíquico e sua Inteligência e Carisma tornam-se 1."
   },
   "find-familiar": {
     "index": "find-familiar",
@@ -3600,7 +3705,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Encontrar Familiar"
+    "namePT": "Encontrar Familiar",
+    "descriptionPT": "Você ganha o serviço de um espírito familiar que toma a forma de um animal à sua escolha, servindo como espião e mensageiro."
   },
   "find-steed": {
     "index": "find-steed",
@@ -3625,7 +3731,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Encontrar Montaria"
+    "namePT": "Encontrar Montaria",
+    "descriptionPT": "Você invoca um espírito que assume a forma de uma montaria excepcionalmente inteligente e leal, criando um laço telepático com você."
   },
   "find-the-path": {
     "index": "find-the-path",
@@ -3653,7 +3760,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Encontrar o Caminho"
+    "namePT": "Encontrar o Caminho",
+    "descriptionPT": "Esta magia permite que você encontre o caminho mais curto e direto para uma localização específica que você conheça."
   },
   "find-traps": {
     "index": "find-traps",
@@ -3680,7 +3788,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Encontrar Armadilhas"
+    "namePT": "Encontrar Armadilhas",
+    "descriptionPT": "Você sente a presença de qualquer armadilha dentro do seu campo de visão que tenha sido colocada para infligir um efeito nocivo."
   },
   "finger-of-death": {
     "index": "finger-of-death",
@@ -3723,7 +3832,8 @@
       "dc_success": "half"
     },
     "area_of_effect": null,
-    "namePT": "Dedo da Morte"
+    "namePT": "Dedo da Morte",
+    "descriptionPT": "Você envia energia negativa através de uma criatura. Ela sofre 7d8 + 30 de dano necrótico. Se morrer, ela se torna um zumbi sob seu controle."
   },
   "fire-bolt": {
     "index": "fire-bolt",
@@ -3800,7 +3910,8 @@
       "type": "sphere",
       "size": 5
     },
-    "namePT": "Escudo de Fogo"
+    "namePT": "Escudo de Fogo",
+    "descriptionPT": "Chamas finas e brilhantes envolvem você. Você ganha resistência a fogo ou frio e causa dano a quem te atingir em combate corpo a corpo."
   },
   "fire-storm": {
     "index": "fire-storm",
@@ -3846,7 +3957,8 @@
       "type": "cube",
       "size": 100
     },
-    "namePT": "Tempestade de Fogo"
+    "namePT": "Tempestade de Fogo",
+    "descriptionPT": "Chuva de fogo cai em dez cubos de 3 metros à sua escolha."
   },
   "fireball": {
     "index": "fireball",
@@ -3937,7 +4049,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Lâmina Flamejante"
+    "namePT": "Lâmina Flamejante",
+    "descriptionPT": "Você evoca uma espada de fogo em sua mão. Você pode fazer ataques de magia corpo a corpo com a espada para causar 3d6 de dano de fogo."
   },
   "flame-strike": {
     "index": "flame-strike",
@@ -3986,7 +4099,8 @@
       "type": "cylinder",
       "size": 40
     },
-    "namePT": "Coluna de Chamas"
+    "namePT": "Coluna de Chamas",
+    "descriptionPT": "Uma coluna vertical de fogo divino desce do céu. Criaturas na área sofrem 4d6 de dano de fogo e 4d6 de dano radiante."
   },
   "flaming-sphere": {
     "index": "flaming-sphere",
@@ -4029,7 +4143,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Esfera Flamejante"
+    "namePT": "Esfera Flamejante",
+    "descriptionPT": "Uma esfera de fogo surge. Você pode usar sua ação bônus para mover a esfera e queimar criaturas próximas a ela."
   },
   "flesh-to-stone": {
     "index": "flesh-to-stone",
@@ -4064,7 +4179,8 @@
       "desc": "On a failed save, the target is restrained as its flesh begins to harden."
     },
     "area_of_effect": null,
-    "namePT": "Carne para Pedra"
+    "namePT": "Carne para Pedra",
+    "descriptionPT": "Você tenta transformar uma criatura em pedra. O alvo deve fazer testes de resistência de Constituição para resistir à petrificação."
   },
   "floating-disk": {
     "index": "floating-disk",
@@ -4090,7 +4206,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Disco Flutuante"
+    "namePT": "Disco Flutuante",
+    "descriptionPT": "Você cria um disco de força plano e circular que flutua e segue você, carregando até 250 kg de peso."
   },
   "fly": {
     "index": "fly",
@@ -4118,7 +4235,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Voar"
+    "namePT": "Voar",
+    "descriptionPT": "Você toca uma criatura voluntária. O alvo ganha deslocamento de voo de 18 metros pela duração da magia."
   },
   "fog-cloud": {
     "index": "fog-cloud",
@@ -4149,7 +4267,8 @@
       "type": "sphere",
       "size": 20
     },
-    "namePT": "Nuvem de Névoa"
+    "namePT": "Nuvem de Névoa",
+    "descriptionPT": "Você cria uma esfera de névoa espessa de 6 metros de raio. A área é considerada densamente obscurecida."
   },
   "forbiddance": {
     "index": "forbiddance",
@@ -4178,7 +4297,8 @@
       "type": "cube",
       "size": 40000
     },
-    "namePT": "Proibição"
+    "namePT": "Proibição",
+    "descriptionPT": "Você cria uma barreira contra viagem planar em uma área. A área é protegida contra teletransporte e criaturas planares sofrem dano."
   },
   "forcecage": {
     "index": "forcecage",
@@ -4209,7 +4329,8 @@
       "type": "cube",
       "size": 20
     },
-    "namePT": "Jaula de Energia"
+    "namePT": "Jaula de Energia",
+    "descriptionPT": "Você cria uma prisão de força invisível em forma de cubo ou gaiola que é indestrutível e inquebrável por meios mágicos."
   },
   "foresight": {
     "index": "foresight",
@@ -4238,7 +4359,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Premonição"
+    "namePT": "Premonição",
+    "descriptionPT": "Concede presciência perfeita, dando vantagem em tudo e desvantagem nos inimigos."
   },
   "freedom-of-movement": {
     "index": "freedom-of-movement",
@@ -4267,7 +4389,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Movimentação Livre"
+    "namePT": "Movimentação Livre",
+    "descriptionPT": "Você toca uma criatura voluntária. Pela duração, o movimento do alvo não pode ser reduzido por terreno difícil ou magias."
   },
   "freezing-sphere": {
     "index": "freezing-sphere",
@@ -4311,7 +4434,8 @@
     "area_of_effect": {
       "type": "sphere",
       "size": 60
-    }
+    },
+    "descriptionPT": "Uma esfera gélida de energia azul dispara de você. Ao atingir, explode causando 10d6 de dano de frio em um raio de 12 metros."
   },
   "gaseous-form": {
     "index": "gaseous-form",
@@ -4339,7 +4463,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Forma Gasosa"
+    "namePT": "Forma Gasosa",
+    "descriptionPT": "Você transforma uma criatura voluntária em uma nuvem enevoada. O alvo ganha resistência a dano não mágico e pode passar por pequenas fendas."
   },
   "gate": {
     "index": "gate",
@@ -4367,7 +4492,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Portal"
+    "namePT": "Portal",
+    "descriptionPT": "Você abre um portal dimensional para um plano de existência diferente. Você pode invocar uma criatura específica pelo seu nome através do portal."
   },
   "geas": {
     "index": "geas",
@@ -4402,7 +4528,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Geas"
+    "namePT": "Geas",
+    "descriptionPT": "Você coloca um comando mágico em uma criatura, forçando-a a realizar um serviço ou impedindo-a de uma ação. Falhar causa dano psíquico massivo."
   },
   "gentle-repose": {
     "index": "gentle-repose",
@@ -4429,7 +4556,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Repouso Tranquilo"
+    "namePT": "Repouso Tranquilo",
+    "descriptionPT": "Você toca um cadáver e o protege contra a decomposição natural e contra ser transformado em morto-vivo por 10 dias."
   },
   "giant-insect": {
     "index": "giant-insect",
@@ -4454,7 +4582,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Inseto Gigante"
+    "namePT": "Inseto Gigante",
+    "descriptionPT": "Transforma insetos comuns em versões gigantes sob seu controle."
   },
   "glibness": {
     "index": "glibness",
@@ -4479,7 +4608,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Lábia"
+    "namePT": "Lábia",
+    "descriptionPT": "Torna sua voz tão persuasiva que você não pode tirar menos que 15 em testes de Carisma."
   },
   "globe-of-invulnerability": {
     "index": "globe-of-invulnerability",
@@ -4509,7 +4639,8 @@
       "type": "sphere",
       "size": 10
     },
-    "namePT": "Globo de Invulnerabilidade"
+    "namePT": "Globo de Invulnerabilidade",
+    "descriptionPT": "Uma barreira cintilante de 3 metros envolve você. Magias de 5º nível ou inferior não podem afetar criaturas dentro da barreira."
   },
   "glyph-of-warding": {
     "index": "glyph-of-warding",
@@ -4537,7 +4668,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Glifo de Proteção"
+    "namePT": "Glifo de Proteção",
+    "descriptionPT": "Cria uma armadilha mágica que explode ou ativa uma magia ao ser tocada."
   },
   "goodberry": {
     "index": "goodberry",
@@ -4564,7 +4696,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Fruto Encantado"
+    "namePT": "Fruto Encantado",
+    "descriptionPT": "Até dez bagas aparecem na sua mão e são infundidas com magia. Uma criatura que come uma baga recupera 1 ponto de vida e se nutre por um dia."
   },
   "grease": {
     "index": "grease",
@@ -4600,7 +4733,8 @@
       "type": "cube",
       "size": 10
     },
-    "namePT": "Graxa"
+    "namePT": "Graxa",
+    "descriptionPT": "Gordura escorregadia cobre o chão em um quadrado de 3 metros. Criaturas que entram na área ou terminam o turno nela devem cair no chão (caído)."
   },
   "greater-invisibility": {
     "index": "greater-invisibility",
@@ -4656,7 +4790,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Restauração Maior"
+    "namePT": "Restauração Maior",
+    "descriptionPT": "Você toca uma criatura e encerra um efeito negativo: charme, petrificação, maldição, ou redução de atributos e pontos de vida máximos."
   },
   "guardian-of-faith": {
     "index": "guardian-of-faith",
@@ -4699,7 +4834,8 @@
       "type": "cylinder",
       "size": 10
     },
-    "namePT": "Guardião da Fé"
+    "namePT": "Guardião da Fé",
+    "descriptionPT": "Um guardião espectral aparece em um espaço vazio. O guardião ocupa o espaço e causa 20 de dano radiante em criaturas hostis que se aproximam."
   },
   "guards-and-wards": {
     "index": "guards-and-wards",
@@ -4729,7 +4865,8 @@
       "type": "cube",
       "size": 2500
     },
-    "namePT": "Guardas e Alas"
+    "namePT": "Guardas e Alas",
+    "descriptionPT": "Você cria uma série de efeitos mágicos em um local (névoa, portas trancadas, teias, sugestões) para protegê-lo."
   },
   "guidance": {
     "index": "guidance",
@@ -4755,7 +4892,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Orientação"
+    "namePT": "Orientação",
+    "descriptionPT": "Oferece orientação divina, adicionando 1d4 a um teste de habilidade."
   },
   "guiding-bolt": {
     "index": "guiding-bolt",
@@ -4797,7 +4935,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Seta Guiada"
+    "namePT": "Seta Guiada",
+    "descriptionPT": "Um relâmpago de luz brilha em direção a uma criatura dentro do alcance. Faça um ataque de magia à distância. Em um acerto, o alvo sofre 4d6 de dano radiante, e a próxima jogada de ataque feita contra este alvo antes do final do seu próximo turno tem vantagem."
   },
   "gust-of-wind": {
     "index": "gust-of-wind",
@@ -4835,7 +4974,8 @@
       "type": "line",
       "size": 60
     },
-    "namePT": "Rajada de Vento"
+    "namePT": "Rajada de Vento",
+    "descriptionPT": "Uma linha de vento forte de 18 metros emana de você. Criaturas na linha são empurradas para longe e a área é considerada terreno difícil."
   },
   "hallow": {
     "index": "hallow",
@@ -4871,7 +5011,8 @@
       "type": "sphere",
       "size": 60
     },
-    "namePT": "Consagrar"
+    "namePT": "Consagrar",
+    "descriptionPT": "Você imbui uma área com poder sagrado (ou profano). Criaturas celestiais, elementais, fadas, demônios e mortos-vivos não podem entrar na área."
   },
   "hallucinatory-terrain": {
     "index": "hallucinatory-terrain",
@@ -4903,7 +5044,8 @@
       "type": "cube",
       "size": 150
     },
-    "namePT": "Terreno Ilusório"
+    "namePT": "Terreno Ilusório",
+    "descriptionPT": "Você faz um terreno parecer, soar e cheirar como outro tipo de terreno natural (um campo gramado parece um pântano ou precipício)."
   },
   "harm": {
     "index": "harm",
@@ -4944,7 +5086,8 @@
       "dc_success": "half"
     },
     "area_of_effect": null,
-    "namePT": "Ferir"
+    "namePT": "Ferir",
+    "descriptionPT": "Você desfere uma doença virulenta em uma criatura. O alvo deve fazer um teste de Constituição ou sofrerá 14d6 de dano necrótico."
   },
   "haste": {
     "index": "haste",
@@ -4971,7 +5114,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Velocidade"
+    "namePT": "Velocidade",
+    "descriptionPT": "Escolha uma criatura voluntária. Pela duração, o deslocamento dela dobra, ela ganha +2 na CA e uma ação adicional em cada turno."
   },
   "heal": {
     "index": "heal",
@@ -4997,7 +5141,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Curar"
+    "namePT": "Curar",
+    "descriptionPT": "Você libera uma onda de energia curativa. Uma criatura recupera 70 pontos de vida e é curada de cegueira, surdez e todas as doenças."
   },
   "healing-word": {
     "index": "healing-word",
@@ -5024,7 +5169,7 @@
     "dc": null,
     "area_of_effect": null,
     "namePT": "Palavra de Cura",
-    "descriptionPT": "Uma criatura de sua escolha que você possa ver dentro do alcance recupera pontos de vida igual a 1d4 + seu modificador de habilidade de conjuração. Esta magia não tem efeito em mortos-vivos ou constructos.\n\nEm Níveis Superiores: Quando você conjura esta magia usando um espaço de magia de 2º nível ou superior, a cura aumenta em 1d4 para cada nível de espaço acima do 1º."
+    "descriptionPT": "Uma criatura de sua escolha que você possa ver dentro do alcance recupera pontos de vida iguais a 1d4 + seu modificador de habilidade de conjuração. Esta magia não tem efeito em mortos-vivos ou construtos."
   },
   "heat-metal": {
     "index": "heat-metal",
@@ -5075,7 +5220,8 @@
       "desc": "Can choose to not drop the object"
     },
     "area_of_effect": null,
-    "namePT": "Aquecer Metal"
+    "namePT": "Aquecer Metal",
+    "descriptionPT": "Escolha um objeto manufaturado de metal dentro do alcance. O metal fica em brasa. Criaturas segurando o objeto sofrem 2d8 de dano de fogo."
   },
   "hellish-rebuke": {
     "index": "hellish-rebuke",
@@ -5124,7 +5270,8 @@
       "dc_success": "half"
     },
     "area_of_effect": null,
-    "namePT": "Repreensão Infernal"
+    "namePT": "Repreensão Infernal",
+    "descriptionPT": "Você aponta o dedo e a criatura que o feriu é envolta em chamas infernais. Ela deve fazer um teste de Resistência de Destreza ou sofrerá 2d10 de dano."
   },
   "heroes-feast": {
     "index": "heroes-feast",
@@ -5151,7 +5298,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Banquete dos Heróis"
+    "namePT": "Banquete dos Heróis",
+    "descriptionPT": "Você traz um banquete magnífico. Até 12 criaturas que comem ficam curadas de doenças, venenos e imunes a medo por 24 horas."
   },
   "heroism": {
     "index": "heroism",
@@ -5177,7 +5325,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Heroísmo"
+    "namePT": "Heroísmo",
+    "descriptionPT": "Infundir coragem em um aliado, tornando-o imune a medo e dando HP temporário."
   },
   "hideous-laughter": {
     "index": "hideous-laughter",
@@ -5211,7 +5360,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Riso Hediondo"
+    "namePT": "Riso Hediondo",
+    "descriptionPT": "O alvo percebe tudo como hilário e cai no chão em um acesso de riso, ficando incapacitado e caído."
   },
   "hold-monster": {
     "index": "hold-monster",
@@ -5247,7 +5397,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Imobilizar Monstro"
+    "namePT": "Imobilizar Monstro",
+    "descriptionPT": "Você tenta paralisar uma criatura (não-humanoide). Ela deve ser bem-sucedida num teste de resistência de Sabedoria ou ficará paralisada."
   },
   "hold-person": {
     "index": "hold-person",
@@ -5315,7 +5466,8 @@
       "type": "sphere",
       "size": 30
     },
-    "namePT": "Aura Sagrada"
+    "namePT": "Aura Sagrada",
+    "descriptionPT": "Luz divina emana de você em um raio de 9 metros. Aliados ganham vantagem em testes de resistência e ataques contra eles têm desvantagem."
   },
   "hunters-mark": {
     "index": "hunters-mark",
@@ -5339,7 +5491,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Marca do Caçador"
+    "namePT": "Marca do Caçador",
+    "descriptionPT": "Marca um alvo para causar dano extra e facilitar o rastreio."
   },
   "hypnotic-pattern": {
     "index": "hypnotic-pattern",
@@ -5375,7 +5528,8 @@
       "desc": "On a failed save, the creature becomes charmed for the duration."
     },
     "area_of_effect": null,
-    "namePT": "Padrão Hipnótico"
+    "namePT": "Padrão Hipnótico",
+    "descriptionPT": "Você cria um padrão de cores cintilantes. Criaturas que olham para o padrão devem fazer um teste de Sabedoria ou ficarão incapacitadas."
   },
   "ice-storm": {
     "index": "ice-storm",
@@ -5427,7 +5581,8 @@
       "type": "cylinder",
       "size": 20
     },
-    "namePT": "Tempestade de Gelo"
+    "namePT": "Tempestade de Gelo",
+    "descriptionPT": "Granizo cai em um cilindro de 6 metros. Criaturas na área sofrem 2d8 de dano de concussão e 4d6 de dano de frio; a área vira terreno difícil."
   },
   "identify": {
     "index": "identify",
@@ -5482,7 +5637,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Escrita Ilusória"
+    "namePT": "Escrita Ilusória",
+    "descriptionPT": "Escreve uma mensagem que só pode ser lida por quem você escolher."
   },
   "imprisonment": {
     "index": "imprisonment",
@@ -5517,7 +5673,8 @@
       "desc": "If the creature succeeds, it is immune to this spell if you cast it again"
     },
     "area_of_effect": null,
-    "namePT": "Aprisionamento"
+    "namePT": "Aprisionamento",
+    "descriptionPT": "Você cria uma estrutura mágica para prender uma criatura. O alvo deve fazer um teste de Sabedoria ou ficará preso por tempo indefinido."
   },
   "incendiary-cloud": {
     "index": "incendiary-cloud",
@@ -5562,7 +5719,8 @@
       "type": "sphere",
       "size": 20
     },
-    "namePT": "Nuvem Incendiária"
+    "namePT": "Nuvem Incendiária",
+    "descriptionPT": "Uma nuvem de fumaça fétida com brasas aparece. No início de cada turno, criaturas na nuvem sofrem 10d8 de dano de fogo."
   },
   "inflict-wounds": {
     "index": "inflict-wounds",
@@ -5604,7 +5762,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Infligir Ferimentos"
+    "namePT": "Infligir Ferimentos",
+    "descriptionPT": "Faça um ataque de magia corpo a corpo contra uma criatura que você possa tocar. Em um acerto, o alvo sofre 3d10 de dano necrótico."
   },
   "insect-plague": {
     "index": "insect-plague",
@@ -5655,7 +5814,8 @@
       "type": "sphere",
       "size": 20
     },
-    "namePT": "Praga de Insetos"
+    "namePT": "Praga de Insetos",
+    "descriptionPT": "Nuvem de gafanhotos famintos que causa dano perfurante na área."
   },
   "instant-summons": {
     "index": "instant-summons",
@@ -5681,7 +5841,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Convocação Instantânea"
+    "namePT": "Convocação Instantânea",
+    "descriptionPT": "Você marca um objeto e pode invocá-lo instantaneamente para sua mão, não importa a distância, desde que esteja no mesmo plano."
   },
   "invisibility": {
     "index": "invisibility",
@@ -5710,7 +5871,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Invisibilidade"
+    "namePT": "Invisibilidade",
+    "descriptionPT": "Uma criatura que você tocar fica invisível. A magia termina se o alvo atacar ou conjurar uma magia."
   },
   "irresistible-dance": {
     "index": "irresistible-dance",
@@ -5735,7 +5897,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Dança Irresistível"
+    "namePT": "Dança Irresistível",
+    "descriptionPT": "Força um inimigo a dançar comicamente, perdendo ações e defesa."
   },
   "jump": {
     "index": "jump",
@@ -5764,7 +5927,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Salto"
+    "namePT": "Salto",
+    "descriptionPT": "Você toca uma criatura. Pela duração, a distância de salto do alvo é triplicada."
   },
   "knock": {
     "index": "knock",
@@ -5790,7 +5954,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Arrombar"
+    "namePT": "Arrombar",
+    "descriptionPT": "Você toca um objeto trancado (porta, baú) e ele se abre. A magia emite um som de batida audível até 90 metros de distância."
   },
   "legend-lore": {
     "index": "legend-lore",
@@ -5818,7 +5983,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Conhecimento Lendário"
+    "namePT": "Conhecimento Lendário",
+    "descriptionPT": "Você traz à mente lendas e histórias sobre uma pessoa, lugar ou objeto importante que você nomear."
   },
   "lesser-restoration": {
     "index": "lesser-restoration",
@@ -5847,7 +6013,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Restauração Menor"
+    "namePT": "Restauração Menor",
+    "descriptionPT": "Você toca uma criatura e encerra uma condição: cego, surdo, paralisado ou envenenado."
   },
   "levitate": {
     "index": "levitate",
@@ -5874,7 +6041,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Levitar"
+    "namePT": "Levitar",
+    "descriptionPT": "Uma criatura ou objeto à sua escolha flutua verticalmente até 6 metros de altura e permanece suspensa no ar."
   },
   "light": {
     "index": "light",
@@ -5909,7 +6077,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Luz"
+    "namePT": "Luz",
+    "descriptionPT": "Você toca um objeto e ele emite luz brilhante em um raio de 6 metros e luz plena por mais 6 metros."
   },
   "lightning-bolt": {
     "index": "lightning-bolt",
@@ -5990,7 +6159,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Localizar Animais ou Plantas"
+    "namePT": "Localizar Animais ou Plantas",
+    "descriptionPT": "Você sente a direção e distância de um tipo específico de besta ou planta a até 8 quilômetros de você."
   },
   "locate-creature": {
     "index": "locate-creature",
@@ -6021,7 +6191,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Localizar Criatura"
+    "namePT": "Localizar Criatura",
+    "descriptionPT": "Você descreve ou nomeia uma criatura familiar para você e sente a direção e distância dela, desde que esteja a até 300 metros."
   },
   "locate-object": {
     "index": "locate-object",
@@ -6052,7 +6223,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Localizar Objeto"
+    "namePT": "Localizar Objeto",
+    "descriptionPT": "Você descreve um objeto e sente a direção em que ele está em um raio de 300 metros."
   },
   "longstrider": {
     "index": "longstrider",
@@ -6081,7 +6253,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Passos Longos"
+    "namePT": "Passos Longos",
+    "descriptionPT": "Você toca uma criatura e aumenta o deslocamento dela em 3 metros pela duração de uma hora."
   },
   "mage-armor": {
     "index": "mage-armor",
@@ -6108,7 +6281,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Armadura Arcana"
+    "namePT": "Armadura Arcana",
+    "descriptionPT": "Você toca uma criatura voluntária que não esteja usando armadura. A CA dela se torna 13 + modificador de Destreza."
   },
   "mage-hand": {
     "index": "mage-hand",
@@ -6177,7 +6351,8 @@
       "type": "cylinder",
       "size": 10
     },
-    "namePT": "Círculo Mágico"
+    "namePT": "Círculo Mágico",
+    "descriptionPT": "Você cria um cilindro de energia mágica para prender ou repelir tipos específicos de criaturas (celestiais, elementais, etc)."
   },
   "magic-jar": {
     "index": "magic-jar",
@@ -6211,7 +6386,8 @@
       "desc": "On a failure, your soul moves into the target's body, and the target's soul becomes trapped in the container. On a success, the target resists your efforts to possess it, and you can't attempt to possess it again for 24 hours."
     },
     "area_of_effect": null,
-    "namePT": "Recipiente Arcano"
+    "namePT": "Recipiente Arcano",
+    "descriptionPT": "Sua alma deixa seu corpo e entra em uma gema ou cristal, permitindo que você possua o corpo de outra criatura."
   },
   "magic-missile": {
     "index": "magic-missile",
@@ -6255,7 +6431,7 @@
     "dc": null,
     "area_of_effect": null,
     "namePT": "Mísseis Mágicos",
-    "descriptionPT": "Você cria três dardos brilhantes de energia mágica. Cada dardo atinge uma criatura de sua escolha que você possa ver dentro do alcance. Um dardo causa 1d4 + 1 de dano de energia ao seu alvo. Os dardos atingem simultaneamente e você pode direcioná-los para atingir uma criatura ou várias.\n\nEm Níveis Superiores: Quando você conjura esta magia usando um espaço de magia de 2º nível ou superior, a magia cria mais um dardo para cada nível de espaço acima do 1º."
+    "descriptionPT": "Você cria três dardos brilhantes de força mágica. Cada dardo atinge uma criatura de sua escolha que você possa ver dentro do alcance. Um dardo causa 1d4 + 1 de dano de força ao seu alvo. Os dardos atingem simultaneamente."
   },
   "magic-mouth": {
     "index": "magic-mouth",
@@ -6282,7 +6458,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Boca Mágica"
+    "namePT": "Boca Mágica",
+    "descriptionPT": "Cria uma boca em um objeto que fala sob certas condições."
   },
   "magic-weapon": {
     "index": "magic-weapon",
@@ -6308,7 +6485,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Arma Mágica"
+    "namePT": "Arma Mágica",
+    "descriptionPT": "Você toca uma arma não-mágica. Ela se torna uma arma mágica com um bônus de +1 nas jogadas de ataque e dano."
   },
   "magnificent-mansion": {
     "index": "magnificent-mansion",
@@ -6338,7 +6516,8 @@
       "type": "cube",
       "size": 5
     },
-    "namePT": "Mansão Magnífica"
+    "namePT": "Mansão Magnífica",
+    "descriptionPT": "Você cria uma habitação extradimensional luxuosa com servos fantasmagóricos e comida farta para até 100 pessoas."
   },
   "major-image": {
     "index": "major-image",
@@ -6367,7 +6546,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Imagem Maior"
+    "namePT": "Imagem Maior",
+    "descriptionPT": "Você cria a imagem visual de um objeto, criatura ou outro fenômeno visível. A ilusão inclui som, cheiro e temperatura."
   },
   "mass-cure-wounds": {
     "index": "mass-cure-wounds",
@@ -6397,7 +6577,8 @@
       "type": "sphere",
       "size": 30
     },
-    "namePT": "Curar Ferimentos em Massa"
+    "namePT": "Curar Ferimentos em Massa",
+    "descriptionPT": "Uma onda de energia curativa emana de um ponto. Até seis criaturas recuperam 3d8 + modificador de conjuração."
   },
   "mass-heal": {
     "index": "mass-heal",
@@ -6422,7 +6603,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Cura em Massa"
+    "namePT": "Cura em Massa",
+    "descriptionPT": "Uma inundação de energia curativa restaura até 700 pontos de vida divididos entre qualquer número de criaturas que você puder ver."
   },
   "mass-healing-word": {
     "index": "mass-healing-word",
@@ -6446,7 +6628,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Palavra de Cura em Massa"
+    "namePT": "Palavra de Cura em Massa",
+    "descriptionPT": "Você fala palavras de restauração. Até seis criaturas recuperam 1d4 + modificador de habilidade de conjuração."
   },
   "mass-suggestion": {
     "index": "mass-suggestion",
@@ -6481,7 +6664,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Sugestão em Massa"
+    "namePT": "Sugestão em Massa",
+    "descriptionPT": "Você sugere um curso de atividade para até doze criaturas. Elas devem fazer um teste de Sabedoria ou seguirão sua sugestão."
   },
   "maze": {
     "index": "maze",
@@ -6506,7 +6690,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Labirinto"
+    "namePT": "Labirinto",
+    "descriptionPT": "Você bane uma criatura para um labirinto dimensional. O alvo deve usar sua ação para tentar escapar com um teste de Inteligência."
   },
   "meld-into-stone": {
     "index": "meld-into-stone",
@@ -6530,7 +6715,8 @@
     "castingTime": "1 action",
     "damage": null,
     "dc": null,
-    "area_of_effect": null
+    "area_of_effect": null,
+    "descriptionPT": "Você mergulha e se esconde dentro de um objeto ou superfície de pedra sólida pela duração da magia."
   },
   "mending": {
     "index": "mending",
@@ -6560,7 +6746,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Reparar"
+    "namePT": "Reparar",
+    "descriptionPT": "Este truque repara uma única quebra ou rachadura em um objeto que você tocar, como um elo de corrente quebrado ou uma chave partida."
   },
   "message": {
     "index": "message",
@@ -6588,7 +6775,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Mensagem"
+    "namePT": "Mensagem",
+    "descriptionPT": "Você aponta para uma criatura e sussurra uma mensagem. Apenas o alvo ouve a mensagem e ele pode responder com um sussurro."
   },
   "meteor-swarm": {
     "index": "meteor-swarm",
@@ -6633,7 +6821,8 @@
       "type": "sphere",
       "size": 40
     },
-    "namePT": "Enxame de Meteoros"
+    "namePT": "Enxame de Meteoros",
+    "descriptionPT": "Meteoros de fogo caem do céu. Cada criatura em quatro esferas de 12 metros de raio sofre 20d6 de dano de fogo e 20d6 de dano de concussão."
   },
   "mind-blank": {
     "index": "mind-blank",
@@ -6659,7 +6848,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Mente em Branco"
+    "namePT": "Mente em Branco",
+    "descriptionPT": "Até o fim da magia, uma criatura voluntária fica protegida contra detecção de pensamentos, controle mental e efeitos de vidência."
   },
   "minor-illusion": {
     "index": "minor-illusion",
@@ -6687,7 +6877,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Ilusão Menor"
+    "namePT": "Ilusão Menor",
+    "descriptionPT": "Você cria um som ou uma imagem de um objeto dentro do alcance que dura 1 minuto."
   },
   "mirage-arcane": {
     "index": "mirage-arcane",
@@ -6717,7 +6908,8 @@
       "type": "cube",
       "size": 5280
     },
-    "namePT": "Miragem Arcana"
+    "namePT": "Miragem Arcana",
+    "descriptionPT": "Você faz com que o terreno em um raio de 1,6 km pareça, soe e cheire como uma paisagem diferente, alterando até as estruturas."
   },
   "mirror-image": {
     "index": "mirror-image",
@@ -6744,7 +6936,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Imagem Espelhada"
+    "namePT": "Imagem Espelhada",
+    "descriptionPT": "Três duplicatas ilusórias de você aparecem. Enquanto as duplicatas existirem, ataques contra você podem atingir uma duplicata em vez de você."
   },
   "mislead": {
     "index": "mislead",
@@ -6769,7 +6962,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Despistar"
+    "namePT": "Despistar",
+    "descriptionPT": "Você fica invisível e ao mesmo tempo uma duplicata ilusória de você aparece. Você pode controlar a duplicata e ver através dos olhos dela."
   },
   "misty-step": {
     "index": "misty-step",
@@ -6829,7 +7023,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Modificar Memória"
+    "namePT": "Modificar Memória",
+    "descriptionPT": "Altera ou remove memórias recentes de um alvo."
   },
   "moonbeam": {
     "index": "moonbeam",
@@ -6881,7 +7076,8 @@
       "type": "cylinder",
       "size": 5
     },
-    "namePT": "Raio Lunar"
+    "namePT": "Raio Lunar",
+    "descriptionPT": "Um feixe prateado de luz pálida desce em um cilindro de 1,5 metro de raio. Criaturas na luz sofrem 2d10 de dano radiante."
   },
   "move-earth": {
     "index": "move-earth",
@@ -6912,7 +7108,8 @@
       "type": "cone",
       "size": 40
     },
-    "namePT": "Mover Terra"
+    "namePT": "Mover Terra",
+    "descriptionPT": "Você escolhe uma área de terreno e molda a terra, criando valas, montes ou nivelando o solo ao longo de 10 minutos."
   },
   "nondetection": {
     "index": "nondetection",
@@ -6940,7 +7137,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Indetectável"
+    "namePT": "Indetectável",
+    "descriptionPT": "Protege contra magias de adivinhação e vidência."
   },
   "pass-without-trace": {
     "index": "pass-without-trace",
@@ -6966,7 +7164,8 @@
     "castingTime": "1 action",
     "damage": null,
     "dc": null,
-    "area_of_effect": null
+    "area_of_effect": null,
+    "descriptionPT": "Um véu de sombras e silêncio torna você e seus aliados quase impossíveis de serem rastreados (+10 em Furtividade)."
   },
   "passwall": {
     "index": "passwall",
@@ -6992,7 +7191,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Passagem sem Vestígios"
+    "namePT": "Passagem sem Vestígios",
+    "descriptionPT": "Cria uma passagem temporária através de paredes sólidas."
   },
   "phantasmal-killer": {
     "index": "phantasmal-killer",
@@ -7033,7 +7233,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Assassino Fantasmagórico"
+    "namePT": "Assassino Fantasmagórico",
+    "descriptionPT": "Você acessa os pesadelos de uma criatura e cria uma manifestação ilusória de seus piores medos. O alvo sofre 4d10 de dano psíquico."
   },
   "phantom-steed": {
     "index": "phantom-steed",
@@ -7058,7 +7259,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Corcel Fantasma"
+    "namePT": "Corcel Fantasma",
+    "descriptionPT": "Você invoca uma criatura quase real que assume a forma de um cavalo. Ele tem deslocamento de 30 metros e pode andar sobre terreno difícil."
   },
   "planar-ally": {
     "index": "planar-ally",
@@ -7083,7 +7285,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Aliado Planar"
+    "namePT": "Aliado Planar",
+    "descriptionPT": "Você suplica a uma entidade poderosa (deus ou senhor planar) por ajuda. A entidade envia um ser planar para servir você em troca de pagamento."
   },
   "planar-binding": {
     "index": "planar-binding",
@@ -7119,7 +7322,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Vínculo Planar"
+    "namePT": "Vínculo Planar",
+    "descriptionPT": "Você tenta prender um celestial, elemental, fada ou demônio ao seu serviço. Se falhar no teste de Carisma, a criatura deve obedecer você por 24 horas."
   },
   "plane-shift": {
     "index": "plane-shift",
@@ -7157,7 +7361,8 @@
       "desc": "If the creature fails this save, it is transported to a random location on the plane of existence you specify. A creature so transported must find its own way back to your current plane of existence."
     },
     "area_of_effect": null,
-    "namePT": "Mudar de Plano"
+    "namePT": "Mudar de Plano",
+    "descriptionPT": "Você e até oito criaturas voluntárias são transportados para um plano de existência diferente ou para uma localização específica no Plano Material."
   },
   "plant-growth": {
     "index": "plant-growth",
@@ -7184,7 +7389,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Crescimento Vegetal"
+    "namePT": "Crescimento Vegetal",
+    "descriptionPT": "Esta magia canaliza vitalidade nas plantas. Você pode fazer as plantas crescerem instantaneamente em uma área, tornando-a terreno difícil."
   },
   "poison-spray": {
     "index": "poison-spray",
@@ -7231,7 +7437,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Jato de Veneno"
+    "namePT": "Jato de Veneno",
+    "descriptionPT": "Você projeta uma nuvem de gás tóxico da sua mão. Uma criatura deve ser bem-sucedida num teste de Constituição ou sofrerá 1d12 de dano de veneno."
   },
   "polymorph": {
     "index": "polymorph",
@@ -7295,7 +7502,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Palavra de Poder Mortal"
+    "namePT": "Palavra de Poder Mortal",
+    "descriptionPT": "Você pronuncia uma palavra de poder. Se a criatura que você puder ver tiver 100 pontos de vida ou menos, ela morre instantaneamente."
   },
   "power-word-stun": {
     "index": "power-word-stun",
@@ -7322,7 +7530,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Palavra de Poder Atordoante"
+    "namePT": "Palavra de Poder Atordoante",
+    "descriptionPT": "Você pronuncia uma palavra de poder. Se a criatura tiver 150 pontos de vida ou menos, ela fica atordoada."
   },
   "prayer-of-healing": {
     "index": "prayer-of-healing",
@@ -7346,7 +7555,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Prece de Cura"
+    "namePT": "Prece de Cura",
+    "descriptionPT": "Até seis criaturas de sua escolha recuperam pontos de vida iguais a 2d8 + seu modificador de habilidade de conjuração."
   },
   "prestidigitation": {
     "index": "prestidigitation",
@@ -7416,7 +7626,8 @@
       "type": "cone",
       "size": 60
     },
-    "namePT": "Jato Prismático"
+    "namePT": "Jato Prismático",
+    "descriptionPT": "Oito raios multicoloridos saem da sua mão. Cada raio tem uma cor e efeito diferente (fogo, ácido, relâmpago, veneno, frio, petrificação, etc)."
   },
   "prismatic-wall": {
     "index": "prismatic-wall",
@@ -7444,7 +7655,8 @@
       "type": "line",
       "size": 90
     },
-    "namePT": "Muralha Prismática"
+    "namePT": "Muralha Prismática",
+    "descriptionPT": "Você cria uma barreira cintilante e multicolorida de sete camadas. Cada camada protege contra um tipo de dano e tem um efeito único."
   },
   "private-sanctum": {
     "index": "private-sanctum",
@@ -7473,7 +7685,8 @@
       "type": "cube",
       "size": 100
     },
-    "namePT": "Santuário Privado"
+    "namePT": "Santuário Privado",
+    "descriptionPT": "Você protege uma área contra espionagem, teletransporte e visão planar por 24 horas."
   },
   "produce-flame": {
     "index": "produce-flame",
@@ -7510,7 +7723,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Produzir Chama"
+    "namePT": "Produzir Chama",
+    "descriptionPT": "Uma chama tremulante aparece em sua mão. Ela emite luz e pode ser arremessada contra uma criatura a até 9 metros."
   },
   "programmed-illusion": {
     "index": "programmed-illusion",
@@ -7540,7 +7754,8 @@
       "type": "cube",
       "size": 30
     },
-    "namePT": "Ilusão Programada"
+    "namePT": "Ilusão Programada",
+    "descriptionPT": "Você cria uma ilusão visual de um objeto ou criatura que é ativada por um gatilho específico determinado por você (como alguém entrar na sala)."
   },
   "project-image": {
     "index": "project-image",
@@ -7567,7 +7782,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Projetar Imagem"
+    "namePT": "Projetar Imagem",
+    "descriptionPT": "Você cria uma cópia ilusória de si mesmo em uma localização que você conhece no mesmo plano de existência. Você pode ver e ouvir através dos sentidos dela."
   },
   "protection-from-energy": {
     "index": "protection-from-energy",
@@ -7595,7 +7811,8 @@
     "castingTime": "1 action",
     "damage": null,
     "dc": null,
-    "area_of_effect": null
+    "area_of_effect": null,
+    "descriptionPT": "O alvo ganha resistência a um tipo de dano elemental: ácido, frio, fogo, relâmpago ou trovão."
   },
   "protection-from-evil-and-good": {
     "index": "protection-from-evil-and-good",
@@ -7624,7 +7841,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Proteção contra Bem e Mal"
+    "namePT": "Proteção contra Bem e Mal",
+    "descriptionPT": "Até a magia acabar, uma criatura voluntária fica protegida contra certos tipos de criaturas: aberrações, celestiais, elementais, fadas, demônios e mortos-vivos."
   },
   "protection-from-poison": {
     "index": "protection-from-poison",
@@ -7652,7 +7870,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Proteção contra Veneno"
+    "namePT": "Proteção contra Veneno",
+    "descriptionPT": "Você toca uma criatura. O alvo tem vantagem em testes de resistência contra veneno e resistência a dano de veneno; neutraliza um veneno ativo."
   },
   "purify-food-and-drink": {
     "index": "purify-food-and-drink",
@@ -7679,7 +7898,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Purificar Comida e Bebida"
+    "namePT": "Purificar Comida e Bebida",
+    "descriptionPT": "Toda comida e bebida não-mágica em uma esfera de 1,5 metro de raio centrada em um ponto fica livre de venenos e doenças."
   },
   "raise-dead": {
     "index": "raise-dead",
@@ -7707,7 +7927,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Ressuscitar os Mortos"
+    "namePT": "Ressuscitar os Mortos",
+    "descriptionPT": "Você traz uma criatura morta de volta à vida, desde que ela não tenha morrido há mais de 10 dias e não tenha morrido de velhice."
   },
   "ray-of-enfeeblement": {
     "index": "ray-of-enfeeblement",
@@ -7740,7 +7961,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Raio de Enfraquecimento"
+    "namePT": "Raio de Enfraquecimento",
+    "descriptionPT": "Um raio de energia negra enfraquece uma criatura. Enquanto a magia durar, ataques com armas de Força do alvo causam apenas metade do dano."
   },
   "ray-of-frost": {
     "index": "ray-of-frost",
@@ -7778,7 +8000,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Raio de Gelo"
+    "namePT": "Raio de Gelo",
+    "descriptionPT": "Um feixe de gelo azul-branco viaja em direção a uma criatura. Faça um ataque de magia à distância. Causa 1d8 de dano de frio e reduz o deslocamento."
   },
   "regenerate": {
     "index": "regenerate",
@@ -7806,7 +8029,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Regenerar"
+    "namePT": "Regenerar",
+    "descriptionPT": "Uma criatura que você toca recupera 4d8 + 15 pontos de vida e regenera 1 ponto de vida a cada turno. Membros decepados crescem de volta."
   },
   "reincarnate": {
     "index": "reincarnate",
@@ -7832,7 +8056,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Reencarnar"
+    "namePT": "Reencarnar",
+    "descriptionPT": "Você toca uma criatura humanoide morta e provê um novo corpo para ela, que pode ser de uma raça diferente da original."
   },
   "remove-curse": {
     "index": "remove-curse",
@@ -7860,7 +8085,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Remover Maldição"
+    "namePT": "Remover Maldição",
+    "descriptionPT": "Ao seu toque, todas as maldições afetando um objeto ou criatura terminam. Se o objeto for um item amaldiçoado, a maldição permanece, mas o portador pode descartá-lo."
   },
   "resilient-sphere": {
     "index": "resilient-sphere",
@@ -7893,7 +8119,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Esfera Resiliente"
+    "namePT": "Esfera Resiliente",
+    "descriptionPT": "Uma esfera de força cintilante envolve uma criatura ou objeto, protegendo-o de todo dano mas impedindo-o de agir."
   },
   "resistance": {
     "index": "resistance",
@@ -7920,7 +8147,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Resistência"
+    "namePT": "Resistência",
+    "descriptionPT": "Você toca uma criatura voluntária. Ela pode adicionar 1d4 a um teste de resistência de sua escolha."
   },
   "resurrection": {
     "index": "resurrection",
@@ -7947,7 +8175,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Ressurreição"
+    "namePT": "Ressurreição",
+    "descriptionPT": "Você toca uma criatura que está morta há não mais de um século e a traz de volta à vida com todos os seus pontos de vida."
   },
   "reverse-gravity": {
     "index": "reverse-gravity",
@@ -7986,7 +8215,8 @@
       "type": "cylinder",
       "size": 50
     },
-    "namePT": "Reverter Gravidade"
+    "namePT": "Reverter Gravidade",
+    "descriptionPT": "Esta magia inverte a gravidade em um cilindro de 15 metros de raio. Criaturas e objetos na área caem para cima pela duração da magia."
   },
   "revivify": {
     "index": "revivify",
@@ -8013,7 +8243,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Reviver"
+    "namePT": "Reviver",
+    "descriptionPT": "Você toca uma criatura que morreu no último minuto. A criatura retorna à vida com 1 ponto de vida. Esta magia não restaura membros perdidos."
   },
   "rope-trick": {
     "index": "rope-trick",
@@ -8039,7 +8270,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Truque da Corda"
+    "namePT": "Truque da Corda",
+    "descriptionPT": "Cria um esconderijo invisível em um nó de corda no ar."
   },
   "sacred-flame": {
     "index": "sacred-flame",
@@ -8110,7 +8342,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Santuário"
+    "namePT": "Santuário",
+    "descriptionPT": "Você protege uma criatura contra ataques. Qualquer criatura que tentar atacar o alvo deve primeiro fazer um teste de Resistência de Sabedoria ou escolher um novo alvo."
   },
   "scorching-ray": {
     "index": "scorching-ray",
@@ -8183,7 +8416,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Vidência"
+    "namePT": "Vidência",
+    "descriptionPT": "Você pode ver e ouvir uma criatura específica em qualquer distância, desde que ela falhe num teste de Sabedoria. Você cria um sensor invisível próximo ao alvo."
   },
   "secret-chest": {
     "index": "secret-chest",
@@ -8209,7 +8443,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Baú Secreto"
+    "namePT": "Baú Secreto",
+    "descriptionPT": "Você esconde um baú e seu conteúdo no Plano Etéreo, podendo recuperá-lo a qualquer momento."
   },
   "see-invisibility": {
     "index": "see-invisibility",
@@ -8237,7 +8472,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Ver o Invisível"
+    "namePT": "Ver o Invisível",
+    "descriptionPT": "Pela duração, você vê criaturas e objetos invisíveis como se fossem visíveis, e pode ver no Plano Etéreo."
   },
   "seeming": {
     "index": "seeming",
@@ -8264,7 +8500,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Aparência"
+    "namePT": "Aparência",
+    "descriptionPT": "Esta magia permite que você mude a aparência de qualquer número de criaturas que possa ver dentro do alcance, incluindo roupas e equipamentos."
   },
   "sending": {
     "index": "sending",
@@ -8292,7 +8529,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Enviar Mensagem"
+    "namePT": "Enviar Mensagem",
+    "descriptionPT": "Você envia uma mensagem curta de vinte e cinco palavras ou menos para uma criatura familiar para você. O alvo ouve a mensagem na mente e pode responder."
   },
   "sequester": {
     "index": "sequester",
@@ -8318,7 +8556,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Sequestrar"
+    "namePT": "Sequestrar",
+    "descriptionPT": "Você torna uma criatura ou objeto invisível e não detectável por magias de adivinhação. O alvo entra em um estado de animação suspensa e não envelhece."
   },
   "shapechange": {
     "index": "shapechange",
@@ -8345,7 +8584,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Transformação Suprema"
+    "namePT": "Transformação Suprema",
+    "descriptionPT": "Você assume a forma de uma criatura diferente. Você mantém suas estatísticas mentais e ganha todas as estatísticas físicas e habilidades da nova forma."
   },
   "shatter": {
     "index": "shatter",
@@ -8400,7 +8640,8 @@
       "type": "sphere",
       "size": 10
     },
-    "namePT": "Despedaçar"
+    "namePT": "Despedaçar",
+    "descriptionPT": "Um som estridente e doloroso emana de um ponto à sua escolha. Criaturas na área sofrem 3d8 de dano trovejante; objetos não-mágicos sofrem o mesmo."
   },
   "shield": {
     "index": "shield",
@@ -8427,7 +8668,7 @@
     "dc": null,
     "area_of_effect": null,
     "namePT": "Escudo",
-    "descriptionPT": "Uma barreira invisível de energia mágica aparece e protege você. Até o início do seu próximo turno, você tem +5 de bônus na CA, incluindo contra o ataque desencadeador, e você não sofre dano da magia mísseis mágicos."
+    "descriptionPT": "Uma barreira invisível de força mágica aparece e protege você. Até o início do seu próximo turno, você tem um bônus de +5 na CA, incluindo contra o ataque de gatilho, e você não sofre dano de mísseis mágicos."
   },
   "shield-of-faith": {
     "index": "shield-of-faith",
@@ -8454,7 +8695,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Escudo da Fé"
+    "namePT": "Escudo da Fé",
+    "descriptionPT": "Um campo cintilante aparece e envolve uma criatura de sua escolha dentro do alcance, concedendo-lhe um bônus de +2 na CA pela duração."
   },
   "shillelagh": {
     "index": "shillelagh",
@@ -8480,7 +8722,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Shillelagh"
+    "namePT": "Shillelagh",
+    "descriptionPT": "A madeira de um porrete ou bordão que você segura é imbuída com o poder da natureza. A arma causa 1d8 de dano e usa seu modificador de Sabedoria."
   },
   "shocking-grasp": {
     "index": "shocking-grasp",
@@ -8518,7 +8761,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Aperto Chocante"
+    "namePT": "Aperto Chocante",
+    "descriptionPT": "Eletricidade estala da sua mão. Faça um ataque de magia corpo a corpo. Causa 1d8 de dano elétrico e impede o alvo de realizar reações."
   },
   "silence": {
     "index": "silence",
@@ -8548,7 +8792,8 @@
       "type": "sphere",
       "size": 20
     },
-    "namePT": "Silêncio"
+    "namePT": "Silêncio",
+    "descriptionPT": "Pela duração, nenhum som pode ser criado ou passar através de uma esfera de 6 metros de raio centrada em um ponto dentro do alcance."
   },
   "silent-image": {
     "index": "silent-image",
@@ -8579,7 +8824,8 @@
       "type": "cube",
       "size": 15
     },
-    "namePT": "Imagem Silenciosa"
+    "namePT": "Imagem Silenciosa",
+    "descriptionPT": "Você cria a imagem visual de um objeto, criatura ou outro fenômeno visível. A imagem é puramente visual e não inclui som ou outros sentidos."
   },
   "simulacrum": {
     "index": "simulacrum",
@@ -8605,7 +8851,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Simulacro"
+    "namePT": "Simulacro",
+    "descriptionPT": "Você cria uma duplicata ilusória de uma fera ou humanoide. O simulacro é uma criatura parcial, tem metade dos pontos de vida e obedece a você."
   },
   "sleep": {
     "index": "sleep",
@@ -8640,7 +8887,8 @@
       "type": "sphere",
       "size": 20
     },
-    "namePT": "Sono"
+    "namePT": "Sono",
+    "descriptionPT": "Esta magia envia criaturas em um mergulho em um sono mágico. Role 5d8; o total é o número de pontos de vida de criaturas que você pode afetar."
   },
   "sleet-storm": {
     "index": "sleet-storm",
@@ -8671,7 +8919,8 @@
       "type": "cylinder",
       "size": 40
     },
-    "namePT": "Tempestade de Granizo"
+    "namePT": "Tempestade de Granizo",
+    "descriptionPT": "Chuva gelada e granizo caem em um cilindro de 12 metros de altura. A área fica densamente obscurecida e o chão fica escorregadio."
   },
   "slow": {
     "index": "slow",
@@ -8709,7 +8958,8 @@
       "type": "cube",
       "size": 40
     },
-    "namePT": "Lentidão"
+    "namePT": "Lentidão",
+    "descriptionPT": "Você altera o tempo ao redor de até seis criaturas. Alvos afetados têm seu deslocamento reduzido pela metade, penalidade na CA e perdem reações."
   },
   "spare-the-dying": {
     "index": "spare-the-dying",
@@ -8734,7 +8984,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Poupar os Moribundos"
+    "namePT": "Poupar os Moribundos",
+    "descriptionPT": "Você toca uma criatura viva que tenha 0 pontos de vida. A criatura torna-se estável instantaneamente."
   },
   "speak-with-animals": {
     "index": "speak-with-animals",
@@ -8761,7 +9012,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Falar com Animais"
+    "namePT": "Falar com Animais",
+    "descriptionPT": "Você ganha a habilidade de compreender e se comunicar verbalmente com bestas pela duração da magia."
   },
   "speak-with-dead": {
     "index": "speak-with-dead",
@@ -8788,7 +9040,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Falar com os Mortos"
+    "namePT": "Falar com os Mortos",
+    "descriptionPT": "Você concede um semblante de vida a um cadáver, permitindo que ele responda a até cinco perguntas que você fizer."
   },
   "speak-with-plants": {
     "index": "speak-with-plants",
@@ -8818,7 +9071,8 @@
       "type": "sphere",
       "size": 30
     },
-    "namePT": "Falar com Plantas"
+    "namePT": "Falar com Plantas",
+    "descriptionPT": "Você imbui plantas com vida e inteligência limitadas, permitindo que você se comunique com elas e peça favores simples."
   },
   "spider-climb": {
     "index": "spider-climb",
@@ -8846,7 +9100,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Escalar como Aranha"
+    "namePT": "Escalar como Aranha",
+    "descriptionPT": "Até a magia terminar, uma criatura voluntária ganha a habilidade de se mover por superfícies verticais e no teto, deixando as mãos livres."
   },
   "spike-growth": {
     "index": "spike-growth",
@@ -8876,7 +9131,8 @@
       "type": "cylinder",
       "size": 20
     },
-    "namePT": "Crescimento de Espinhos"
+    "namePT": "Crescimento de Espinhos",
+    "descriptionPT": "O chão se torna cheio de espinhos e camuflado. Criaturas que caminham na área sofrem 2d4 de dano para cada 1,5 metro movido."
   },
   "spirit-guardians": {
     "index": "spirit-guardians",
@@ -8902,7 +9158,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Guardiões Espirituais"
+    "namePT": "Guardiões Espirituais",
+    "descriptionPT": "Espíritos protetores flutuam ao seu redor. Inimigos na área têm seu deslocamento reduzido e sofrem dano radiante ou necrótico."
   },
   "spiritual-weapon": {
     "index": "spiritual-weapon",
@@ -8943,7 +9200,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Arma Espiritual"
+    "namePT": "Arma Espiritual",
+    "descriptionPT": "Você cria uma arma espectral flutuante que ataca seus inimigos. Pela duração, você pode usar uma ação bônus para mover a arma e atacar."
   },
   "stinking-cloud": {
     "index": "stinking-cloud",
@@ -8982,7 +9240,8 @@
       "type": "sphere",
       "size": 20
     },
-    "namePT": "Nuvem Fétida"
+    "namePT": "Nuvem Fétida",
+    "descriptionPT": "Você cria uma esfera de gás fétido e amarelado. Criaturas que começam o turno na nuvem devem fazer um teste de Constituição ou perderão sua ação."
   },
   "stone-shape": {
     "index": "stone-shape",
@@ -9010,7 +9269,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Moldar Rochas"
+    "namePT": "Moldar Rochas",
+    "descriptionPT": "Você molda um objeto de pedra de tamanho Médio ou menor para que tome a forma que você desejar."
   },
   "stoneskin": {
     "index": "stoneskin",
@@ -9039,7 +9299,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Pele de Pedra"
+    "namePT": "Pele de Pedra",
+    "descriptionPT": "A pele de uma criatura voluntária fica rígida como pedra. O alvo ganha resistência a dano de concussão, perfurante e cortante não-mágico."
   },
   "storm-of-vengeance": {
     "index": "storm-of-vengeance",
@@ -9084,7 +9345,8 @@
       "type": "sphere",
       "size": 360
     },
-    "namePT": "Tempestade da Vingança"
+    "namePT": "Tempestade da Vingança",
+    "descriptionPT": "Uma nuvem de tempestade massiva se forma. A cada turno, a tempestade produz efeitos diferentes: chuva ácida, relâmpagos, granizo e ventos fortes."
   },
   "suggestion": {
     "index": "suggestion",
@@ -9119,7 +9381,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Sugestão"
+    "namePT": "Sugestão",
+    "descriptionPT": "Você sugere um curso de atividade (limitado a uma ou duas sentenças) para uma criatura. O alvo deve fazer um teste de Sabedoria ou seguirá o comando."
   },
   "sunbeam": {
     "index": "sunbeam",
@@ -9167,7 +9430,8 @@
       "type": "line",
       "size": 60
     },
-    "namePT": "Raio Solar"
+    "namePT": "Raio Solar",
+    "descriptionPT": "Um feixe de luz brilhante dispara da sua mão. Criaturas na linha sofrem 6d8 de dano radiante e ficam cegas. Você pode disparar o feixe repetidamente."
   },
   "sunburst": {
     "index": "sunburst",
@@ -9215,7 +9479,8 @@
       "type": "cylinder",
       "size": 60
     },
-    "namePT": "Explosão Solar"
+    "namePT": "Explosão Solar",
+    "descriptionPT": "Luz solar brilhante explode. Cada criatura em um raio de 18 metros deve fazer um teste de Constituição ou sofrerá 12d6 de dano radiante e ficará cega."
   },
   "symbol": {
     "index": "symbol",
@@ -9246,7 +9511,8 @@
       "type": "cube",
       "size": 10
     },
-    "namePT": "Símbolo"
+    "namePT": "Símbolo",
+    "descriptionPT": "Você escreve um glifo nocivo em uma superfície ou dentro de um objeto. Quando ativado, o símbolo libera um efeito devastador (morte, medo, dor, etc)."
   },
   "telekinesis": {
     "index": "telekinesis",
@@ -9275,7 +9541,8 @@
       "type": "sphere",
       "size": 30
     },
-    "namePT": "Telecinese"
+    "namePT": "Telecinese",
+    "descriptionPT": "Você ganha a habilidade de mover ou manipular criaturas ou objetos com o poder da sua mente em um raio de 18 metros."
   },
   "telepathic-bond": {
     "index": "telepathic-bond",
@@ -9301,7 +9568,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Vínculo Telepático"
+    "namePT": "Vínculo Telepático",
+    "descriptionPT": "Você cria um elo telepático entre até oito criaturas voluntárias. Elas podem se comunicar telepaticamente através do elo em qualquer distância."
   },
   "teleport": {
     "index": "teleport",
@@ -9330,7 +9598,8 @@
       "type": "cube",
       "size": 10
     },
-    "namePT": "Teletransporte"
+    "namePT": "Teletransporte",
+    "descriptionPT": "Esta magia transporta você e até oito criaturas voluntárias para um destino à sua escolha no mesmo plano de existência."
   },
   "teleportation-circle": {
     "index": "teleportation-circle",
@@ -9360,7 +9629,8 @@
       "type": "sphere",
       "size": 10
     },
-    "namePT": "Círculo de Teletransporte"
+    "namePT": "Círculo de Teletransporte",
+    "descriptionPT": "Você desenha um círculo de 3 metros de diâmetro no chão que cria um portal para um círculo de teletransporte permanente que você conheça."
   },
   "thaumaturgy": {
     "index": "thaumaturgy",
@@ -9383,7 +9653,8 @@
     "castingTime": "1 action",
     "damage": null,
     "dc": null,
-    "area_of_effect": null
+    "area_of_effect": null,
+    "descriptionPT": "Você manifesta pequenas maravilhas, um sinal de poder sobrenatural, como aumentar sua voz, tremer o chão ou mudar a cor de chamas."
   },
   "thunderwave": {
     "index": "thunderwave",
@@ -9438,7 +9709,8 @@
       "type": "cube",
       "size": 15
     },
-    "namePT": "Onda Trovejante"
+    "namePT": "Onda Trovejante",
+    "descriptionPT": "Uma onda de força trovejante emana de você. Criaturas em um cubo de 4,5 metros sofrem 2d8 de dano trovejante e são empurradas."
   },
   "time-stop": {
     "index": "time-stop",
@@ -9463,7 +9735,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Parar o Tempo"
+    "namePT": "Parar o Tempo",
+    "descriptionPT": "Você para o fluxo do tempo para todos, exceto você, por 1d4 + 1 rodadas. Você pode se mover e usar ações normalmente enquanto o tempo está parado."
   },
   "tiny-hut": {
     "index": "tiny-hut",
@@ -9492,7 +9765,8 @@
     "area_of_effect": {
       "type": "sphere",
       "size": 10
-    }
+    },
+    "descriptionPT": "Uma cúpula de força imóvel envolve você e seus aliados, protegendo contra o clima e magias externas."
   },
   "tongues": {
     "index": "tongues",
@@ -9521,7 +9795,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Idiomas"
+    "namePT": "Idiomas",
+    "descriptionPT": "Esta magia concede à criatura tocada a habilidade de entender qualquer linguagem falada que ouvir e de ser entendida por qualquer criatura."
   },
   "transport-via-plants": {
     "index": "transport-via-plants",
@@ -9546,7 +9821,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Transporte via Plantas"
+    "namePT": "Transporte via Plantas",
+    "descriptionPT": "Esta magia cria um elo entre uma planta Grande viva e outra planta em qualquer distância, permitindo que você passe de uma para a outra."
   },
   "tree-stride": {
     "index": "tree-stride",
@@ -9572,7 +9848,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Andar pelas Árvores"
+    "namePT": "Andar pelas Árvores",
+    "descriptionPT": "Você ganha a habilidade de entrar em uma árvore e sair de outra árvore do mesmo tipo a até 150 metros de distância."
   },
   "true-polymorph": {
     "index": "true-polymorph",
@@ -9600,7 +9877,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Metamorfose Verdadeira"
+    "namePT": "Metamorfose Verdadeira",
+    "descriptionPT": "Você transforma uma criatura ou objeto em uma criatura ou objeto diferente de forma permanente (se a concentração durar o tempo total)."
   },
   "true-resurrection": {
     "index": "true-resurrection",
@@ -9627,7 +9905,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Ressurreição Verdadeira"
+    "namePT": "Ressurreição Verdadeira",
+    "descriptionPT": "Você toca uma criatura morta há não mais de 200 anos. Ela retorna à vida com todos os seus pontos de vida e um corpo novo se necessário."
   },
   "true-seeing": {
     "index": "true-seeing",
@@ -9657,7 +9936,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Visão da Verdade"
+    "namePT": "Visão da Verdade",
+    "descriptionPT": "Esta magia concede à criatura tocada a habilidade de ver as coisas como elas realmente são, ignorando ilusões, invisibilidade e escuridão mágica."
   },
   "true-strike": {
     "index": "true-strike",
@@ -9684,7 +9964,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Golpe Certeiro"
+    "namePT": "Golpe Certeiro",
+    "descriptionPT": "Você estende sua mão e aponta o dedo para um alvo. Você ganha vantagem na sua primeira jogada de ataque contra o alvo no seu próximo turno."
   },
   "unseen-servant": {
     "index": "unseen-servant",
@@ -9712,7 +9993,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Servo Invisível"
+    "namePT": "Servo Invisível",
+    "descriptionPT": "Você cria uma força invisível, sem mente e sem forma que realiza tarefas simples ao seu comando, como limpar, dobrar roupas ou servir comida."
   },
   "vampiric-touch": {
     "index": "vampiric-touch",
@@ -9753,7 +10035,8 @@
     },
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Toque Vampírico"
+    "namePT": "Toque Vampírico",
+    "descriptionPT": "O toque da sua mão envolta em sombras pode sugar a força vital. Faça um ataque de magia corpo a corpo. Causa 3d6 de dano necrótico e você se cura metade."
   },
   "vicious-mockery": {
     "index": "vicious-mockery",
@@ -9796,7 +10079,8 @@
       "dc_success": "none"
     },
     "area_of_effect": null,
-    "namePT": "Zombaria Cruel"
+    "namePT": "Zombaria Cruel",
+    "descriptionPT": "Você desfere uma série de insultos imbuídos de magia em uma criatura. O alvo deve fazer um teste de Sabedoria ou sofrerá 1d4 de dano psíquico."
   },
   "wall-of-fire": {
     "index": "wall-of-fire",
@@ -9843,7 +10127,8 @@
       "type": "line",
       "size": 60
     },
-    "namePT": "Muralha de Fogo"
+    "namePT": "Muralha de Fogo",
+    "descriptionPT": "Você cria uma parede de fogo ardente em uma superfície sólida dentro do alcance. Criaturas que terminam o turno próximas ou passam pela parede sofrem 5d8 de dano."
   },
   "wall-of-force": {
     "index": "wall-of-force",
@@ -9869,7 +10154,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Muralha de Energia"
+    "namePT": "Muralha de Energia",
+    "descriptionPT": "Uma barreira invisível de força mágica surge em um ponto à sua escolha. A parede é indestrutível e nada pode passar fisicamente através dela."
   },
   "wall-of-ice": {
     "index": "wall-of-ice",
@@ -9917,7 +10203,8 @@
       "type": "sphere",
       "size": 10
     },
-    "namePT": "Muralha de Gelo"
+    "namePT": "Muralha de Gelo",
+    "descriptionPT": "Você cria uma parede de gelo composta por dez painéis. Criaturas na área quando ela aparece sofrem 10d6 de dano de frio; a parede pode ser quebrada."
   },
   "wall-of-stone": {
     "index": "wall-of-stone",
@@ -9945,7 +10232,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Muralha de Pedra"
+    "namePT": "Muralha de Pedra",
+    "descriptionPT": "Uma parede de pedra sólida surge em uma superfície. A parede pode ser moldada em formas simples e se torna permanente se a concentração durar 10 minutos."
   },
   "wall-of-thorns": {
     "index": "wall-of-thorns",
@@ -9993,7 +10281,8 @@
       "type": "line",
       "size": 60
     },
-    "namePT": "Muralha de Espinhos"
+    "namePT": "Muralha de Espinhos",
+    "descriptionPT": "Você cria uma parede de arbustos e espinhos resistentes. Criaturas na parede sofrem 7d8 de dano cortante; a área é terreno difícil."
   },
   "warding-bond": {
     "index": "warding-bond",
@@ -10019,7 +10308,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Vínculo Protetor"
+    "namePT": "Vínculo Protetor",
+    "descriptionPT": "Esta magia cria um elo de proteção entre você e um aliado. O alvo ganha +1 na CA e testes de resistência, além de resistência a todo dano."
   },
   "water-breathing": {
     "index": "water-breathing",
@@ -10048,7 +10338,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Respirar na Água"
+    "namePT": "Respirar na Água",
+    "descriptionPT": "Esta magia concede a até dez criaturas voluntárias a habilidade de respirar debaixo d'água pela duração técnica de 24 horas."
   },
   "water-walk": {
     "index": "water-walk",
@@ -10077,7 +10368,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Caminhar na Água"
+    "namePT": "Caminhar na Água",
+    "descriptionPT": "Esta magia concede a até dez criaturas voluntárias a habilidade de se mover através de qualquer superfície líquida como se fosse solo sólido."
   },
   "web": {
     "index": "web",
@@ -10107,7 +10399,8 @@
       "type": "cube",
       "size": 20
     },
-    "namePT": "Teia"
+    "namePT": "Teia",
+    "descriptionPT": "Você cria uma massa de teias pegajosas em um ponto à sua escolha. Criaturas na área devem fazer um teste de Destreza ou ficarão presas (impedido)."
   },
   "weird": {
     "index": "weird",
@@ -10142,7 +10435,8 @@
       "type": "sphere",
       "size": 30
     },
-    "namePT": "Aparição"
+    "namePT": "Aparição",
+    "descriptionPT": "Você evoca pesadelos nas mentes de cada criatura em uma esfera de 9 metros. Alvos falham no teste de Sabedoria ficam amedrontadas e sofrem dano psíquico."
   },
   "wind-walk": {
     "index": "wind-walk",
@@ -10168,7 +10462,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Caminhar no Vento"
+    "namePT": "Caminhar no Vento",
+    "descriptionPT": "Você e até dez criaturas voluntárias se transformam em nuvens de fumaça. Ganham deslocamento de voo de 90 metros e resistência a dano não-mágico."
   },
   "wind-wall": {
     "index": "wind-wall",
@@ -10214,7 +10509,8 @@
       "type": "line",
       "size": 50
     },
-    "namePT": "Muralha de Vento"
+    "namePT": "Muralha de Vento",
+    "descriptionPT": "Uma parede de vento forte surge do chão. Criaturas na área sofrem 3d8 de dano de concussão; projéteis de flechas são desviados automaticamente."
   },
   "wish": {
     "index": "wish",
@@ -10239,7 +10535,8 @@
     "damage": null,
     "dc": null,
     "area_of_effect": null,
-    "namePT": "Desejo"
+    "namePT": "Desejo",
+    "descriptionPT": "Desejo é a magia mais poderosa que uma criatura mortal pode conjurar. Simplesmente falando em voz alta, você pode alterar as fundações da realidade."
   },
   "word-of-recall": {
     "index": "word-of-recall",
@@ -10266,7 +10563,8 @@
       "type": "sphere",
       "size": 5
     },
-    "namePT": "Palavra de Rechamada"
+    "namePT": "Palavra de Rechamada",
+    "descriptionPT": "Você e até cinco criaturas voluntárias teletransportam-se instantaneamente para um santuário previamente designado que seja sagrado para sua divindade."
   },
   "zone-of-truth": {
     "index": "zone-of-truth",
@@ -10296,6 +10594,7 @@
       "type": "sphere",
       "size": 15
     },
-    "namePT": "Zona da Verdade"
+    "namePT": "Zona da Verdade",
+    "descriptionPT": "Você cria uma zona mágica que impede a mentira. Criaturas na área que falharem num teste de Carisma não podem falar mentiras deliberadas."
   }
 }

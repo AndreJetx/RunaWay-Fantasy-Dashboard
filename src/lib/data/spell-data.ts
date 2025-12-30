@@ -30,25 +30,23 @@ export interface SpellData {
 
 /**
  * Retorna a descrição traduzida de uma magia
- * Tenta usar traduções completas primeiro, depois fallback para traduções parciais
  */
 export function getTranslatedDescription(spellName: string, locale: 'pt-BR' | 'es' = 'pt-BR'): string | undefined {
-    try {
-        // Tentar carregar traduções completas primeiro
-        const { getSpellDescriptionFull } = require('../i18n/spell-descriptions-full');
-        const fullTranslation = getSpellDescriptionFull(spellName, locale);
-        if (fullTranslation) return fullTranslation;
-    } catch (e) {
-        // Arquivo de traduções completas ainda não existe
+    const allSpells = getAllSpells();
+
+    // Tentar encontrar pelo nome original ou pelo nome traduzido
+    const spell = Object.values(allSpells).find(s =>
+        s.name.toLowerCase() === spellName.toLowerCase() ||
+        s.namePT?.toLowerCase() === spellName.toLowerCase()
+    );
+
+    if (!spell) return undefined;
+
+    if (locale === 'pt-BR') {
+        return spell.descriptionPT || spell.description;
     }
 
-    // Fallback para traduções parciais
-    try {
-        const { getSpellDescription } = require('../i18n/spell-descriptions');
-        return getSpellDescription(spellName, locale);
-    } catch (e) {
-        return undefined;
-    }
+    return spell.description;
 }
 
 /**

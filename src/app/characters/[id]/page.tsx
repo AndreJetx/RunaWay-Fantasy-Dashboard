@@ -3,6 +3,7 @@
 import { PreparedSpellsManager } from "@/components/characters/PreparedSpellsManager";
 import { SpellSlotTracker } from "@/components/characters/SpellSlotTracker";
 import { useState, useEffect, useCallback } from "react";
+import { getSpellDetails } from "@/lib/data/spell-data";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -107,8 +108,7 @@ export default function CharacterPage() {
       setLoadingSpells(true);
       const details: Record<string, any> = {};
 
-      // Import dinâmico do helper local
-      const { getSpellDetails } = require('@/lib/data/spell-data');
+      // Usar helper local
 
       spellIndexes.forEach((spellIndex) => {
         const localDetail = getSpellDetails(spellIndex);
@@ -134,7 +134,6 @@ export default function CharacterPage() {
       setSaving(true);
 
       // Verificar se a magia existe no banco local
-      const { getSpellDetails } = require('@/lib/data/spell-data');
       const spellData = getSpellDetails(spellIndex);
 
       if (!spellData) {

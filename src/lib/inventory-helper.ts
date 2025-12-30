@@ -192,15 +192,20 @@ export async function processInventoryToItems(
         const itemType = getItemType(null, item.name);
 
         // Verificar se já existe (buscar todos e comparar case-insensitive)
-        const allExistingItems = await db
-          .select()
-          .from(schema.items)
-          .where(
-            and(
-              eq(schema.items.campaignId, campaignId),
-              eq(schema.items.ownerId, ownerId)
+        const allExistingItems = campaignId
+          ? await db
+            .select()
+            .from(schema.items)
+            .where(
+              and(
+                eq(schema.items.campaignId, campaignId),
+                eq(schema.items.ownerId, ownerId)
+              )
             )
-          );
+          : await db
+            .select()
+            .from(schema.items)
+            .where(eq(schema.items.ownerId, ownerId));
 
         const existing = allExistingItems.find(
           (i) => i.name.toLowerCase().trim() === item.name.toLowerCase().trim()
@@ -276,15 +281,20 @@ export async function processInventoryToItems(
       }
 
       // Verificar se o item já existe antes de criar (comparação case-insensitive)
-      const existingItems = await db
-        .select()
-        .from(schema.items)
-        .where(
-          and(
-            eq(schema.items.campaignId, campaignId),
-            eq(schema.items.ownerId, ownerId)
+      const existingItems = campaignId
+        ? await db
+          .select()
+          .from(schema.items)
+          .where(
+            and(
+              eq(schema.items.campaignId, campaignId),
+              eq(schema.items.ownerId, ownerId)
+            )
           )
-        );
+        : await db
+          .select()
+          .from(schema.items)
+          .where(eq(schema.items.ownerId, ownerId));
 
       // Buscar item com mesmo nome (case-insensitive)
       const existing = existingItems.find(
@@ -332,28 +342,50 @@ export async function processInventoryToItems(
   if (firstArmor) {
     try {
       // Primeiro, desequipar todas as armaduras existentes deste personagem
-      await db
-        .update(schema.items)
-        .set({ equipped: false })
-        .where(
-          and(
-            eq(schema.items.ownerId, ownerId),
-            eq(schema.items.campaignId, campaignId),
-            eq(schema.items.type, "Armor")
-          )
-        );
+      if (campaignId) {
+        await db
+          .update(schema.items)
+          .set({ equipped: false })
+          .where(
+            and(
+              eq(schema.items.ownerId, ownerId),
+              eq(schema.items.campaignId, campaignId),
+              eq(schema.items.type, "Armor")
+            )
+          );
+      } else {
+        await db
+          .update(schema.items)
+          .set({ equipped: false })
+          .where(
+            and(
+              eq(schema.items.ownerId, ownerId),
+              eq(schema.items.type, "Armor")
+            )
+          );
+      }
 
       // Buscar o item criado (primeira armadura) - buscar pelo nome (case-insensitive)
-      const allArmorItems = await db
-        .select()
-        .from(schema.items)
-        .where(
-          and(
-            eq(schema.items.ownerId, ownerId),
-            eq(schema.items.campaignId, campaignId),
-            eq(schema.items.type, "Armor")
+      const allArmorItems = campaignId
+        ? await db
+          .select()
+          .from(schema.items)
+          .where(
+            and(
+              eq(schema.items.ownerId, ownerId),
+              eq(schema.items.campaignId, campaignId),
+              eq(schema.items.type, "Armor")
+            )
           )
-        );
+        : await db
+          .select()
+          .from(schema.items)
+          .where(
+            and(
+              eq(schema.items.ownerId, ownerId),
+              eq(schema.items.type, "Armor")
+            )
+          );
 
       // Encontrar a armadura pelo nome (case-insensitive)
       const armorItem = allArmorItems.find(
@@ -368,16 +400,26 @@ export async function processInventoryToItems(
           .where(eq(schema.items.id, armorItem.id));
 
         // Buscar escudo equipado (se houver)
-        const equippedShields = await db
-          .select()
-          .from(schema.items)
-          .where(
-            and(
-              eq(schema.items.ownerId, ownerId),
-              eq(schema.items.campaignId, campaignId),
-              eq(schema.items.equipped, true)
+        const equippedShields = campaignId
+          ? await db
+            .select()
+            .from(schema.items)
+            .where(
+              and(
+                eq(schema.items.ownerId, ownerId),
+                eq(schema.items.campaignId, campaignId),
+                eq(schema.items.equipped, true)
+              )
             )
-          );
+          : await db
+            .select()
+            .from(schema.items)
+            .where(
+              and(
+                eq(schema.items.ownerId, ownerId),
+                eq(schema.items.equipped, true)
+              )
+            );
 
         const hasShield = equippedShields.some((item) => {
           const nameLower = item.name.toLowerCase();

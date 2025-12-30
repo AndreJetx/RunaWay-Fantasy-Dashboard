@@ -25,6 +25,10 @@ export async function GET(
 
         const campaignId = params.id;
 
+        if (!campaignId || campaignId === "null" || campaignId.length < 5) {
+            return NextResponse.json({ error: "ID de campanha inválido" }, { status: 400 });
+        }
+
         // Buscar campanha
         const [campaign] = await db
             .select()

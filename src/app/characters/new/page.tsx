@@ -1073,7 +1073,7 @@ function NewCharacterPageContent() {
         armorClass: bonuses.unarmoredDefense ? newArmorClass : prev.armorClass,
       };
     });
-  }, [formData.attributes.constitution, formData.attributes.dexterity, formData.attributes.wisdom, formData.characterClass]);
+  }, [formData.attributes.constitution, formData.attributes.dexterity, formData.attributes.wisdom, formData.characterClass, allCharacterClasses]);
 
   const calculateModifier = (value: number): number => {
     return Math.floor((value - 10) / 2);

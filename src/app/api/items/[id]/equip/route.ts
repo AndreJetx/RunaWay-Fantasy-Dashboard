@@ -113,16 +113,27 @@ export async function PUT(
       const attributes = (character.attributes as any) || {};
 
       // Buscar todos os itens equipados do personagem
-      const equippedItems = await db
-        .select()
-        .from(schema.items)
-        .where(
-          and(
-            eq(schema.items.ownerId, item.ownerId),
-            eq(schema.items.campaignId, item.campaignId),
-            eq(schema.items.equipped, true)
+      // Se campaignId for null, buscar apenas por ownerId (personagens standalone)
+      const equippedItems = item.campaignId
+        ? await db
+          .select()
+          .from(schema.items)
+          .where(
+            and(
+              eq(schema.items.ownerId, item.ownerId),
+              eq(schema.items.campaignId, item.campaignId),
+              eq(schema.items.equipped, true)
+            )
           )
-        );
+        : await db
+          .select()
+          .from(schema.items)
+          .where(
+            and(
+              eq(schema.items.ownerId, item.ownerId),
+              eq(schema.items.equipped, true)
+            )
+          );
 
       // Encontrar armadura equipada (se houver)
       const equippedArmor = equippedItems.find((i) => i.type === "Armor");

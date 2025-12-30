@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,11 +13,7 @@ export default function EditHomebrewPage({ params }: { params: { id: string } })
     const [loading, setLoading] = useState(true);
     const [content, setContent] = useState<any>(null);
 
-    useEffect(() => {
-        fetchContent();
-    }, [params.id]);
-
-    const fetchContent = async () => {
+    const fetchContent = useCallback(async () => {
         try {
             const res = await fetch(`/api/homebrew/${params.id}`);
             if (res.ok) {
@@ -33,7 +29,11 @@ export default function EditHomebrewPage({ params }: { params: { id: string } })
         } finally {
             setLoading(false);
         }
-    };
+    }, [params.id, router]);
+
+    useEffect(() => {
+        fetchContent();
+    }, [fetchContent]);
 
     if (loading) {
         return (

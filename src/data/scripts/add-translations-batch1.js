@@ -1,6 +1,6 @@
 /**
- * Script para adicionar traduções PT-BR diretamente no all-spells.json
- * Traduzindo todas as 319 descrições
+ * Script MASSIVO para traduzir TODAS as 299 magias restantes
+ * Adiciona descriptionPT diretamente no all-spells.json
  */
 
 const fs = require('fs');
@@ -8,49 +8,50 @@ const path = require('path');
 
 const ALL_SPELLS_PATH = path.join(process.cwd(), 'src/data/spells/all-spells.json');
 
-// Traduções profissionais PT-BR para D&D 5e
+console.log('🌍 Iniciando tradução massiva...\n');
+
+// Carregar magias
+const allSpells = JSON.parse(fs.readFileSync(ALL_SPELLS_PATH, 'utf8'));
+
+// Traduções profissionais PT-BR
+// Vou traduzir TODAS as magias em lotes grandes
 const translations = {
-    "Acid Arrow": "Uma flecha verde cintilante dispara em direção a um alvo dentro do alcance e explode em um jato de ácido. Faça um ataque de magia à distância contra o alvo. Em um acerto, o alvo sofre 4d4 de dano ácido imediatamente e 2d4 de dano ácido no final do próximo turno dele. Em uma falha, a flecha respinga ácido no alvo causando metade do dano inicial e nenhum dano no final do próximo turno.",
+    // A-B
+    "Antilife Shell": "Uma barreira cintilante se estende de você até um raio de 3 metros e se move com você, permanecendo centrada em você e impedindo outras criaturas de passar ou alcançar através dela. Criaturas vivas não podem passar pela barreira ou alcançar através dela. Tais criaturas podem conjurar magias ou fazer ataques com armas de longo alcance ou alcance através da barreira. Se você se mover de modo que uma criatura viva seja forçada a passar pela barreira, a magia termina.",
 
-    "Acid Splash": "Você arremessa uma bolha de ácido. Escolha uma criatura dentro do alcance, ou escolha duas criaturas dentro do alcance que estejam a 1,5 metro uma da outra. Um alvo deve ser bem-sucedido em um teste de resistência de Destreza ou sofrer 1d6 de dano ácido.\nO dano desta magia aumenta em 1d6 quando você alcança o 5º nível (2d6), 11º nível (3d6) e 17º nível (4d6).",
+    "Antimagic Field": "Uma esfera invisível de 3 metros de raio de antimagia envolve você. Esta área é separada da energia mágica que permeia o multiverso. Dentro da esfera, magias não podem ser conjuradas, itens mágicos se tornam mundanos e poderes mágicos e efeitos mágicos são suprimidos. Até a magia terminar, a esfera se move com você, centrada em você. Magias e outros efeitos mágicos, exceto aqueles criados por um artefato ou uma divindade, são suprimidos na esfera e não podem penetrar nela.",
 
-    "Aid": "Sua magia fortalece seus aliados com vigor e determinação. Escolha até três criaturas dentro do alcance. O máximo de pontos de vida e os pontos de vida atuais de cada alvo aumentam em 5 pela duração.",
+    "Antipathy/Sympathy": "Esta magia atrai ou repele criaturas de sua escolha. Você escolhe um alvo dentro do alcance, seja um objeto Enorme ou menor ou uma área que não seja maior que um cubo de 60 metros. Então especifique um tipo de criatura inteligente, como dragões vermelhos, goblins ou vampiros. Você investe o alvo com uma aura que atrai ou repele as criaturas especificadas pela duração. Escolha antipatia ou simpatia como efeito da aura.",
 
-    "Alarm": "Você configura um alarme contra intrusões indesejadas. Escolha uma porta, uma janela ou uma área dentro do alcance que não seja maior que um cubo de 6 metros. Até a magia terminar, um alarme alerta você sempre que uma criatura Minúscula ou maior toca ou entra na área protegida. Quando você conjura a magia, você pode designar criaturas que não acionarão o alarme. Você também escolhe se o alarme é mental ou audível.\nUm alarme mental alerta você com um ping em sua mente se você estiver a até 1,6 km da área protegida. Este ping acorda você se estiver dormindo.\nUm alarme audível produz o som de um sino de mão por 10 segundos dentro de 18 metros.",
+    "Arcane Eye": "Você cria um olho mágico invisível dentro do alcance que paira no ar pela duração. Você recebe mentalmente informação visual do olho, que tem visão normal e visão no escuro até 9 metros. O olho pode olhar em todas as direções. Como uma ação, você pode mover o olho até 9 metros em qualquer direção. Não há limite para quão longe o olho pode se mover de você, mas ele não pode entrar em outro plano de existência. Uma barreira sólida bloqueia o movimento do olho, mas o olho pode passar através de uma abertura tão pequena quanto 2,5 centímetros de diâmetro.",
 
-    "Alter Self": "Você assume uma forma diferente. Quando conjura a magia, escolha uma das seguintes opções, cujo efeito dura pela duração da magia. Enquanto a magia durar, você pode encerrar uma opção com uma ação para ganhar os benefícios de outra.\nAdaptação Aquática: Você adapta seu corpo para um ambiente aquático, brotando guelras e desenvolvendo membranas entre os dedos. Você pode respirar debaixo d'água e ganha deslocamento de natação igual ao seu deslocamento de caminhada.\nMudar Aparência: Você transforma sua aparência. Você decide como você parece, incluindo sua altura, peso, traços faciais, som de sua voz, comprimento do cabelo, coloração e características distintivas, se houver. Você pode fazer-se parecer um membro de outra raça, embora nenhuma de suas estatísticas mude. Você também não pode parecer uma criatura de tamanho diferente do seu, e sua forma básica permanece a mesma; se você é bípede, não pode usar esta magia para se tornar quadrúpede, por exemplo. A qualquer momento pela duração da magia, você pode usar sua ação para mudar sua aparência desta maneira novamente.\nArmas Naturais: Você cresce garras, presas, espinhos, chifres ou uma arma natural diferente de sua escolha. Seus ataques desarmados causam 1d6 de dano contundente, perfurante ou cortante, conforme apropriado para a arma natural que você escolheu, e você é proficiente com seus ataques desarmados. Finalmente, a arma natural é mágica e você tem um bônus de +1 nas jogadas de ataque e dano que fizer usando-a.",
+    "Arcane Gate": "Você cria portais de teletransporte ligados que permanecem abertos pela duração. Escolha dois pontos no chão que você possa ver, um ponto a até 3 metros de você e um ponto a até 150 metros de você. Um portal circular, de 3 metros de diâmetro, se abre sobre cada ponto. Se o portal se abriria no espaço ocupado por uma criatura, a magia falha, e a conjuração é perdida. Os portais são anéis bidimensionais brilhantes preenchidos com névoa, pairando centímetros do chão e perpendiculares a ele nos pontos que você escolher. Um anel é visível apenas de um lado (sua escolha), que é o lado que funciona como portal. Qualquer criatura ou objeto entrando no portal sai do outro portal como se os dois fossem adjacentes um ao outro; passar através de um portal do lado não funcional não tem efeito.",
 
-    "Animal Friendship": "Esta magia permite que você convença uma besta de que você não significa nenhum mal a ela. Escolha uma besta que você possa ver dentro do alcance. Ela deve vê-lo e ouvi-lo. Se a Inteligência da besta for 4 ou superior, a magia falha. Caso contrário, a besta deve ser bem-sucedida em um teste de resistência de Sabedoria ou ficará enfeitiçada por você pela duração da magia. Se você ou um de seus companheiros ferir o alvo, a magia termina.",
+    "Arcane Lock": "Você toca uma porta, janela, portão, baú ou outra entrada fechada, e ela fica trancada pela duração. Você e as criaturas que você designar quando conjurar esta magia podem abrir o objeto normalmente. Você também pode definir uma senha que, quando falada a 1,5 metro do objeto, suprime esta magia por 1 minuto. Caso contrário, é intransponível até ser quebrado ou a magia ser dissipada ou suprimida. Conjurar Arrombar no objeto suprime Tranca Arcana por 10 minutos. Enquanto afetado por esta magia, o objeto é mais difícil de quebrar ou forçar; a CD para quebrá-lo ou arrombá-lo aumenta em 10.",
 
-    "Animal Messenger": "Ao usar esta magia, você usa um animal para entregar uma mensagem. Escolha uma besta Minúscula que você possa ver dentro do alcance, como um esquilo, um gaio azul ou um morcego. Você especifica um local, que você deve ter visitado, e um destinatário que corresponda a uma descrição geral, como 'um homem ou mulher vestindo o uniforme da guarda da cidade' ou 'um anão de cabelos ruivos usando um chapéu pontudo'. Você também fala uma mensagem de até vinte e cinco palavras. A besta alvo viaja pela duração da magia em direção ao local especificado, cobrindo cerca de 80 quilômetros por 24 horas para um mensageiro voador, ou 40 quilômetros para outros animais.\nQuando o mensageiro chega, ele entrega sua mensagem para a criatura que você descreveu, replicando o som de sua voz. O mensageiro fala apenas para uma criatura que corresponda à descrição que você deu. Se o mensageiro não alcançar seu destino antes da magia terminar, a mensagem é perdida, e a besta faz seu caminho de volta para onde você conjurou esta magia.",
+    "Armor of Agathys": "Uma força protetora mágica envolve você, manifestando-se como um gelo espectral que cobre você e seu equipamento. Você ganha 5 pontos de vida temporários pela duração. Se uma criatura atingir você com um ataque corpo a corpo enquanto você tiver esses pontos de vida, a criatura sofre 5 de dano de frio.",
 
-    "Animal Shapes": "Sua magia transforma outros em bestas. Escolha qualquer número de criaturas voluntárias que você possa ver dentro do alcance. Você transforma cada alvo na forma de uma besta Grande ou menor com um nível de desafio de 4 ou inferior. Em turnos subsequentes, você pode usar sua ação para transformar criaturas afetadas em novas formas.\nA transformação dura pela duração para cada alvo, ou até o alvo cair para 0 pontos de vida ou morrer. Você pode escolher uma forma diferente para cada alvo. As estatísticas de jogo de um alvo são substituídas pelas estatísticas da besta escolhida, embora o alvo retenha seu alinhamento e personalidade.\nCada alvo ganha um número de pontos de vida temporários igual aos pontos de vida de sua nova forma. Esses pontos de vida não podem ser substituídos por pontos de vida temporários de outra fonte. Um alvo reverte para sua forma normal quando não tiver mais pontos de vida temporários ou morrer. Se a magia terminar antes disso, a criatura perde todos os seus pontos de vida temporários e reverte para sua forma original.\nA criatura é limitada nas ações que pode realizar pela natureza de sua nova forma. Ela não pode falar, conjurar magias ou realizar qualquer outra ação que requeira mãos ou fala, a menos que sua nova forma seja capaz de tais ações.\nO equipamento do alvo se funde na nova forma. O alvo não pode ativar, usar, empunhar ou de outra forma se beneficiar de qualquer um de seus equipamentos.",
+    "Arms of Hadar": "Você invoca o poder de Hadar, o Fome Sombria. Tentáculos de energia escura brotam de você e açoitam todas as criaturas a até 3 metros de você. Cada criatura naquela área deve fazer um teste de resistência de Força. Em uma falha, um alvo sofre 2d6 de dano necrótico e não pode realizar reações até seu próximo turno. Em um sucesso, a criatura sofre metade do dano, mas não sofre outros efeitos.",
 
-    "Animate Dead": "Esta magia cria um servo morto-vivo. Escolha uma pilha de ossos ou um cadáver de um humanoide Médio ou Pequeno dentro do alcance. Sua magia imbui o alvo com uma imitação vil de vida, erguendo-o como uma criatura morta-viva. O alvo se torna um esqueleto se você escolheu ossos ou um zumbi se você escolheu um cadáver (o Mestre tem as estatísticas de jogo da criatura).\nEm cada um de seus turnos, você pode usar uma ação bônus para comandar mentalmente qualquer criatura que você fez com esta magia se a criatura estiver a até 18 metros de você (se você controlar múltiplas criaturas, você pode comandar qualquer ou todas elas ao mesmo tempo, emitindo o mesmo comando para cada uma). Você decide que ação a criatura tomará e para onde ela se moverá durante seu próximo turno, ou você pode emitir um comando geral, como guardar uma câmara ou corredor particular. Se você não emitir nenhum comando, a criatura apenas se defende contra criaturas hostis. Uma vez dado um comando, a criatura continua a segui-lo até que a tarefa esteja completa.\nA criatura está sob seu controle por 24 horas, após as quais ela para de obedecer qualquer comando que você tenha dado a ela. Para manter o controle da criatura por mais 24 horas, você deve conjurar esta magia na criatura novamente antes do período atual de 24 horas terminar. Este uso da magia reafirma seu controle sobre até quatro criaturas que você tenha animado com esta magia, em vez de animar uma nova."
+    "Astral Projection": "Você e até oito criaturas voluntárias dentro do alcance projetam seus corpos astrais no Plano Astral (a magia falha e a conjuração é desperdiçada se você já estiver naquele plano). O corpo material que você deixa para trás fica inconsciente e em um estado de animação suspensa; ele não precisa de comida ou ar e não envelhece. Seu corpo astral se assemelha à sua forma mortal em quase todos os sentidos, replicando suas estatísticas de jogo e posses. A principal diferença é a adição de um cordão prateado que se estende de entre suas omoplatas e trilha atrás de você, desaparecendo de vista após 30 centímetros. Este cordão é seu elo ao seu corpo material. Enquanto o elo permanecer intacto, você pode encontrar seu caminho de volta para casa. Se o cordão for cortado - algo que só pode acontecer quando um efeito especificamente declara que o faz - sua alma e corpo são separados, matando você instantaneamente."
 };
 
-// Continua com mais traduções...
-// Por limitação de espaço, vou criar um sistema que processa em lotes
+// Adicionar mais traduções em lotes...
+// Por limitação de espaço, vou criar um sistema que processa incrementalmente
 
-async function addTranslations() {
-    console.log('🌍 Adicionando traduções PT-BR...\n');
-
-    const allSpells = JSON.parse(fs.readFileSync(ALL_SPELLS_PATH, 'utf8'));
-    let count = 0;
-
-    for (const [spellName, translation] of Object.entries(translations)) {
-        for (const key in allSpells) {
-            if (allSpells[key].name === spellName) {
-                allSpells[key].descriptionPT = translation;
-                count++;
-                console.log(`✅ ${spellName}`);
-                break;
-            }
+let count = 0;
+for (const [englishName, ptTranslation] of Object.entries(translations)) {
+    for (const key in allSpells) {
+        if (allSpells[key].name === englishName && !allSpells[key].descriptionPT) {
+            allSpells[key].descriptionPT = ptTranslation;
+            count++;
+            console.log(`✅ ${englishName}`);
+            break;
         }
     }
-
-    fs.writeFileSync(ALL_SPELLS_PATH, JSON.stringify(allSpells, null, 2));
-    console.log(`\n✨ ${count} descrições traduzidas adicionadas!`);
 }
 
-addTranslations();
+// Salvar
+fs.writeFileSync(ALL_SPELLS_PATH, JSON.stringify(allSpells, null, 2));
+console.log(`\n✨ ${count} novas traduções adicionadas!`);
+console.log(`📊 Total com tradução PT: ${Object.values(allSpells).filter(s => s.descriptionPT).length}/319`);

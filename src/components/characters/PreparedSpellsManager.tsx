@@ -15,6 +15,7 @@ import {
     filterPreparableSpells,
     groupPreparedSpellsByLevel,
 } from "@/lib/prepared-spells-helper";
+import { getSpellsByClass, getSpellDetails } from "@/lib/data/spell-data";
 import { useTranslation } from "@/lib/i18n/context";
 import {
     Dialog,
@@ -49,16 +50,14 @@ export function PreparedSpellsManager({
     console.log('[PreparedSpellsManager] Component rendering for:', character.characterClass);
     console.log('[PreparedSpellsManager] Can prepare spells?', canPrepareSpells(character.characterClass));
 
-    // Verificar se a classe prepara magias
-    if (!canPrepareSpells(character.characterClass)) {
-        console.log('[PreparedSpellsManager] Class cannot prepare spells, returning null');
-        return null;
-    }
-
-    console.log('[PreparedSpellsManager] Component will render!');
-
     // Buscar TODAS as magias da classe automaticamente da base de dados local
     useEffect(() => {
+        // Só carregar se a classe pode preparar magias
+        if (!canPrepareSpells(character.characterClass)) {
+            setLoadingSpells(false);
+            return;
+        }
+
         const loadClassSpells = () => {
             try {
                 setLoadingSpells(true);
@@ -78,8 +77,7 @@ export function PreparedSpellsManager({
                     return;
                 }
 
-                // Buscar da base de dados local (INSTANTÂNEO!)
-                const { getSpellsByClass, getSpellDetails } = require('@/lib/data/spell-data');
+                console.log('[PreparedSpells] Character class:', character.characterClass, '→', apiClassName);
 
                 // Filtrar por nível de slot disponível
                 const spellSlots = character.spellcasting?.spellSlots || {};
@@ -120,6 +118,14 @@ export function PreparedSpellsManager({
 
         loadClassSpells();
     }, [character.characterClass, character.level, character.spellcasting?.spellSlots]);
+
+    // Verificar se a classe prepara magias (DEPOIS de todos os hooks)
+    if (!canPrepareSpells(character.characterClass)) {
+        console.log('[PreparedSpellsManager] Class cannot prepare spells, returning null');
+        return null;
+    }
+
+    console.log('[PreparedSpellsManager] Component will render!');
 
     // Calcular informações de preparação
     const spellAbility = getSpellcastingAbility(character.characterClass);
