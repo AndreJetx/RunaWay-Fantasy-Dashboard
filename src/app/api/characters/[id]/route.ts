@@ -59,27 +59,32 @@ export async function GET(
       }
     }
 
-    // Buscar campanha para verificar se é DM
-    const [campaign] = await db
-      .select()
-      .from(schema.campaigns)
-      .where(eq(schema.campaigns.id, character.campaignId))
-      .limit(1);
+    // Buscar campanha para verificar se é DM (apenas se tiver campaignId)
+    let campaign = null;
+    let isDM = false;
 
-    if (!campaign) {
-      return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
+    if (character.campaignId) {
+      [campaign] = await db
+        .select()
+        .from(schema.campaigns)
+        .where(eq(schema.campaigns.id, character.campaignId))
+        .limit(1);
+
+      if (campaign) {
+        // Verificar se é DM
+        const dmIdStr = String(campaign.dmId || "");
+        const userIdStr = String(user.id || "");
+        const dbUserIdStr = dbUser.length > 0 ? String(dbUser[0].id || "") : "";
+
+        isDM = dmIdStr === userIdStr || dmIdStr === dbUserIdStr;
+      }
     }
 
-    // Verificar se é DM
-    const dmIdStr = String(campaign.dmId || "");
+    // Verificar se é o dono do personagem (usar dbUserId se disponível)
+    const characterPlayerIdStr = String(character.playerId || "");
     const userIdStr = String(user.id || "");
     const dbUserIdStr = dbUser.length > 0 ? String(dbUser[0].id || "") : "";
-
-    const isDM = dmIdStr === userIdStr || dmIdStr === dbUserIdStr;
-
-    // Verificar se é o dono do personagem
-    const characterPlayerIdStr = String(character.playerId || "");
-    const isOwner = characterPlayerIdStr === userIdStr || characterPlayerIdStr === dbUserIdStr;
+    const isOwner = characterPlayerIdStr === dbUserIdStr || characterPlayerIdStr === userIdStr;
 
     // Se não for DM e não for o dono, negar acesso
     if (!isDM && !isOwner) {
@@ -157,27 +162,36 @@ export async function PUT(
       }
     }
 
-    // Buscar campanha para verificar se é DM
-    const [campaign] = await db
-      .select()
-      .from(schema.campaigns)
-      .where(eq(schema.campaigns.id, character.campaignId))
-      .limit(1);
+    // Buscar campanha para verificar se é DM (apenas se tiver campaignId)
+    let campaign = null;
 
-    if (!campaign) {
-      return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
+    if (character.campaignId) {
+      [campaign] = await db
+        .select()
+        .from(schema.campaigns)
+        .where(eq(schema.campaigns.id, character.campaignId))
+        .limit(1);
+
+      if (!campaign) {
+        return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
+      }
     }
 
-    // Verificar se é DM
-    const dmIdStr = String(campaign.dmId || "");
+    // Verificar se é DM (apenas se tiver campanha)
+    let isDM = false;
+    if (campaign) {
+      const dmIdStr = String(campaign.dmId || "");
+      const userIdStr = String(user.id || "");
+      const dbUserIdStr = dbUser.length > 0 ? String(dbUser[0].id || "") : "";
+
+      isDM = dmIdStr === userIdStr || dmIdStr === dbUserIdStr;
+    }
+
+    // Verificar se é o dono do personagem (usar dbUserId se disponível)
+    const characterPlayerIdStr = String(character.playerId || "");
     const userIdStr = String(user.id || "");
     const dbUserIdStr = dbUser.length > 0 ? String(dbUser[0].id || "") : "";
-
-    const isDM = dmIdStr === userIdStr || dmIdStr === dbUserIdStr;
-
-    // Verificar se é o dono do personagem
-    const characterPlayerIdStr = String(character.playerId || "");
-    const isOwner = characterPlayerIdStr === userIdStr || characterPlayerIdStr === dbUserIdStr;
+    const isOwner = characterPlayerIdStr === dbUserIdStr || characterPlayerIdStr === userIdStr;
 
     // Se não for DM e não for o dono, negar acesso
     if (!isDM && !isOwner) {

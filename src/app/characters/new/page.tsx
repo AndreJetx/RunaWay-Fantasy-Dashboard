@@ -642,7 +642,7 @@ function NewCharacterPageContent() {
   const [selectedExpansion, setSelectedExpansion] = useState<string>("");
   const [selectedRace, setSelectedRace] = useState<string>("");
   const [availableCampaigns, setAvailableCampaigns] = useState<Array<{ id: string; title: string }>>([]);
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string>(campaignId || "");
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(campaignId || null);
   const [selectedSubrace, setSelectedSubrace] = useState<string>("");
   const [previousRaceBonuses, setPreviousRaceBonuses] = useState<RaceBonus>({});
   const [previousRaceSkills, setPreviousRaceSkills] = useState<string[]>([]); // Perícias garantidas
@@ -2066,6 +2066,18 @@ function NewCharacterPageContent() {
         payload.inventory = [];
       }
 
+      // Debug: verificar payload antes de enviar
+      console.log("🔍 DEBUG - Payload being sent:", {
+        characterType,
+        campaignId,
+        selectedCampaignId,
+        finalCampaignId,
+        payloadCampaignId: payload.campaignId,
+        payloadCampaignIdType: typeof payload.campaignId
+      });
+
+      console.log("🔍 DEBUG - Complete payload:", JSON.stringify(payload, null, 2));
+
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -2558,15 +2570,20 @@ function NewCharacterPageContent() {
               {/* Seleção de Subclasse */}
               {formData.characterClass && (() => {
                 const subclassLevel = getSubclassLevel(formData.characterClass);
-                const needsSubclass = formData.level >= subclassLevel;
 
-                if (!needsSubclass) return null;
+                // IMPORTANTE: Apenas permitir escolha de subclasse na criação se:
+                // 1. A classe ganha subclasse no nível 1 (Clérigo, Bruxo, Feiticeiro)
+                // 2. E o personagem está sendo criado no nível 1 ou superior
+                // Classes que ganham subclasse em níveis superiores devem escolher durante level-up
+                const canSelectSubclassAtCreation = subclassLevel === 1 && formData.level >= 1;
+
+                if (!canSelectSubclassAtCreation) return null;
 
                 return (
                   <div>
                     <Label htmlFor="subclass">
                       Subclasse {formData.characterClass === 'Bruxo' ? '(Patrono)' : ''}
-                      {needsSubclass && ' *'}
+                      {' *'}
                     </Label>
                     <div className="flex gap-2">
                       <Input

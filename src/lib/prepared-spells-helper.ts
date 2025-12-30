@@ -8,6 +8,7 @@ const SPELL_PREPARATION_CLASSES = [
     'Clérigo',
     'Druida',
     'Paladino',
+    'Ranger', // Ranger também prepara magias (a partir do nível 2)
     'Mago',
 ];
 
@@ -16,7 +17,6 @@ const SPELL_KNOWN_CLASSES = [
     'Bruxo',
     'Bardo',
     'Feiticeiro',
-    'Ranger', // Ranger também conhece magias permanentemente
 ];
 
 /**
@@ -47,8 +47,8 @@ export function getMaxPreparedSpells(
         return 0;
     }
 
-    // Paladinos só podem preparar magias a partir do nível 2
-    if (className === 'Paladino' && level < 2) {
+    // Paladinos e Rangers só podem preparar magias a partir do nível 2
+    if ((className === 'Paladino' || className === 'Ranger') && level < 2) {
         return 0;
     }
 
@@ -90,8 +90,8 @@ export function needsSpellPreparation(character: any): boolean {
         return false;
     }
 
-    // Paladinos nível 1 não preparam magias
-    if (character.characterClass === 'Paladino' && character.level < 2) {
+    // Paladinos e Rangers nível 1 não preparam magias
+    if ((character.characterClass === 'Paladino' || character.characterClass === 'Ranger') && character.level < 2) {
         return false;
     }
 

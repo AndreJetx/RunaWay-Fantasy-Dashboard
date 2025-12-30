@@ -1,13 +1,13 @@
 // Regras de aprendizado de magias por classe - D&D 5e
 
-export type SpellcastingClass = 
-  | "Bardo" 
-  | "Bruxo" 
-  | "Clérigo" 
-  | "Druida" 
-  | "Feiticeiro" 
-  | "Mago" 
-  | "Paladino" 
+export type SpellcastingClass =
+  | "Bardo"
+  | "Bruxo"
+  | "Clérigo"
+  | "Druida"
+  | "Feiticeiro"
+  | "Mago"
+  | "Paladino"
   | "Patrulheiro";
 
 /**
@@ -89,12 +89,12 @@ export function getTotalCantripsKnown(className: string, level: number): number 
  */
 export function getTotalSpellsKnown(className: string, level: number): number {
   const normalizedLevel = Math.max(1, Math.min(20, level));
-  
+
   // Clérigo, Druida e Mago usam prepared spells, não spells known
   if (["Clérigo", "Druida", "Mago"].includes(className)) {
     return 0; // Eles preparam magias, não têm limite de conhecidas
   }
-  
+
   return SPELLS_KNOWN[className]?.[normalizedLevel] || 0;
 }
 
@@ -113,15 +113,13 @@ export function getNewCantripsToLearn(className: string, currentLevel: number, p
 export function getNewSpellsToLearn(className: string, currentLevel: number, previousLevel: number): number {
   const currentSpells = getTotalSpellsKnown(className, currentLevel);
   const previousSpells = getTotalSpellsKnown(className, previousLevel);
-  
-  // Classes que usam prepared spells não têm limite de spells known
-  if (["Clérigo", "Druida", "Mago"].includes(className)) {
-    // Para essas classes, usar regra simplificada:
-    // Nível 1: 6 magias, outros níveis: 2 magias
-    if (currentLevel === 1) return 6;
-    return 2;
+
+  // Classes que usam prepared spells não aprendem magias no level-up
+  // Elas preparam da lista completa a cada dia
+  if (["Clérigo", "Druida", "Mago", "Paladino", "Ranger"].includes(className)) {
+    return 0; // Não aprendem magias, preparam diariamente
   }
-  
+
   return Math.max(0, currentSpells - previousSpells);
 }
 
@@ -138,7 +136,9 @@ export function canSwapSpells(className: string): boolean {
  * Verifica se a classe usa "spells known" (vs prepared spells)
  */
 export function usesSpellsKnown(className: string): boolean {
-  return !["Clérigo", "Druida", "Mago"].includes(className);
+  // Classes que PREPARAM magias (não aprendem):
+  // Clérigo, Druida, Mago, Paladino, Ranger
+  return !["Clérigo", "Druida", "Mago", "Paladino", "Ranger"].includes(className);
 }
 
 /**
@@ -154,8 +154,8 @@ export interface SpellLearningInfo {
 }
 
 export function getSpellLearningInfo(
-  className: string, 
-  currentLevel: number, 
+  className: string,
+  currentLevel: number,
   previousLevel: number
 ): SpellLearningInfo {
   return {

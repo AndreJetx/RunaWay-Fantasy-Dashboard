@@ -148,6 +148,7 @@ const characterColumns = {
   subclass: text("subclass"),
   pact: text("pact"), // Para Bruxos: Pacto da Lâmina, Pacto da Corrente, etc.
   dragonType: text("dragon_type"), // Para Feiticeiros Dracônicos: tipo de dragão ancestral
+  fightingStyle: text("fighting_style"), // Para Guerreiro, Paladino, Ranger: estilo de combate
   level: integer("level").notNull().default(1),
   experiencePoints: integer("experience_points").default(0),
   background: text("background"),
@@ -334,8 +335,7 @@ export const campaignNpcs = pgTable("campaign_npcs", npcColumns, (table) => ({
 
 export const items = pgTable("items", {
   id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
-  campaignId: uuid("campaign_id")
-    .notNull()
+  campaignId: uuid("campaign_id") // Nullable for standalone character items
     .references(() => campaigns.id, { onDelete: "cascade" }),
   ownerId: uuid("owner_id")
     .notNull()

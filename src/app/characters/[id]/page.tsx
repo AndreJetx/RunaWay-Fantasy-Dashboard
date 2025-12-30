@@ -107,21 +107,17 @@ export default function CharacterPage() {
       setLoadingSpells(true);
       const details: Record<string, any> = {};
 
-      await Promise.all(
-        spellIndexes.map(async (spellIndex) => {
-          try {
-            const res = await fetch(`https://www.dnd5eapi.co/api/2014/spells/${spellIndex}`);
-            if (res.ok) {
-              const data = await res.json();
-              details[spellIndex] = data;
-            } else {
-              console.warn(`Spell ${spellIndex} not found in API`);
-            }
-          } catch (error) {
-            console.error(`Error loading spell ${spellIndex}:`, error);
-          }
-        })
-      );
+      // Import dinâmico do helper local
+      const { getSpellDetails } = require('@/lib/data/spell-data');
+
+      spellIndexes.forEach((spellIndex) => {
+        const localDetail = getSpellDetails(spellIndex);
+        if (localDetail) {
+          details[spellIndex] = localDetail;
+        } else {
+          console.warn(`Spell ${spellIndex} not found in local database`);
+        }
+      });
 
       setSpellDetails(details);
     } catch (error) {
@@ -137,10 +133,12 @@ export default function CharacterPage() {
     try {
       setSaving(true);
 
-      // Verificar se a magia existe na API
-      const spellRes = await fetch(`https://www.dnd5eapi.co/api/2014/spells/${spellIndex}`);
-      if (!spellRes.ok) {
-        toast.error(`Magia "${spellIndex}" não encontrada na API D&D 5e`);
+      // Verificar se a magia existe no banco local
+      const { getSpellDetails } = require('@/lib/data/spell-data');
+      const spellData = getSpellDetails(spellIndex);
+
+      if (!spellData) {
+        toast.error(`Magia "${spellIndex}" não encontrada na base de dados local`);
         return;
       }
 

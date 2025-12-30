@@ -1,0 +1,33 @@
+# INSTRUÇÕES PARA TRADUÇÃO
+
+## Passo 1: Traduzir o arquivo
+1. Abra o arquivo: 1_ENGLISH_DESCRIPTIONS.txt
+2. Copie TODO o conteúdo
+3. Cole no Google Translate ou DeepL
+4. Traduza para Português (Brasil)
+5. Copie o resultado traduzido
+6. Cole em um novo arquivo chamado: 2_PORTUGUESE_DESCRIPTIONS.txt
+7. Salve nesta mesma pasta
+
+## Passo 2: Traduzir para Espanhol (opcional)
+1. Repita o processo acima
+2. Traduza para Espanhol
+3. Salve como: 3_SPANISH_DESCRIPTIONS.txt
+
+## Passo 3: Processar traduções
+1. Abra o terminal
+2. Execute: node src/data/scripts/process-manual-translations.js
+
+## IMPORTANTE:
+- NÃO remova os marcadores [SPELL_0], [SPELL_1], etc.
+- NÃO remova as linhas com "---"
+- Mantenha a estrutura exatamente como está
+- Apenas traduza o TEXTO das descrições
+
+## Dicas:
+- Google Translate: https://translate.google.com/
+- DeepL (melhor qualidade): https://www.deepl.com/translator
+- DeepL tem limite de 5000 caracteres por vez, então você pode precisar dividir
+
+Total de magias: 319
+Tamanho aproximado: 254 KB

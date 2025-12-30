@@ -12,8 +12,8 @@ import { getXPForLevel } from "@/lib/xp-helper";
 interface CharacterTypeSelectionProps {
     characterType: "campaign" | "standalone";
     onCharacterTypeChange: (type: "campaign" | "standalone") => void;
-    selectedCampaignId: string;
-    onCampaignChange: (campaignId: string) => void;
+    selectedCampaignId: string | null;
+    onCampaignChange: (campaignId: string | null) => void;
     availableCampaigns: Array<{ id: string; title: string }>;
     hasExistingCharacter: boolean;
     userId: string | null;
@@ -109,7 +109,7 @@ export function CharacterTypeSelection({
                 {characterType === "campaign" && (
                     <div className="space-y-2">
                         <Label htmlFor="campaign-select">Selecione a Campanha</Label>
-                        <Select value={selectedCampaignId} onValueChange={onCampaignChange}>
+                        <Select value={selectedCampaignId || undefined} onValueChange={onCampaignChange}>
                             <SelectTrigger id="campaign-select">
                                 <SelectValue placeholder="Escolha uma campanha..." />
                             </SelectTrigger>
@@ -158,14 +158,14 @@ export function CharacterTypeSelection({
                         </SelectContent>
                     </Select>
                     {startingLevel > 1 && (
-                        <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/20 mt-2">
-                            <p className="text-xs text-blue-400">
-                                <strong>XP Automático:</strong> {xpForLevel.toLocaleString()} XP
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Personagens criados acima do nível 1 recebem XP automaticamente e podem fazer level-up imediatamente.
-                            </p>
-                        </div>
+                        <Alert className="mt-2 border-amber-500/30 bg-amber-500/10">
+                            <AlertCircle className="h-4 w-4 text-amber-500" />
+                            <AlertDescription className="text-sm">
+                                <strong>Level-Ups Graduais:</strong> Seu personagem será criado em <strong>nível 1</strong> com {xpForLevel.toLocaleString()} XP.
+                                <br />
+                                Você precisará fazer <strong>{startingLevel - 1} level-up(s)</strong> gradualmente (1→2, 2→3, etc.) para chegar ao nível {startingLevel}.
+                            </AlertDescription>
+                        </Alert>
                     )}
                 </div>
             </CardContent>

@@ -16,6 +16,8 @@ const createCharacterSchema = z.object({
   race: z.string().optional(),
   characterClass: z.string().min(1),
   subclass: z.string().optional(),
+  pact: z.string().optional().transform(val => val === "" ? undefined : val),
+  dragonType: z.string().optional().transform(val => val === "" ? undefined : val),
   level: z.coerce.number().int().min(1).max(20).optional(),
   experiencePoints: z.coerce.number().int().min(0).optional(),
   background: z.string().optional(),
@@ -69,6 +71,16 @@ export async function GET(request: Request) {
 
     // Buscar personagens - apenas campos necessários
     if (!isDM) {
+      // Use dbUserId if available, otherwise use Supabase user.id
+      const playerIdToSearch = dbUser?.id || user.id;
+
+      console.log("🔍 GET /api/characters - Player request:", {
+        userId: user.id,
+        email: user.email,
+        dbUserId: dbUser?.id,
+        searchingWith: playerIdToSearch
+      });
+
       const characters = await db
         .select({
           id: schema.characters.id,
@@ -86,10 +98,17 @@ export async function GET(request: Request) {
           playerId: schema.characters.playerId,
         })
         .from(schema.characters)
-        .where(eq(schema.characters.playerId, user.id))
+        .where(eq(schema.characters.playerId, playerIdToSearch))
         .limit(50);
 
-      return NextResponse.json(characters);
+      console.log("📦 Characters found:", characters.length, characters.map(c => ({
+        id: c.id,
+        name: c.name,
+        campaignId: c.campaignId,
+        playerId: c.playerId
+      })));
+
+      return NextResponse.json({ characters });
     }
 
     // Se for DM, mostrar todos os personagens
@@ -112,7 +131,7 @@ export async function GET(request: Request) {
       .from(schema.characters)
       .limit(50);
 
-    return NextResponse.json(characters);
+    return NextResponse.json({ characters });
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
@@ -181,7 +200,7 @@ export async function POST(request: Request) {
           : Promise.resolve([]),
       ]);
 
-      isDM = campaign.dmId === user.id || (dbUser && campaign.dmId === dbUser.id);
+      isDM = !!(campaign.dmId === user.id || (dbUser && campaign.dmId === dbUser.id));
       const member = memberBySupabaseId[0] || (memberByDbId.length > 0 ? memberByDbId[0] : null);
 
       if (!isDM && !member) {
@@ -249,9 +268,22 @@ export async function POST(request: Request) {
     }
 
     // Calculate XP and needsLevelUp for starting level
-    const startingLevel = parsed.level ?? 1;
-    const calculatedXP = getXPForLevel(startingLevel);
-    const needsLevelUp = shouldEnableLevelUp(startingLevel);
+    // Always create characters at level 1, but with XP for their target level
+    // This forces gradual level-ups (1→2, 2→3, etc.)
+    const targetLevel = parsed.level ?? 1;
+    const calculatedXP = getXPForLevel(targetLevel);
+    const startingLevel = 1; // Always start at level 1
+    const needsLevelUp = targetLevel > 1; // Enable level-up if target > 1
+
+    // Debug: log values before insert
+    console.log("🔍 Backend DEBUG - Character creation:", {
+      targetLevel,
+      startingLevel,
+      calculatedXP,
+      needsLevelUp,
+      campaignId: parsed.campaignId,
+      finalCampaignId: parsed.campaignId || null
+    });
 
     const [character] = await db
       .insert(schema.characters)
@@ -263,8 +295,8 @@ export async function POST(request: Request) {
         race: parsed.race,
         characterClass: parsed.characterClass,
         subclass: parsed.subclass,
-        pact: (parsed as any).pact,
-        dragonType: (parsed as any).dragonType,
+        pact: parsed.pact,
+        dragonType: parsed.dragonType,
         level: startingLevel,
         experiencePoints: calculatedXP, // Auto-assign XP based on level
         needsLevelUp: needsLevelUp || false, // Enable level-up for characters starting above level 1
@@ -308,7 +340,7 @@ export async function POST(request: Request) {
       const { processInventoryToItems } = await import("@/lib/inventory-helper");
       await processInventoryToItems(
         character.id,
-        parsed.campaignId || "",
+        parsed.campaignId || null, // Use null instead of empty string for standalone characters
         finalPlayerId,
         parsed.inventory,
         parsed.attributes

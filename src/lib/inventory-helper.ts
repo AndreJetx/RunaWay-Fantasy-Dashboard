@@ -65,12 +65,12 @@ function getItemType(details: EquipmentDetail | null, itemName: string): string 
   }
 
   const category = details.equipment_category?.index || "";
-  
+
   if (category === "armor" || details.armor_class) return "Armor";
   if (category === "weapon" || category.includes("weapon")) return "Weapon";
   if (category === "adventuring-gear" || category === "tools") return "Other";
   if (category === "consumable") return "Consumable";
-  
+
   return "Other";
 }
 
@@ -79,7 +79,7 @@ function getItemType(details: EquipmentDetail | null, itemName: string): string 
  */
 export async function processInventoryToItems(
   characterId: string,
-  campaignId: string,
+  campaignId: string | null, // Allow null for standalone characters
   ownerId: string,
   inventory: InventoryItem[],
   characterAttributes: any
@@ -103,12 +103,14 @@ export async function processInventoryToItems(
     .select()
     .from(schema.items)
     .where(
-      and(
-        eq(schema.items.campaignId, campaignId),
-        eq(schema.items.ownerId, ownerId)
-      )
+      campaignId
+        ? and(
+          eq(schema.items.campaignId, campaignId),
+          eq(schema.items.ownerId, ownerId)
+        )
+        : eq(schema.items.ownerId, ownerId) // For standalone characters, only filter by owner
     );
-  
+
   // Ordenar manualmente para priorizar equipados e depois por data de criação
   existingItems.sort((a, b) => {
     if (a.equipped && !b.equipped) return -1;
@@ -188,7 +190,7 @@ export async function processInventoryToItems(
         console.warn(`Item "${item.name}" não tem campo 'index', criando sem detalhes da API`);
         // Criar item sem buscar detalhes da API
         const itemType = getItemType(null, item.name);
-        
+
         // Verificar se já existe (buscar todos e comparar case-insensitive)
         const allExistingItems = await db
           .select()
@@ -237,22 +239,22 @@ export async function processInventoryToItems(
 
       // Buscar detalhes do item
       const details = await fetchItemDetails(item.index);
-      
+
       const itemType = getItemType(details, item.name);
       const weight = details?.weight ? details.weight.toString() : "1";
-      
+
       // Criar descrição
       let description = "";
       if (details?.desc && details.desc.length > 0) {
         description = details.desc.join("\n\n");
       }
-      
+
       // Se for armadura, adicionar informações de CA
       if (itemType === "Armor" && details?.armor_class) {
         const baseAC = details.armor_class.base || 10;
         const allowsDex = details.armor_class.dex_bonus ?? true;
         const maxDex = details.armor_class.max_bonus;
-        
+
         let acInfo = `CA base: ${baseAC}`;
         if (allowsDex) {
           if (maxDex !== undefined) {
@@ -262,11 +264,11 @@ export async function processInventoryToItems(
           }
         }
         acInfo += `\n\nCA: +${baseAC - 10}`;
-        
-        description = description 
+
+        description = description
           ? `${description}\n\n${acInfo}`
           : acInfo;
-        
+
         // Guardar primeira armadura para equipar depois
         if (!firstArmor) {
           firstArmor = { item, details };

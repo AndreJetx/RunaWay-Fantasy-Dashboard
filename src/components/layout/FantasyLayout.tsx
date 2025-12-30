@@ -178,21 +178,47 @@ export function FantasyLayout({ children }: { children: React.ReactNode }) {
                 </span>
               </div>
               <Select
-                value={activeCampaign?.id || ""}
+                value={activeCampaign?.id || "standalone"}
                 onValueChange={(value) => {
-                  const campaign = campaigns.find((c) => c.id === value);
-                  if (campaign) setActiveCampaign(campaign);
+                  if (value === "standalone") {
+                    setActiveCampaign(null);
+                  } else {
+                    const campaign = campaigns.find((c) => c.id === value);
+                    if (campaign) setActiveCampaign(campaign);
+                  }
                 }}
               >
                 <SelectTrigger className="w-full bg-black/40 border-primary/20 hover:border-primary/40 transition-all duration-300 backdrop-blur-sm group h-12 shadow-inner ring-offset-background focus:ring-1 focus:ring-primary/30">
                   <div className="flex items-center gap-2 overflow-hidden w-full">
                     <div className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0 shadow-[0_0_8px_rgba(var(--primary),0.8)]" />
                     <div className="truncate text-left flex-1 font-cinzel text-sm tracking-wide text-foreground/90 group-hover:text-primary transition-colors">
-                      {activeCampaign?.title || t("campaign.selectCampaign") || "Selecione uma campanha"}
+                      {activeCampaign?.title || "Personagens Avulsos"}
                     </div>
                   </div>
                 </SelectTrigger>
                 <SelectContent className="bg-card/95 border-primary/20 backdrop-blur-md">
+                  {/* Opção para Personagens Avulsos */}
+                  <SelectItem
+                    value="standalone"
+                    className="focus:bg-primary/20 focus:text-primary transition-colors cursor-pointer py-3 px-4"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "w-1.5 h-1.5 rounded-full transition-all",
+                        !activeCampaign
+                          ? "bg-primary shadow-[0_0_5px_rgba(var(--primary),0.5)]"
+                          : "bg-muted-foreground/20 border border-muted-foreground/10"
+                      )} />
+                      <span className="font-cinzel text-sm tracking-wide">Personagens Avulsos</span>
+                    </div>
+                  </SelectItem>
+
+                  {/* Separador */}
+                  {campaigns.length > 0 && (
+                    <div className="h-[1px] bg-border/50 my-1" />
+                  )}
+
+                  {/* Campanhas */}
                   {campaigns.map((campaign) => (
                     <SelectItem
                       key={campaign.id}
