@@ -111,13 +111,19 @@ export function getNewCantripsToLearn(className: string, currentLevel: number, p
  * Calcula quantas magias NOVAS podem ser aprendidas ao subir de nível
  */
 export function getNewSpellsToLearn(className: string, currentLevel: number, previousLevel: number): number {
+  // No D&D 5e, Magos aprendem 2 novas magias a cada nível para seu grimório (exceto nível 1 que ganham 6)
+  if (className === "Mago") {
+    if (currentLevel === 1) return 6;
+    return 2;
+  }
+
   const currentSpells = getTotalSpellsKnown(className, currentLevel);
   const previousSpells = getTotalSpellsKnown(className, previousLevel);
 
-  // Classes que usam prepared spells não aprendem magias no level-up
-  // Elas preparam da lista completa a cada dia
-  if (["Clérigo", "Druida", "Mago", "Paladino", "Ranger"].includes(className)) {
-    return 0; // Não aprendem magias, preparam diariamente
+  // Clérigo e Druida conhecem todas as magias de sua classe e apenas preparam
+  // Elas não 'aprendem' magias individuais ao subir de nível
+  if (["Clérigo", "Druida"].includes(className)) {
+    return 0;
   }
 
   return Math.max(0, currentSpells - previousSpells);
@@ -136,9 +142,10 @@ export function canSwapSpells(className: string): boolean {
  * Verifica se a classe usa "spells known" (vs prepared spells)
  */
 export function usesSpellsKnown(className: string): boolean {
-  // Classes que PREPARAM magias (não aprendem):
-  // Clérigo, Druida, Mago, Paladino, Ranger
-  return !["Clérigo", "Druida", "Mago", "Paladino", "Ranger"].includes(className);
+  // Classes que PREPARAM magias da lista COMPLETA de classe (não aprendem magias individuais):
+  // Clérigo e Druida.
+  // Mago, Paladino e Ranger preparam, mas preparam de uma lista que eles conhecem/aprenderam.
+  return !["Clérigo", "Druida"].includes(className);
 }
 
 /**
