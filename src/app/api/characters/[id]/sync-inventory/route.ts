@@ -41,6 +41,10 @@ export async function POST(
     }
 
     // Verificar permissões
+    if (!character.campaignId) {
+      return NextResponse.json({ error: "Character is not part of a campaign" }, { status: 400 });
+    }
+
     const [campaign] = await db
       .select()
       .from(schema.campaigns)
@@ -55,7 +59,7 @@ export async function POST(
     const dmIdStr = String(campaign.dmId || "");
     const userIdStr = String(user.id || "");
     const dbUserIdStr = dbUser ? String(dbUser.id || "") : "";
-    
+
     const isDM = dmIdStr === userIdStr || dmIdStr === dbUserIdStr;
 
     // Verificar se é o dono do personagem (comparar com ambos os IDs)

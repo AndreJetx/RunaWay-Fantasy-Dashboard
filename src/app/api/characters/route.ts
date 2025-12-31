@@ -4,17 +4,20 @@ import { db, schema } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
 import { eq, and } from "drizzle-orm";
 import { getDbUser } from "@/lib/user-helper";
+import { getXPForLevel, shouldEnableLevelUp } from "@/lib/xp-helper";
 
 const jsonSchema = z.record(z.string(), z.any()).or(z.array(z.any()));
 
 const createCharacterSchema = z.object({
-  campaignId: z.string().uuid(),
+  campaignId: z.string().uuid().nullable().optional(), // Allow null for standalone characters
   playerId: z.string().uuid(),
   system: z.string().optional(),
   name: z.string().min(1),
   race: z.string().optional(),
   characterClass: z.string().min(1),
   subclass: z.string().optional(),
+  pact: z.string().optional().transform(val => val === "" ? undefined : val),
+  dragonType: z.string().optional().transform(val => val === "" ? undefined : val),
   level: z.coerce.number().int().min(1).max(20).optional(),
   experiencePoints: z.coerce.number().int().min(0).optional(),
   background: z.string().optional(),
@@ -68,6 +71,16 @@ export async function GET(request: Request) {
 
     // Buscar personagens - apenas campos necessários
     if (!isDM) {
+      // Use dbUserId if available, otherwise use Supabase user.id
+      const playerIdToSearch = dbUser?.id || user.id;
+
+      console.log("🔍 GET /api/characters - Player request:", {
+        userId: user.id,
+        email: user.email,
+        dbUserId: dbUser?.id,
+        searchingWith: playerIdToSearch
+      });
+
       const characters = await db
         .select({
           id: schema.characters.id,
@@ -85,10 +98,17 @@ export async function GET(request: Request) {
           playerId: schema.characters.playerId,
         })
         .from(schema.characters)
-        .where(eq(schema.characters.playerId, user.id))
+        .where(eq(schema.characters.playerId, playerIdToSearch))
         .limit(50);
 
-      return NextResponse.json(characters);
+      console.log("📦 Characters found:", characters.length, characters.map(c => ({
+        id: c.id,
+        name: c.name,
+        campaignId: c.campaignId,
+        playerId: c.playerId
+      })));
+
+      return NextResponse.json({ characters });
     }
 
     // Se for DM, mostrar todos os personagens
@@ -111,7 +131,7 @@ export async function GET(request: Request) {
       .from(schema.characters)
       .limit(50);
 
-    return NextResponse.json(characters);
+    return NextResponse.json({ characters });
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
@@ -134,36 +154,40 @@ export async function POST(request: Request) {
     const payload = await request.json();
     const parsed = createCharacterSchema.parse(payload);
 
-    // Buscar campanha e usuário em paralelo
-    const [campaignResult, dbUser] = await Promise.all([
-      db
+    // Get DB user
+    const dbUser = await getDbUser(user.id, user.email);
+    const finalPlayerId = dbUser?.id || user.id;
+
+    // If campaignId is provided, validate campaign and membership
+    let campaign = null;
+    let isDM = false;
+
+    if (parsed.campaignId) {
+      const [campaignResult] = await db
         .select()
         .from(schema.campaigns)
         .where(eq(schema.campaigns.id, parsed.campaignId))
-        .limit(1),
-      getDbUser(user.id, user.email),
-    ]);
+        .limit(1);
 
-    const [campaign] = campaignResult;
-    if (!campaign) {
-      return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
-    }
+      campaign = campaignResult;
+      if (!campaign) {
+        return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
+      }
 
-    // Verificar acesso em paralelo
-    const [memberBySupabaseId, memberByDbId] = await Promise.all([
-      db
-        .select()
-        .from(schema.campaignMembers)
-        .where(
-          and(
-            eq(schema.campaignMembers.campaignId, parsed.campaignId),
-            eq(schema.campaignMembers.userId, user.id)
+      // Verificar acesso à campanha
+      const [memberBySupabaseId, memberByDbId] = await Promise.all([
+        db
+          .select()
+          .from(schema.campaignMembers)
+          .where(
+            and(
+              eq(schema.campaignMembers.campaignId, parsed.campaignId),
+              eq(schema.campaignMembers.userId, user.id)
+            )
           )
-        )
-        .limit(1),
-      // Buscar por DB ID se diferente
-      dbUser && dbUser.id !== user.id
-        ? db
+          .limit(1),
+        dbUser && dbUser.id !== user.id
+          ? db
             .select()
             .from(schema.campaignMembers)
             .where(
@@ -173,95 +197,109 @@ export async function POST(request: Request) {
               )
             )
             .limit(1)
-        : Promise.resolve([]),
-    ]);
+          : Promise.resolve([]),
+      ]);
 
-    const isDM = campaign.dmId === user.id || (dbUser && campaign.dmId === dbUser.id);
-    const member = memberBySupabaseId[0] || (memberByDbId.length > 0 ? memberByDbId[0] : null);
+      isDM = !!(campaign.dmId === user.id || (dbUser && campaign.dmId === dbUser.id));
+      const member = memberBySupabaseId[0] || (memberByDbId.length > 0 ? memberByDbId[0] : null);
 
-    if (!isDM && !member) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+      if (!isDM && !member) {
+        return NextResponse.json({ error: "Access denied" }, { status: 403 });
+      }
     }
 
-    // Usar o ID do banco de dados se disponível, senão usar o ID do Supabase
-    const finalPlayerId = dbUser?.id || user.id;
-    
-    // Verificar se o playerId corresponde ao usuário autenticado (aceitar ambos os IDs)
+    // Verificar se o playerId corresponde ao usuário autenticado
     if (parsed.playerId !== user.id && parsed.playerId !== finalPlayerId) {
       return NextResponse.json({ error: "Player ID must match authenticated user" }, { status: 403 });
     }
 
-    // Verificar se o usuário já tem um personagem nesta campanha - buscar em paralelo
-    const userIdToCheck = dbUser?.id || user.id;
-    
-    const [existingCharactersBySupabaseId, existingCharactersByDbId] = await Promise.all([
-      db
-        .select()
-        .from(schema.characters)
-        .where(
-          and(
-            eq(schema.characters.campaignId, parsed.campaignId),
-            eq(schema.characters.playerId, user.id)
+    // Only check for existing characters if campaignId is provided
+    if (parsed.campaignId) {
+      const [existingCharactersBySupabaseId, existingCharactersByDbId] = await Promise.all([
+        db
+          .select()
+          .from(schema.characters)
+          .where(
+            and(
+              eq(schema.characters.campaignId, parsed.campaignId),
+              eq(schema.characters.playerId, user.id)
+            )
           )
-        )
-        .limit(10),
-      userIdToCheck !== user.id
-        ? db
+          .limit(10),
+        finalPlayerId !== user.id
+          ? db
             .select()
             .from(schema.characters)
             .where(
               and(
                 eq(schema.characters.campaignId, parsed.campaignId),
-                eq(schema.characters.playerId, userIdToCheck)
+                eq(schema.characters.playerId, finalPlayerId)
               )
             )
             .limit(10)
-        : Promise.resolve([]),
-    ]);
+          : Promise.resolve([]),
+      ]);
 
-    // Combinar e remover duplicatas
-    const allExistingCharacters = [...existingCharactersBySupabaseId, ...existingCharactersByDbId];
-    const existingCharacters = Array.from(
-      new Map(allExistingCharacters.map((c) => [c.id, c])).values()
-    );
-
-    // Se for DM, pode criar múltiplos personagens
-    // Se for jogador, só pode ter um personagem vivo por campanha
-    if (!isDM && existingCharacters.length > 0) {
-      // Verificar se algum personagem está vivo (currentHp > 0)
-      const aliveCharacters = existingCharacters.filter(
-        (char) => (char.currentHp ?? 0) > 0
+      const allExistingCharacters = [...existingCharactersBySupabaseId, ...existingCharactersByDbId];
+      const existingCharacters = Array.from(
+        new Map(allExistingCharacters.map((c) => [c.id, c])).values()
       );
 
-      if (aliveCharacters.length > 0) {
-        return NextResponse.json(
-          { 
-            error: "Você já possui um personagem vivo nesta campanha. Apenas é permitido criar um novo personagem se o anterior estiver morto (PV <= 0).",
-            existingCharacter: {
-              id: aliveCharacters[0].id,
-              name: aliveCharacters[0].name,
-              currentHp: aliveCharacters[0].currentHp,
-            }
-          },
-          { status: 400 }
+      // Se for jogador, só pode ter um personagem vivo por campanha
+      if (!isDM && existingCharacters.length > 0) {
+        const aliveCharacters = existingCharacters.filter(
+          (char) => (char.currentHp ?? 0) > 0
         );
+
+        if (aliveCharacters.length > 0) {
+          return NextResponse.json(
+            {
+              error: "Você já possui um personagem vivo nesta campanha.",
+              existingCharacter: {
+                id: aliveCharacters[0].id,
+                name: aliveCharacters[0].name,
+                currentHp: aliveCharacters[0].currentHp,
+              }
+            },
+            { status: 400 }
+          );
+        }
       }
     }
+
+    // Calculate XP and needsLevelUp for starting level
+    // Always create characters at level 1, but with XP for their target level
+    // This forces gradual level-ups (1→2, 2→3, etc.)
+    const targetLevel = parsed.level ?? 1;
+    const calculatedXP = getXPForLevel(targetLevel);
+    const startingLevel = 1; // Always start at level 1
+    const needsLevelUp = targetLevel > 1; // Enable level-up if target > 1
+
+    // Debug: log values before insert
+    console.log("🔍 Backend DEBUG - Character creation:", {
+      targetLevel,
+      startingLevel,
+      calculatedXP,
+      needsLevelUp,
+      campaignId: parsed.campaignId,
+      finalCampaignId: parsed.campaignId || null
+    });
 
     const [character] = await db
       .insert(schema.characters)
       .values({
-        campaignId: parsed.campaignId,
-        playerId: finalPlayerId, // Usar o ID do banco de dados
+        campaignId: parsed.campaignId || null, // null for standalone characters
+        playerId: finalPlayerId,
         system: parsed.system ?? "dnd5e",
         name: parsed.name,
         race: parsed.race,
         characterClass: parsed.characterClass,
         subclass: parsed.subclass,
-        pact: (parsed as any).pact,
-        dragonType: (parsed as any).dragonType,
-        level: parsed.level ?? 1,
-        experiencePoints: parsed.experiencePoints ?? 0,
+        pact: parsed.pact,
+        dragonType: parsed.dragonType,
+        level: startingLevel,
+        experiencePoints: calculatedXP, // Auto-assign XP based on level
+        needsLevelUp: needsLevelUp || false, // Enable level-up for characters starting above level 1
         background: parsed.background,
         alignment: parsed.alignment,
         image: parsed.image,
@@ -302,19 +340,19 @@ export async function POST(request: Request) {
       const { processInventoryToItems } = await import("@/lib/inventory-helper");
       await processInventoryToItems(
         character.id,
-        parsed.campaignId,
+        parsed.campaignId || null, // Use null instead of empty string for standalone characters
         finalPlayerId,
         parsed.inventory,
         parsed.attributes
       );
-      
+
       // Recarregar personagem para pegar CA atualizado
       const [updatedCharacter] = await db
         .select()
         .from(schema.characters)
         .where(eq(schema.characters.id, character.id))
         .limit(1);
-      
+
       return NextResponse.json(updatedCharacter || character, { status: 201 });
     }
 

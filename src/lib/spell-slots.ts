@@ -1,13 +1,13 @@
 // Tabela de slots de magia por classe e nível - D&D 5e
 
-export type SpellcastingClass = 
-  | "Bardo" 
-  | "Bruxo" 
-  | "Clérigo" 
-  | "Druida" 
-  | "Feiticeiro" 
-  | "Mago" 
-  | "Paladino" 
+export type SpellcastingClass =
+  | "Bardo"
+  | "Bruxo"
+  | "Clérigo"
+  | "Druida"
+  | "Feiticeiro"
+  | "Mago"
+  | "Paladino"
   | "Patrulheiro";
 
 export interface SpellSlots {
@@ -99,28 +99,28 @@ const WARLOCK_SLOTS: Record<number, SpellSlots> = {
  */
 export function getSpellSlots(className: string, level: number): SpellSlots | null {
   const normalizedLevel = Math.max(1, Math.min(20, level));
-  
+
   // Classes que não conjuram magias
   const nonSpellcasters = ["Bárbaro", "Guerreiro", "Ladino", "Monge"];
   if (nonSpellcasters.includes(className)) {
     return null;
   }
-  
+
   // Bruxo usa pact magic
   if (className === "Bruxo") {
     return WARLOCK_SLOTS[normalizedLevel] || WARLOCK_SLOTS[1];
   }
-  
+
   // Half casters (Paladino, Patrulheiro)
   if (className === "Paladino" || className === "Patrulheiro") {
     return HALF_CASTER_SLOTS[normalizedLevel] || HALF_CASTER_SLOTS[1];
   }
-  
+
   // Full casters (Bardo, Clérigo, Druida, Feiticeiro, Mago)
   if (["Bardo", "Clérigo", "Druida", "Feiticeiro", "Mago"].includes(className)) {
     return FULL_CASTER_SLOTS[normalizedLevel] || FULL_CASTER_SLOTS[1];
   }
-  
+
   return null;
 }
 
@@ -130,17 +130,17 @@ export function getSpellSlots(className: string, level: number): SpellSlots | nu
  */
 export function getSpellcastingLevel(className: string, level: number): number {
   const normalizedLevel = Math.max(1, Math.min(20, level));
-  
+
   // Classes que não conjuram magias
   const nonSpellcasters = ["Bárbaro", "Guerreiro", "Ladino", "Monge"];
   if (nonSpellcasters.includes(className)) {
     return 0;
   }
-  
+
   // Obter slots de magia para o nível
   const slots = getSpellSlots(className, normalizedLevel);
   if (!slots) return 0;
-  
+
   // Determinar o nível máximo de magia baseado nos slots disponíveis
   if (slots.level9 > 0) return 9;
   if (slots.level8 > 0) return 8;
@@ -151,7 +151,7 @@ export function getSpellcastingLevel(className: string, level: number): number {
   if (slots.level3 > 0) return 3;
   if (slots.level2 > 0) return 2;
   if (slots.level1 > 0) return 1;
-  
+
   return 0;
 }
 
@@ -167,7 +167,7 @@ export function canCastSpells(className: string): boolean {
  */
 export function getCantripsCount(className: string, level: number = 1): number {
   if (level < 1) return 0;
-  
+
   const cantripsTable: Record<string, number> = {
     "Bardo": 2,
     "Clérigo": 3,
@@ -178,7 +178,7 @@ export function getCantripsCount(className: string, level: number = 1): number {
     "Patrulheiro": 0,
     "Feiticeiro": 2, // Assumindo 2 para Feiticeiro (não estava na tabela)
   };
-  
+
   return cantripsTable[className] || 0;
 }
 
@@ -188,7 +188,7 @@ export function getCantripsCount(className: string, level: number = 1): number {
  */
 export function getSpellsCount(className: string, level: number = 1, wisdomModifier?: number): number | string {
   if (level < 1) return 0;
-  
+
   const spellsTable: Record<string, number | string> = {
     "Bardo": 4,
     "Clérigo": "1 + WIS_mod",
@@ -199,9 +199,9 @@ export function getSpellsCount(className: string, level: number = 1, wisdomModif
     "Patrulheiro": 0,
     "Feiticeiro": 2, // Assumindo 2 para Feiticeiro (não estava na tabela)
   };
-  
+
   const spellsValue = spellsTable[className] || 0;
-  
+
   // Se for uma fórmula, calcular
   if (typeof spellsValue === "string" && spellsValue.includes("WIS_mod")) {
     if (wisdomModifier === undefined) {
@@ -209,7 +209,7 @@ export function getSpellsCount(className: string, level: number = 1, wisdomModif
     }
     return 1 + wisdomModifier;
   }
-  
+
   return spellsValue as number;
 }
 
@@ -223,11 +223,11 @@ export function getSpellType(className: string): "known" | "prepared" | "spellbo
     "Druida": "prepared",
     "Mago": "spellbook",
     "Bruxo": "pact",
-    "Paladino": "none",
-    "Patrulheiro": "none",
-    "Feiticeiro": "known", // Assumindo known para Feiticeiro
+    "Paladino": "prepared",  // CORRIGIDO: Paladino prepara magias!
+    "Patrulheiro": "prepared",  // CORRIGIDO: Ranger também prepara magias!
+    "Feiticeiro": "known",
   };
-  
+
   return typeTable[className] || "none";
 }
 

@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowLeft, Save, RotateCcw, Sparkles, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
@@ -18,7 +20,9 @@ import { SubclassSelector } from "@/components/characters/SubclassSelector";
 import { BackgroundSelector } from "@/components/characters/BackgroundSelector";
 import { DragonTypeSelector } from "@/components/characters/DragonTypeSelector";
 import { ShopDialog } from "@/components/characters/ShopDialog";
+import { CharacterTypeSelection } from "@/components/characters/CharacterTypeSelection";
 import { canCastSpells, getSpellSlots, getSpellcastingLevel, getCantripsCount, getSpellsCount, getSpellType } from "@/lib/spell-slots";
+import { getXPForLevel } from "@/lib/xp-helper";
 import { getClassFeatures } from "@/lib/class-features";
 import { getSubclassLevel, needsSubclassSelection } from "@/lib/subclasses";
 import { applySubclassBenefits, applyBackgroundBenefits } from "@/lib/benefit-application";
@@ -638,7 +642,7 @@ function NewCharacterPageContent() {
   const [selectedExpansion, setSelectedExpansion] = useState<string>("");
   const [selectedRace, setSelectedRace] = useState<string>("");
   const [availableCampaigns, setAvailableCampaigns] = useState<Array<{ id: string; title: string }>>([]);
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string>(campaignId || "");
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(campaignId || null);
   const [selectedSubrace, setSelectedSubrace] = useState<string>("");
   const [previousRaceBonuses, setPreviousRaceBonuses] = useState<RaceBonus>({});
   const [previousRaceSkills, setPreviousRaceSkills] = useState<string[]>([]); // Perícias garantidas
@@ -654,6 +658,8 @@ function NewCharacterPageContent() {
   const [showSubclassSelector, setShowSubclassSelector] = useState(false);
   const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
   const [showDragonTypeSelector, setShowDragonTypeSelector] = useState(false);
+  const [characterType, setCharacterType] = useState<"campaign" | "standalone">("campaign");
+  const [hasExistingCharacter, setHasExistingCharacter] = useState(false);
 
   // Homebrew Integration State
   const [allRaceExpansions, setAllRaceExpansions] = useState<RaceExpansion[]>(RACE_EXPANSIONS);
@@ -766,6 +772,7 @@ function NewCharacterPageContent() {
     maxHp: 10,
     tempHp: 0,
     hitDice: "1d8",
+    hpBonusPerLevel: 0, // Bônus de HP por nível (ex: Anão Hill)
 
     // Personalidade
     personalityTraits: "",
@@ -1033,8 +1040,29 @@ function NewCharacterPageContent() {
       const bonuses = charClass.bonuses;
       const conModifier = calculateModifier(prev.attributes.constitution || 0);
 
-      // HP base é sempre hitPoints da classe + CON (nível 1)
-      const newMaxHp = bonuses.hitPoints + conModifier;
+      // Detectar bônus de HP por nível da raça/subrace
+      let hpBonusPerLevel = 0;
+      const selectedRaceData = allRaceExpansions
+        .flatMap(exp => exp.races)
+        .find(r => r.name === formData.race);
+
+      if (selectedRaceData) {
+        // Verificar se a raça tem o bônus
+        if (selectedRaceData.advantages?.some(adv => adv.includes('+1 HP por nível'))) {
+          hpBonusPerLevel = 1;
+        }
+
+        // Verificar se a subrace tem o bônus
+        if (formData.subrace && selectedRaceData.subraces) {
+          const selectedSubraceData = selectedRaceData.subraces.find(sr => sr.name === formData.subrace);
+          if (selectedSubraceData?.advantages?.some(adv => adv.includes('+1 HP por nível'))) {
+            hpBonusPerLevel = 1;
+          }
+        }
+      }
+
+      // HP base é sempre hitPoints da classe + CON + bônus racial (nível 1)
+      const newMaxHp = bonuses.hitPoints + conModifier + hpBonusPerLevel;
 
       // Atualizar dado de vida baseado na classe
       const hitDiceValue = `1d${bonuses.hitDie}`;
@@ -1065,9 +1093,10 @@ function NewCharacterPageContent() {
         currentHp: newCurrentHp,
         hitDice: hitDiceValue,
         armorClass: bonuses.unarmoredDefense ? newArmorClass : prev.armorClass,
+        hpBonusPerLevel, // Salvar o bônus para uso futuro em level-ups
       };
     });
-  }, [formData.attributes.constitution, formData.attributes.dexterity, formData.attributes.wisdom, formData.characterClass]);
+  }, [formData.attributes.constitution, formData.attributes.dexterity, formData.attributes.wisdom, formData.characterClass, formData.race, formData.subrace, allCharacterClasses, allRaceExpansions]);
 
   const calculateModifier = (value: number): number => {
     return Math.floor((value - 10) / 2);
@@ -1984,6 +2013,7 @@ function NewCharacterPageContent() {
       }
 
       // Preparar payload removendo campos vazios
+      const finalCampaignId = characterType === "standalone" ? null : (selectedCampaignId || campaignId);
       const payload: any = {
         campaignId: finalCampaignId,
         playerId: finalUserId,
@@ -2024,6 +2054,7 @@ function NewCharacterPageContent() {
       if (formData.backstory) payload.backstory = formData.backstory;
       if (formData.notes) payload.notes = formData.notes;
       if (formData.image) payload.image = formData.image;
+      if (formData.hpBonusPerLevel) payload.hpBonusPerLevel = formData.hpBonusPerLevel;
 
       // Adicionar features da classe
       if (formData.characterClass) {
@@ -2058,6 +2089,18 @@ function NewCharacterPageContent() {
       if (!Array.isArray(payload.inventory)) {
         payload.inventory = [];
       }
+
+      // Debug: verificar payload antes de enviar
+      console.log("🔍 DEBUG - Payload being sent:", {
+        characterType,
+        campaignId,
+        selectedCampaignId,
+        finalCampaignId,
+        payloadCampaignId: payload.campaignId,
+        payloadCampaignIdType: typeof payload.campaignId
+      });
+
+      console.log("🔍 DEBUG - Complete payload:", JSON.stringify(payload, null, 2));
 
       const res = await fetch("/api/characters", {
         method: "POST",
@@ -2186,45 +2229,23 @@ function NewCharacterPageContent() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Seleção de Campanha (apenas se não tiver campaignId na URL e não for DM) */}
-          {!campaignId && !isDM && (
-            <Card className="bg-card/60 border-white/10">
-              <CardHeader>
-                <CardTitle className="text-xl font-cinzel">Selecionar Campanha</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div>
-                  <Label htmlFor="campaign">Campanha *</Label>
-                  <Select
-                    value={selectedCampaignId}
-                    onValueChange={(value) => {
-                      setSelectedCampaignId(value);
-                      router.push(`/characters/new?campaignId=${value}`);
-                    }}
-                  >
-                    <SelectTrigger id="campaign" className={validationErrors.campaign ? "border-red-500 border-2" : ""}>
-                      <SelectValue placeholder="Selecione uma campanha" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableCampaigns.map((campaign) => (
-                        <SelectItem key={campaign.id} value={campaign.id}>
-                          {campaign.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {validationErrors.campaign && (
-                    <p className="text-xs text-red-400 mt-1">Selecione uma campanha</p>
-                  )}
-                  {availableCampaigns.length === 0 && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Você não está em nenhuma campanha. Entre em uma campanha primeiro.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Character Type and Campaign Selection */}
+          <CharacterTypeSelection
+            characterType={characterType}
+            onCharacterTypeChange={setCharacterType}
+            selectedCampaignId={selectedCampaignId}
+            onCampaignChange={(id) => {
+              setSelectedCampaignId(id);
+              if (!campaignId) {
+                router.push(`/characters/new?campaignId=${id}`);
+              }
+            }}
+            availableCampaigns={availableCampaigns}
+            hasExistingCharacter={hasExistingCharacter}
+            userId={userId}
+            startingLevel={formData.level}
+            onLevelChange={(level) => setFormData(prev => ({ ...prev, level }))}
+          />
 
           {/* Informações Básicas */}
           <Card className="bg-card/60 border-white/10">
@@ -2573,15 +2594,20 @@ function NewCharacterPageContent() {
               {/* Seleção de Subclasse */}
               {formData.characterClass && (() => {
                 const subclassLevel = getSubclassLevel(formData.characterClass);
-                const needsSubclass = formData.level >= subclassLevel;
 
-                if (!needsSubclass) return null;
+                // IMPORTANTE: Apenas permitir escolha de subclasse na criação se:
+                // 1. A classe ganha subclasse no nível 1 (Clérigo, Bruxo, Feiticeiro)
+                // 2. E o personagem está sendo criado no nível 1 ou superior
+                // Classes que ganham subclasse em níveis superiores devem escolher durante level-up
+                const canSelectSubclassAtCreation = subclassLevel === 1 && formData.level >= 1;
+
+                if (!canSelectSubclassAtCreation) return null;
 
                 return (
                   <div>
                     <Label htmlFor="subclass">
                       Subclasse {formData.characterClass === 'Bruxo' ? '(Patrono)' : ''}
-                      {needsSubclass && ' *'}
+                      {' *'}
                     </Label>
                     <div className="flex gap-2">
                       <Input

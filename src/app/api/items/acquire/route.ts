@@ -35,6 +35,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se o item é de recompensa (ownerId é o DM)
+    if (!originalItem.campaignId) {
+      return NextResponse.json({ error: "Item is not part of a campaign" }, { status: 400 });
+    }
+
     const [campaign] = await db
       .select()
       .from(schema.campaigns)

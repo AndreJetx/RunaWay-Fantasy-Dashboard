@@ -136,8 +136,7 @@ export const campaignMembers = pgTable(
 
 const characterColumns = {
   id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
-  campaignId: uuid("campaign_id")
-    .notNull()
+  campaignId: uuid("campaign_id") // Nullable for standalone characters
     .references(() => campaigns.id, { onDelete: "cascade" }),
   playerId: uuid("player_id")
     .notNull()
@@ -145,10 +144,12 @@ const characterColumns = {
   system: text("system").notNull().default("dnd5e"),
   name: text("name").notNull(),
   race: text("race"),
+  subrace: text("subrace"), // Subrace (ex: Hill Dwarf, High Elf, etc)
   characterClass: text("character_class").notNull(),
   subclass: text("subclass"),
   pact: text("pact"), // Para Bruxos: Pacto da Lâmina, Pacto da Corrente, etc.
   dragonType: text("dragon_type"), // Para Feiticeiros Dracônicos: tipo de dragão ancestral
+  fightingStyle: text("fighting_style"), // Para Guerreiro, Paladino, Ranger: estilo de combate
   level: integer("level").notNull().default(1),
   experiencePoints: integer("experience_points").default(0),
   background: text("background"),
@@ -161,6 +162,7 @@ const characterColumns = {
   maxHp: integer("max_hp").default(10),
   tempHp: integer("temp_hp").default(0),
   hitDice: text("hit_dice"),
+  hpBonusPerLevel: integer("hp_bonus_per_level").default(0), // Bônus de HP por nível (ex: Anão Hill = 1)
   attributes: jsonb("attributes").default(sql`'{}'::jsonb`),
   savingThrows: jsonb("saving_throws").default(sql`'{}'::jsonb`),
   skills: jsonb("skills").default(sql`'{}'::jsonb`),
@@ -335,8 +337,7 @@ export const campaignNpcs = pgTable("campaign_npcs", npcColumns, (table) => ({
 
 export const items = pgTable("items", {
   id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
-  campaignId: uuid("campaign_id")
-    .notNull()
+  campaignId: uuid("campaign_id") // Nullable for standalone character items
     .references(() => campaigns.id, { onDelete: "cascade" }),
   ownerId: uuid("owner_id")
     .notNull()

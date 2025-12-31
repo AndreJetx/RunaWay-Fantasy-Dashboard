@@ -1,0 +1,1 @@
+﻿C:\Users\Andre Flor\Documents\Projetos Pessoais\RunaWay-Fantasy-Dashboard\src\features\maps\components\CharacterSheetPanel.tsx

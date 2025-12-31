@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Shield, Zap, Heart, Brain } from "lucide-react";
+import { Search, Plus, Shield, Zap, Heart, Brain, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import avatarPlaceholder from "@assets/generated_images/fantasy_character_silhouette_avatar.png";
 import Image from "next/image";
@@ -19,6 +19,7 @@ interface Character {
   name: string;
   characterClass: string;
   playerId?: string;
+  campaignId?: string | null;
   level: number;
   currentHp: number;
   maxHp: number;
@@ -36,6 +37,7 @@ export default function Characters() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDM, setIsDM] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const checkRole = async () => {
@@ -54,25 +56,45 @@ export default function Characters() {
   }, []);
 
   useEffect(() => {
-    if (!activeCampaign) {
-      setCharacters([]);
-      setLoading(false);
-      return;
-    }
-
     const fetchCharacters = async () => {
       try {
-        const res = await fetch(`/api/campaigns/${activeCampaign.id}/overview`);
-        if (res.ok) {
-          const data = await res.json();
-          let chars = data.characters || [];
-          
-          // Se for jogador, mostrar apenas seus personagens
-          if (!isDM && userId) {
-            chars = chars.filter((char: Character) => char.playerId === userId);
+        if (!activeCampaign) {
+          // Fetch standalone characters (no campaign)
+          console.log("🔍 Fetching standalone characters...");
+          const res = await fetch("/api/characters");
+          if (res.ok) {
+            const data = await res.json();
+            console.log("📦 API Response:", data);
+            let chars = data.characters || [];
+            console.log("📋 All characters:", chars.length);
+
+            // Filter only standalone characters (campaignId is null)
+            chars = chars.filter((char: Character & { campaignId?: string | null }) => !char.campaignId);
+            console.log("🎯 Standalone characters (campaignId is null):", chars.length, chars);
+
+            // If player, show only their characters
+            if (!isDM && userId) {
+              console.log("👤 Filtering by userId:", userId);
+              chars = chars.filter((char: Character) => char.playerId === userId);
+              console.log("✅ Final characters after user filter:", chars.length, chars);
+            }
+
+            setCharacters(chars);
           }
-          
-          setCharacters(chars);
+        } else {
+          // Fetch campaign characters
+          const res = await fetch(`/api/campaigns/${activeCampaign.id}/overview`);
+          if (res.ok) {
+            const data = await res.json();
+            let chars = data.characters || [];
+
+            // If player, show only their characters
+            if (!isDM && userId) {
+              chars = chars.filter((char: Character) => char.playerId === userId);
+            }
+
+            setCharacters(chars);
+          }
         }
       } catch (error) {
         console.error("Error fetching characters:", error);
@@ -90,19 +112,36 @@ export default function Characters() {
     char.characterClass.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!activeCampaign) {
-    return (
-      <FantasyLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <p className="text-muted-foreground mb-4">
-              Selecione uma campanha para ver os personagens
-            </p>
-          </div>
-        </div>
-      </FantasyLayout>
-    );
-  }
+  const handleDeleteCharacter = async (characterId: string, characterName: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevenir navegação ao clicar no botão de delete
+
+    if (!confirm(`Tem certeza que deseja excluir o personagem "${characterName}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    setDeletingId(characterId);
+
+    try {
+      const res = await fetch(`/api/characters/${characterId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to delete character");
+      }
+
+      toast.success("Personagem excluído com sucesso!");
+
+      // Remover da lista local
+      setCharacters(prev => prev.filter(char => char.id !== characterId));
+    } catch (error: any) {
+      console.error("Error deleting character:", error);
+      toast.error(error.message || "Erro ao excluir personagem");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <FantasyLayout>
@@ -113,10 +152,10 @@ export default function Characters() {
               Heroes & Villains
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {activeCampaign.title}
+              {activeCampaign ? activeCampaign.title : "Personagens Avulsos"}
             </p>
           </div>
-          
+
           <div className="flex gap-3 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-64">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -127,14 +166,14 @@ export default function Characters() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            
-            <Button 
+
+            <Button
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
               onClick={() => {
                 if (activeCampaign) {
                   router.push(`/characters/new?campaignId=${activeCampaign.id}`);
                 } else {
-                  toast.error("Selecione uma campanha primeiro");
+                  router.push("/characters/new");
                 }
               }}
             >
@@ -152,7 +191,9 @@ export default function Characters() {
             <p className="text-muted-foreground">
               {searchTerm
                 ? "Nenhum personagem encontrado com esse termo"
-                : "Nenhum personagem nesta campanha ainda"}
+                : activeCampaign
+                  ? "Nenhum personagem nesta campanha ainda"
+                  : "Nenhum personagem avulso ainda"}
             </p>
           </Card>
         ) : (
@@ -170,7 +211,7 @@ export default function Characters() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card 
+                  <Card
                     className="bg-card/40 border-primary/20 backdrop-blur-sm overflow-hidden hover:border-primary/60 transition-all duration-300 cursor-pointer"
                     onClick={() => router.push(`/characters/${char.id}`)}
                   >
@@ -196,7 +237,7 @@ export default function Characters() {
                         {char.characterClass}
                         {char.alignment && ` • ${char.alignment}`}
                       </p>
-                      
+
                       <div className="grid grid-cols-4 gap-2 text-center text-xs">
                         <div className="bg-white/5 p-2 rounded border border-white/5 overflow-hidden">
                           <Heart className="w-4 h-4 mx-auto mb-1 text-red-400 flex-shrink-0" />
@@ -217,6 +258,22 @@ export default function Characters() {
                           <span className="text-white font-bold text-[10px] leading-tight block truncate">{intelligence}</span>
                         </div>
                       </div>
+
+                      {/* Botão de Excluir (apenas para personagens avulsos - sem campaignId) */}
+                      {!char.campaignId && (
+                        <div className="mt-3 pt-3 border-t border-white/5">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="w-full"
+                            onClick={(e) => handleDeleteCharacter(char.id, char.name, e)}
+                            disabled={deletingId === char.id}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            {deletingId === char.id ? "Excluindo..." : "Excluir Personagem"}
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </motion.div>

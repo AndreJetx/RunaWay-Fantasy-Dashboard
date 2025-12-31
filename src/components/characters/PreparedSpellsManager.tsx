@@ -15,6 +15,7 @@ import {
     filterPreparableSpells,
     groupPreparedSpellsByLevel,
 } from "@/lib/prepared-spells-helper";
+import { getSpellsByClass, getSpellDetails } from "@/lib/data/spell-data";
 import { useTranslation } from "@/lib/i18n/context";
 import {
     Dialog,
@@ -22,6 +23,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { SpellDetailDialog } from "@/components/character/SpellDetailDialog";
 
 interface PreparedSpellsManagerProps {
     character: any;
@@ -41,11 +43,90 @@ export function PreparedSpellsManager({
     const [saving, setSaving] = useState(false);
     const [showOnlyPrepared, setShowOnlyPrepared] = useState(false);
     const [selectedSpell, setSelectedSpell] = useState<string | null>(null);
+    const [availableSpells, setAvailableSpells] = useState<string[]>([]);
+    const [loadingSpells, setLoadingSpells] = useState(true);
+    const [localSpellDetails, setLocalSpellDetails] = useState<Record<string, any>>({});
+    const [editMode, setEditMode] = useState(false);
 
-    // Verificar se a classe prepara magias
+    console.log('[PreparedSpellsManager] Component rendering for:', character.characterClass);
+    console.log('[PreparedSpellsManager] Can prepare spells?', canPrepareSpells(character.characterClass));
+
+    // Buscar TODAS as magias da classe automaticamente da base de dados local
+    useEffect(() => {
+        // Só carregar se a classe pode preparar magias
+        if (!canPrepareSpells(character.characterClass)) {
+            setLoadingSpells(false);
+            return;
+        }
+
+        const loadClassSpells = () => {
+            try {
+                setLoadingSpells(true);
+
+                // Mapear nome da classe para o formato da API
+                const classNameMap: Record<string, string> = {
+                    'Paladino': 'Paladin',
+                    'Clérigo': 'Cleric',
+                    'Druida': 'Druid',
+                    'Ranger': 'Ranger',
+                    // Mago NÃO está aqui - prepara do grimório (knownSpells)
+                };
+
+                const apiClassName = classNameMap[character.characterClass];
+                if (!apiClassName) {
+                    setLoadingSpells(false);
+                    return;
+                }
+
+                console.log('[PreparedSpells] Character class:', character.characterClass, '→', apiClassName);
+
+                // Filtrar por nível de slot disponível
+                const spellSlots = character.spellcasting?.spellSlots || {};
+                console.log('[PreparedSpells] Spell slots:', spellSlots);
+
+                let maxSpellLevel = 0;
+                for (let i = 1; i <= 9; i++) {
+                    if (spellSlots[`level${i}`] > 0) {
+                        maxSpellLevel = i;
+                    }
+                }
+
+                console.log('[PreparedSpells] Max spell level:', maxSpellLevel);
+                console.log('[PreparedSpells] Character class:', character.characterClass, '→', apiClassName);
+
+                const classSpells = getSpellsByClass(apiClassName, maxSpellLevel);
+                console.log('[PreparedSpells] Found spells:', classSpells.length);
+
+                setAvailableSpells(classSpells);
+
+                // Carregar detalhes de todas as magias
+                const details: Record<string, any> = {};
+                classSpells.forEach((spellIndex: string) => {
+                    const detail = getSpellDetails(spellIndex);
+                    if (detail) {
+                        details[spellIndex] = detail;
+                    }
+                });
+                console.log('[PreparedSpells] Loaded spell details:', Object.keys(details).length);
+                setLocalSpellDetails(details);
+
+                setLoadingSpells(false);
+            } catch (error) {
+                console.error('Error loading class spells:', error);
+                setLoadingSpells(false);
+            }
+        };
+
+        loadClassSpells();
+    }, [character.characterClass, character.level, character.spellcasting?.spellSlots]);
+
+    // Verificar se a classe prepara magias (DEPOIS de todos os hooks)
     if (!canPrepareSpells(character.characterClass)) {
+        console.log('[PreparedSpellsManager] Class cannot prepare spells, returning null');
         return null;
     }
+
+    console.log('[PreparedSpellsManager] Component will render!');
 
     // Calcular informações de preparação
     const spellAbility = getSpellcastingAbility(character.characterClass);
@@ -57,13 +138,22 @@ export function PreparedSpellsManager({
         abilityModifier
     );
 
-    // Filtrar magias que podem ser preparadas (excluir truques)
-    const knownSpells = character.spellcasting?.knownSpells || [];
-    const preparableSpells = filterPreparableSpells(knownSpells, spellDetails);
+    // Usar lista de magias disponíveis
+    // Para Mago: usa grimório (knownSpells)
+    // Para outras classes que preparam: usa lista completa da classe (availableSpells)
+    const spellsToUse = character.characterClass === 'Mago'
+        ? (character.spellcasting?.knownSpells || [])
+        : availableSpells;
+
+    console.log('[PreparedSpells] Spells to use:', spellsToUse.length);
+    console.log('[PreparedSpells] Local spell details available:', Object.keys(localSpellDetails).length);
+
+    const preparableSpells = filterPreparableSpells(spellsToUse, localSpellDetails);
+    console.log('[PreparedSpells] Preparable spells (level > 0):', preparableSpells.length);
 
     // Agrupar magias por nível
     const groupedSpells = preparableSpells.reduce((acc: Record<number, string[]>, spellIndex) => {
-        const detail = spellDetails[spellIndex];
+        const detail = localSpellDetails[spellIndex];
         if (detail && detail.level > 0) {
             const level = detail.level;
             if (!acc[level]) {
@@ -154,7 +244,7 @@ export function PreparedSpellsManager({
         }, {})
         : groupedSpells;
 
-    const selectedSpellDetail = selectedSpell ? spellDetails[selectedSpell] : null;
+    const selectedSpellDetail = selectedSpell ? localSpellDetails[selectedSpell] : null;
 
     return (
         <>
@@ -188,6 +278,47 @@ export function PreparedSpellsManager({
                                 {abilityModifier}] + Nível [{character.level}])
                             </span>
                         </p>
+                    </div>
+
+                    {/* Botões de ação */}
+                    <div className="flex gap-2">
+                        {!editMode && !hasChanges ? (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    setEditMode(true);
+                                    toast.info("Modo de edição ativado. Selecione suas magias e clique em 'Salvar'.");
+                                }}
+                            >
+                                {preparedSpells.length > 0 ? "Editar Magias" : "Preparar Magias"}
+                            </Button>
+                        ) : (editMode || hasChanges) ? (
+                            <>
+                                <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => {
+                                        handleSave();
+                                        setEditMode(false);
+                                    }}
+                                    disabled={saving || preparedSpells.length !== maxPrepared}
+                                >
+                                    {saving ? "Salvando..." : "Salvar"}
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setPreparedSpells(character.preparedSpells || character.prepared_spells || []);
+                                        setEditMode(false);
+                                        toast.info("Alterações canceladas");
+                                    }}
+                                >
+                                    Cancelar
+                                </Button>
+                            </>
+                        ) : null}
                     </div>
 
                     {/* Toggle para mostrar apenas preparadas */}
@@ -243,10 +374,26 @@ export function PreparedSpellsManager({
                     )}
 
                     {/* Lista de Magias por Nível */}
-                    {preparableSpells.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-4">
-                            Você ainda não conhece nenhuma magia que possa ser preparada.
-                        </p>
+                    {loadingSpells ? (
+                        <div className="text-center py-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                            <p className="text-muted-foreground">Carregando magias disponíveis...</p>
+                            <p className="text-xs text-muted-foreground mt-1">Buscando lista completa de magias de {character.characterClass}</p>
+                        </div>
+                    ) : preparableSpells.length === 0 ? (
+                        <div className="text-center py-4">
+                            <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-2" />
+                            <p className="text-muted-foreground">
+                                {character.characterClass === 'Mago'
+                                    ? 'Você ainda não tem magias no seu grimório.'
+                                    : 'Nenhuma magia disponível para preparar.'}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                                {character.characterClass === 'Mago'
+                                    ? 'Adicione magias ao grimório na seção "Magias Conhecidas"'
+                                    : 'Verifique se você tem slots de magia disponíveis'}
+                            </p>
+                        </div>
                     ) : Object.keys(spellsToDisplay).length === 0 && showOnlyPrepared ? (
                         <p className="text-muted-foreground text-center py-4">
                             Nenhuma magia preparada ainda.
@@ -261,9 +408,9 @@ export function PreparedSpellsManager({
                                         <h4 className="font-semibold text-sm text-primary">{level}º Nível</h4>
                                         <div className="space-y-2">
                                             {spellsToDisplay[level].map((spellIndex) => {
-                                                const detail = spellDetails[spellIndex];
+                                                const detail = localSpellDetails[spellIndex];
                                                 const isPrepared = preparedSpells.includes(spellIndex);
-                                                const isSaved = !hasChanges;
+                                                const isSaved = !hasChanges && !editMode;
 
                                                 return (
                                                     <div
@@ -271,10 +418,14 @@ export function PreparedSpellsManager({
                                                         className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${isPrepared
                                                             ? "bg-primary/10 border-primary/30"
                                                             : "bg-card/40 border-white/5 hover:border-white/10"
-                                                            } ${isSaved && isPrepared ? "cursor-pointer hover:bg-primary/20" : ""}`}
+                                                            } ${!isSaved ? "cursor-pointer hover:bg-primary/5" : ""} ${isSaved && isPrepared ? "cursor-pointer hover:bg-primary/20" : ""}`}
                                                         onClick={() => {
                                                             if (isSaved && isPrepared) {
+                                                                // Modo visualização: abrir detalhes
                                                                 setSelectedSpell(spellIndex);
+                                                            } else if (!isSaved) {
+                                                                // Modo edição: toggle seleção
+                                                                handleToggleSpell(spellIndex);
                                                             }
                                                         }}
                                                     >
@@ -289,7 +440,7 @@ export function PreparedSpellsManager({
                                                         <div className="flex-1 space-y-1">
                                                             <div className="flex items-center justify-between">
                                                                 <span className="font-medium">
-                                                                    {detail ? translateSpell(detail.name) : spellIndex}
+                                                                    {detail ? (detail.namePT || detail.name) : spellIndex}
                                                                 </span>
                                                                 {isPrepared && (
                                                                     <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -340,74 +491,11 @@ export function PreparedSpellsManager({
             </Card>
 
             {/* Modal de Detalhes da Magia */}
-            <Dialog open={!!selectedSpell} onOpenChange={() => setSelectedSpell(null)}>
-                <DialogContent className="max-w-2xl bg-card border-white/10">
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl font-cinzel text-primary flex items-center gap-2">
-                            <Sparkles className="w-6 h-6" />
-                            {selectedSpellDetail ? translateSpell(selectedSpellDetail.name) : ""}
-                        </DialogTitle>
-                    </DialogHeader>
-                    {selectedSpellDetail && (
-                        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase">Nível</p>
-                                    <p className="font-semibold">{selectedSpellDetail.level}º Nível</p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase">Escola</p>
-                                    <p className="font-semibold">
-                                        {translateDnd5e(selectedSpellDetail.school?.name || "")}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase">Tempo de Conjuração</p>
-                                    <p className="font-semibold">
-                                        {translateDnd5e(selectedSpellDetail.casting_time || "")}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase">Alcance</p>
-                                    <p className="font-semibold">{translateDnd5e(selectedSpellDetail.range || "")}</p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase">Componentes</p>
-                                    <p className="font-semibold">
-                                        {selectedSpellDetail.components?.join(", ") || ""}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase">Duração</p>
-                                    <p className="font-semibold">
-                                        {translateDnd5e(selectedSpellDetail.duration || "")}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className="text-xs text-muted-foreground uppercase mb-2">Descrição</p>
-                                <div className="space-y-2 text-sm">
-                                    {selectedSpellDetail.desc?.map((paragraph: string, index: number) => (
-                                        <p key={index}>{translateDnd5e(paragraph)}</p>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {selectedSpellDetail.higher_level && selectedSpellDetail.higher_level.length > 0 && (
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase mb-2">Em Níveis Superiores</p>
-                                    <div className="space-y-2 text-sm">
-                                        {selectedSpellDetail.higher_level.map((paragraph: string, index: number) => (
-                                            <p key={index}>{translateDnd5e(paragraph)}</p>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
+            <SpellDetailDialog
+                isOpen={!!selectedSpell}
+                onClose={() => setSelectedSpell(null)}
+                spell={selectedSpellDetail}
+            />
         </>
     );
 }

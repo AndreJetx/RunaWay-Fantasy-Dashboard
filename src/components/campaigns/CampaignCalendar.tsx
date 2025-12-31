@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,11 +54,7 @@ export function CampaignCalendar({
     const time = parseTime(currentTime);
 
     // Carregar calendário atual
-    useEffect(() => {
-        loadCalendar();
-    }, [campaignId]);
-
-    const loadCalendar = async () => {
+    const loadCalendar = useCallback(async () => {
         try {
             const res = await fetch(`/api/campaigns/${campaignId}/calendar`);
             if (res.ok) {
@@ -69,7 +65,11 @@ export function CampaignCalendar({
         } catch (error) {
             console.error("Error loading calendar:", error);
         }
-    };
+    }, [campaignId]);
+
+    useEffect(() => {
+        loadCalendar();
+    }, [loadCalendar]);
 
     const updateCalendar = async (newDate: string, newTime: string, skipAlert = false) => {
         // Verificar se o dia mudou

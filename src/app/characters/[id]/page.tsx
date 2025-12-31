@@ -2,7 +2,10 @@
 
 import { PreparedSpellsManager } from "@/components/characters/PreparedSpellsManager";
 import { SpellSlotTracker } from "@/components/characters/SpellSlotTracker";
+import { FeatureDetailDialog } from "@/components/character/FeatureDetailDialog";
+import { SpellDetailDialog } from "@/components/character/SpellDetailDialog";
 import { useState, useEffect, useCallback } from "react";
+import { getSpellDetails } from "@/lib/data/spell-data";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +36,9 @@ import {
   Eye,
   Crown,
   Coins,
-  BookOpen
+  BookOpen,
+  User,
+  Scroll
 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -95,6 +100,19 @@ export default function CharacterPage() {
   const [loadingSpells, setLoadingSpells] = useState(false);
   const { translateSpell, translateDnd5e } = useTranslation();
 
+  // Estado para controlar o diálogo de detalhes de habilidades
+  const [featureDialogOpen, setFeatureDialogOpen] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState<{
+    name: string;
+    description: string;
+    level: number;
+    type?: 'feature' | 'ability_score_improvement' | 'spellcasting' | 'subclass';
+  } | null>(null);
+  const [selectedFeatureType, setSelectedFeatureType] = useState<'class' | 'subclass'>('class');
+  const [selectedSubclassName, setSelectedSubclassName] = useState<string | undefined>(undefined);
+  const [spellDialogOpen, setSpellDialogOpen] = useState(false);
+  const [selectedSpellDetailData, setSelectedSpellDetailData] = useState<any>(null);
+
   // Carregar detalhes das magias quando o personagem for carregado
   useEffect(() => {
     if (character?.spellcasting?.knownSpells && character.spellcasting.knownSpells.length > 0) {
@@ -107,21 +125,16 @@ export default function CharacterPage() {
       setLoadingSpells(true);
       const details: Record<string, any> = {};
 
-      await Promise.all(
-        spellIndexes.map(async (spellIndex) => {
-          try {
-            const res = await fetch(`https://www.dnd5eapi.co/api/2014/spells/${spellIndex}`);
-            if (res.ok) {
-              const data = await res.json();
-              details[spellIndex] = data;
-            } else {
-              console.warn(`Spell ${spellIndex} not found in API`);
-            }
-          } catch (error) {
-            console.error(`Error loading spell ${spellIndex}:`, error);
-          }
-        })
-      );
+      // Usar helper local
+
+      spellIndexes.forEach((spellIndex) => {
+        const localDetail = getSpellDetails(spellIndex);
+        if (localDetail) {
+          details[spellIndex] = localDetail;
+        } else {
+          console.warn(`Spell ${spellIndex} not found in local database`);
+        }
+      });
 
       setSpellDetails(details);
     } catch (error) {
@@ -137,10 +150,11 @@ export default function CharacterPage() {
     try {
       setSaving(true);
 
-      // Verificar se a magia existe na API
-      const spellRes = await fetch(`https://www.dnd5eapi.co/api/2014/spells/${spellIndex}`);
-      if (!spellRes.ok) {
-        toast.error(`Magia "${spellIndex}" não encontrada na API D&D 5e`);
+      // Verificar se a magia existe no banco local
+      const spellData = getSpellDetails(spellIndex);
+
+      if (!spellData) {
+        toast.error(`Magia "${spellIndex}" não encontrada na base de dados local`);
         return;
       }
 
@@ -284,6 +298,29 @@ export default function CharacterPage() {
     return Object.keys(character.savingThrows).filter(
       key => character.savingThrows[key] === true
     );
+  };
+
+  // Abrir diálogo de detalhes de habilidade
+  const openFeatureDialog = (
+    feature: {
+      name: string;
+      description: string;
+      level: number;
+      type?: 'feature' | 'ability_score_improvement' | 'spellcasting' | 'subclass';
+    },
+    featureType: 'class' | 'subclass',
+    subclassName?: string
+  ) => {
+    setSelectedFeature(feature);
+    setSelectedFeatureType(featureType);
+    setSelectedSubclassName(subclassName);
+    setFeatureDialogOpen(true);
+  };
+
+  // Abrir diálogo de detalhes da magia
+  const openSpellDialog = (spell: any) => {
+    setSelectedSpellDetailData(spell);
+    setSpellDialogOpen(true);
   };
 
   if (loading) {
@@ -969,7 +1006,11 @@ export default function CharacterPage() {
                               </h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {spellsAtLevel.map(({ index, detail }: { index: string; detail: any }) => (
-                                  <Card key={index} className="bg-card/40 border-white/5">
+                                  <Card
+                                    key={index}
+                                    className={`bg-card/40 border-white/5 transition-all duration-200 ${detail ? 'cursor-pointer hover:bg-card/60 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5' : ''}`}
+                                    onClick={() => detail && openSpellDialog(detail)}
+                                  >
                                     <CardHeader className="pb-2">
                                       <CardTitle className="text-base flex items-center justify-between">
                                         <span>{detail ? translateSpell(detail.name) : index}</span>
@@ -1104,13 +1145,17 @@ export default function CharacterPage() {
                       {CLASS_FEATURES[character.characterClass]
                         ?.filter(f => f.level <= character.level)
                         .map((feature, idx) => (
-                          <div key={idx} className="bg-background/50 rounded-lg p-3">
+                          <div
+                            key={idx}
+                            className="bg-background/50 rounded-lg p-3 cursor-pointer hover:bg-background/70 transition-colors border border-transparent hover:border-primary/30"
+                            onClick={() => openFeatureDialog(feature, 'class', character.characterClass)}
+                          >
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1">
                                 <h4 className="font-medium text-primary">
                                   {feature.name}
                                 </h4>
-                                <p className="text-sm text-muted-foreground mt-1">
+                                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                                   {feature.description}
                                 </p>
                               </div>
@@ -1156,13 +1201,17 @@ export default function CharacterPage() {
                               {subclassData.features
                                 ?.filter(f => f.level <= character.level)
                                 .map((feature, idx) => (
-                                  <div key={idx} className="bg-background/50 rounded-lg p-3">
+                                  <div
+                                    key={idx}
+                                    className="bg-background/50 rounded-lg p-3 cursor-pointer hover:bg-background/70 transition-colors border border-transparent hover:border-primary/30"
+                                    onClick={() => openFeatureDialog(feature, 'subclass', subclassData.name)}
+                                  >
                                     <div className="flex items-start justify-between gap-2">
                                       <div className="flex-1">
                                         <h4 className="font-medium text-primary">
                                           {feature.name}
                                         </h4>
-                                        <p className="text-sm text-muted-foreground mt-1">
+                                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                                           {feature.description}
                                         </p>
                                       </div>
@@ -1383,6 +1432,89 @@ export default function CharacterPage() {
                 </Card>
               )}
 
+              {/* Personalidade */}
+              <Card className="bg-card/60 border-white/10 border-l-4 border-l-purple-500">
+                <CardHeader>
+                  <CardTitle className="text-xl font-cinzel flex items-center gap-2">
+                    <User className="w-5 h-5 text-purple-400" />
+                    Personalidade
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Traços de Personalidade */}
+                  <div>
+                    <Label className="text-sm font-semibold mb-2 block">Traços de Personalidade</Label>
+                    <Textarea
+                      value={character.personalityTraits || ""}
+                      onChange={(e) => updateField("personalityTraits", e.target.value)}
+                      disabled={!canEdit}
+                      rows={3}
+                      className={!canEdit ? "bg-muted cursor-not-allowed" : ""}
+                      placeholder="Descreva os traços de personalidade do seu personagem..."
+                    />
+                  </div>
+
+                  {/* Ideais */}
+                  <div>
+                    <Label className="text-sm font-semibold mb-2 block">Ideais</Label>
+                    <Textarea
+                      value={character.ideals || ""}
+                      onChange={(e) => updateField("ideals", e.target.value)}
+                      disabled={!canEdit}
+                      rows={3}
+                      className={!canEdit ? "bg-muted cursor-not-allowed" : ""}
+                      placeholder="Quais são os ideais e crenças do seu personagem?"
+                    />
+                  </div>
+
+                  {/* Vínculos */}
+                  <div>
+                    <Label className="text-sm font-semibold mb-2 block">Vínculos</Label>
+                    <Textarea
+                      value={character.bonds || ""}
+                      onChange={(e) => updateField("bonds", e.target.value)}
+                      disabled={!canEdit}
+                      rows={3}
+                      className={!canEdit ? "bg-muted cursor-not-allowed" : ""}
+                      placeholder="Pessoas, lugares ou coisas importantes para o personagem..."
+                    />
+                  </div>
+
+                  {/* Defeitos */}
+                  <div>
+                    <Label className="text-sm font-semibold mb-2 block">Defeitos</Label>
+                    <Textarea
+                      value={character.flaws || ""}
+                      onChange={(e) => updateField("flaws", e.target.value)}
+                      disabled={!canEdit}
+                      rows={3}
+                      className={!canEdit ? "bg-muted cursor-not-allowed" : ""}
+                      placeholder="Fraquezas, medos ou vícios do personagem..."
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* História */}
+              <Card className="bg-card/60 border-white/10 border-l-4 border-l-amber-500">
+                <CardHeader>
+                  <CardTitle className="text-xl font-cinzel flex items-center gap-2">
+                    <Scroll className="w-5 h-5 text-amber-400" />
+                    História do Personagem
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={character.backstory || ""}
+                    onChange={(e) => updateField("backstory", e.target.value)}
+                    disabled={!canEdit}
+                    rows={12}
+                    className={!canEdit ? "bg-muted cursor-not-allowed" : ""}
+                    placeholder="Conte a história do seu personagem, sua origem, motivações e jornada até aqui..."
+                  />
+                </CardContent>
+              </Card>
+
               {/* Notas Personalizadas */}
               <Card className="bg-card/60 border-white/10">
                 <CardHeader>
@@ -1506,6 +1638,23 @@ export default function CharacterPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Diálogo de Detalhes de Habilidade */}
+      <FeatureDetailDialog
+        isOpen={featureDialogOpen}
+        onClose={() => setFeatureDialogOpen(false)}
+        feature={selectedFeature}
+        featureType={selectedFeatureType}
+        className={character.characterClass}
+        subclassName={selectedSubclassName}
+      />
+
+      {/* Diálogo de Detalhes de Magia */}
+      <SpellDetailDialog
+        isOpen={spellDialogOpen}
+        onClose={() => setSpellDialogOpen(false)}
+        spell={selectedSpellDetailData}
+      />
     </FantasyLayout>
   );
 }

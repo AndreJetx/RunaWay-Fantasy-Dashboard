@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { getSpellsByClassPTBR, getSpellDetails, getSpellsFromAllClasses } from "@/lib/data/spell-data";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,12 +20,16 @@ import { SpellSelectionDialog } from "@/components/characters/SpellSelectionDial
 import { SubclassSelector } from "@/components/characters/SubclassSelector";
 import { DragonTypeSelector } from "@/components/characters/DragonTypeSelector";
 import { FeatSelector } from "@/components/characters/FeatSelector";
-import { getSubclassLevel, needsSubclassSelection } from "@/lib/subclasses";
+import { getSubclassLevel, needsSubclassSelection, getSubclassFeaturesAtLevel } from "@/lib/subclasses";
 import { applySubclassBenefits } from "@/lib/benefit-application";
 import type { Feat } from "@/lib/feats";
 import type { Subclass } from "@/lib/subclasses";
 import type { DragonType } from "@/lib/dragon-types";
+import type { FightingStyle } from "@/lib/fighting-styles";
+import { getFightingStylesForClass, needsFightingStyleSelection } from "@/lib/fighting-styles";
+import { FightingStyleSelector } from "@/components/characters/FightingStyleSelector";
 import { useTranslation } from "@/lib/i18n/context";
+import { applyAutoFeatures } from "@/lib/auto-features";
 
 const DND_API_BASE = "https://www.dnd5eapi.co";
 
@@ -58,6 +63,7 @@ export default function LevelUpPage() {
   const [selectedSpells, setSelectedSpells] = useState<string[]>([]);
   const [selectedCantrips, setSelectedCantrips] = useState<string[]>([]);
   const [spellsToSelect, setSpellsToSelect] = useState(0);
+  const [isMagicalSecrets, setIsMagicalSecrets] = useState(false);
   const [cantripsToSelect, setCantripsToSelect] = useState(0);
   const [showSpellDialog, setShowSpellDialog] = useState(false);
   const [showSubclassSelector, setShowSubclassSelector] = useState(false);
@@ -72,6 +78,8 @@ export default function LevelUpPage() {
   const [showFeatSelector, setShowFeatSelector] = useState(false);
   const [selectedFeat, setSelectedFeat] = useState<any>(null);
   const [selectedFeatAttribute, setSelectedFeatAttribute] = useState<string | null>(null); // Atributo escolhido para feat com "any"
+  const [showFightingStyleSelector, setShowFightingStyleSelector] = useState(false);
+  const [selectedFightingStyle, setSelectedFightingStyle] = useState<FightingStyle | null>(null);
   const { translateSpell } = useTranslation();
 
   const fetchCharacterData = useCallback(async () => {
@@ -147,12 +155,27 @@ export default function LevelUpPage() {
           previousLevel
         );
 
-        setCantripsToSelect(learningInfo.newCantrips);
-        setSpellsToSelect(learningInfo.newSpells);
+        // Detectar "Magia Mística" ou "Segredos Mágicos Adicionais"
+        const features = getFeaturesAtLevel(characterData.characterClass, targetLevel);
+        const subFeatures = characterData.subclass ? getSubclassFeaturesAtLevel(characterData.subclass, targetLevel) : [];
+        const allFeatures = [...features, ...subFeatures];
 
-        if (learningInfo.newSpells > 0 || learningInfo.newCantrips > 0) {
-          // Buscar magias disponíveis para a classe
-          await fetchAvailableSpells(characterData.characterClass, targetLevel);
+        const hasMagicalSecrets = allFeatures.some(f =>
+          f.name === "Magia Mística" || f.name === "Segredos Mágicos Adicionais"
+        );
+
+        let adjustedSpellsToSelect = learningInfo.newSpells;
+        // Se for Lore Bard no lv 6, adicionar 2 magias extras (Additional Magical Secrets)
+        if (hasMagicalSecrets && characterData.subclass === "Colégio do Conhecimento" && targetLevel === 6) {
+          adjustedSpellsToSelect += 2;
+        }
+
+        setCantripsToSelect(learningInfo.newCantrips);
+        setSpellsToSelect(adjustedSpellsToSelect);
+
+        if (adjustedSpellsToSelect > 0 || learningInfo.newCantrips > 0) {
+          // Buscar magias disponíveis para a classe (ou todas se for Magia Mística)
+          await fetchAvailableSpells(characterData.characterClass, targetLevel, hasMagicalSecrets);
         }
       }
     } catch (error: any) {
@@ -167,41 +190,36 @@ export default function LevelUpPage() {
     fetchCharacterData();
   }, [fetchCharacterData]);
 
-  const fetchAvailableSpells = async (className: string, level: number) => {
+  const fetchAvailableSpells = async (className: string, level: number, isMagiaMistica: boolean = false) => {
     try {
-      // Buscar magias da API do D&D 5e filtradas por classe
-      const spellsRes = await fetch(`${DND_API_BASE}/api/2014/spells`);
-      if (!spellsRes.ok) return;
+      // Usar a base de dados local
 
-      const spellsData = await spellsRes.json();
-      const allSpells: Spell[] = spellsData.results || [];
-
-      // Filtrar magias por nível máximo que o personagem pode aprender
+      // Nível máximo de magia que pode aprender
       const maxSpellLevel = getSpellcastingLevel(className, level);
-      const filteredSpells: Spell[] = [];
 
-      // Buscar detalhes das magias para filtrar por nível
-      const spellPromises = allSpells.slice(0, 100).map(async (spell: Spell) => {
-        try {
-          const detailRes = await fetch(`${DND_API_BASE}${spell.url}`);
-          if (detailRes.ok) {
-            const detail: SpellDetail = await detailRes.json();
-            if (detail.level <= maxSpellLevel) {
-              return { ...spell, level: detail.level };
-            }
-          }
-        } catch (error) {
-          console.error(`Error fetching spell ${spell.name}:`, error);
-        }
-        return null;
+      // Buscar lista de magias para a classe (ou todas se for Magia Mística)
+      let spellIndices: string[];
+      if (isMagiaMistica) {
+        spellIndices = getSpellsFromAllClasses(maxSpellLevel);
+      } else {
+        spellIndices = getSpellsByClassPTBR(className, maxSpellLevel);
+      }
+
+      // Converter para o formato esperado pelo componente
+      const validSpells: Spell[] = spellIndices.map((index: string) => {
+        const detail = getSpellDetails(index);
+        return {
+          index,
+          name: detail?.namePT || detail?.name || index,
+          url: `/api/spells/${index}`, // Fake URL for compatibility
+          level: detail?.level || 0
+        };
       });
 
-      const results = await Promise.all(spellPromises);
-      const validSpells = results.filter((s): s is Spell & { level: number } => s !== null && s.level !== undefined);
-
       setAvailableSpells(validSpells);
+      setIsMagicalSecrets(isMagiaMistica);
     } catch (error) {
-      console.error("Error fetching spells:", error);
+      console.error("Error loading local spells:", error);
     }
   };
 
@@ -260,7 +278,7 @@ export default function LevelUpPage() {
         toast.error("Escolha entre aumentar atributos (ASI) ou escolher um talento (Feat)");
         return;
       }
-      
+
       if (asiChoice === "asi") {
         const usedPoints = Object.values(attributeIncreases).reduce((sum, val) => sum + val, 0);
         if (usedPoints !== 2) {
@@ -302,10 +320,20 @@ export default function LevelUpPage() {
       return;
     }
 
+    // Validar seleção de Fighting Style
+    const needsFightingStyle = needsFightingStyleSelection(character.characterClass, targetLevel) && !character.fightingStyle && !selectedFightingStyle;
+    if (needsFightingStyle) {
+      toast.error("Selecione seu Estilo de Combate");
+      return;
+    }
+
     setSaving(true);
     try {
-      const newMaxHp = (character.maxHp || 0) + hpGain;
-      const newCurrentHp = Math.min((character.currentHp || 0) + hpGain, newMaxHp);
+      // Calcular bônus de HP por nível (ex: Anão Hill)
+      const hpBonusPerLevel = character.hpBonusPerLevel || 0;
+
+      const newMaxHp = (character.maxHp || 0) + hpGain + hpBonusPerLevel;
+      const newCurrentHp = Math.min((character.currentHp || 0) + hpGain + hpBonusPerLevel, newMaxHp);
 
       // Preparar dados de spellcasting
       const currentSpellcasting = character.spellcasting || {};
@@ -341,12 +369,13 @@ export default function LevelUpPage() {
 
       console.log(`[Level Up Complete] Nível atual: ${character.level}, Novo nível: ${targetLevel}, XP: ${currentXP}, Nível calculado: ${calculatedLevel}, Ainda precisa de level up: ${stillNeedsLevelUp}`);
 
+
       // Aplicar aumentos de atributos ou Feat
       const currentAttributes = character.attributes || {};
       const updatedAttributes = { ...currentAttributes };
       const currentFeats = character.feats || [];
       let updatedFeats = [...currentFeats];
-      
+
       if (asiChoice === "asi" && Object.keys(attributeIncreases).length > 0) {
         // Aplicar ASI (aumentos de atributo)
         Object.entries(attributeIncreases).forEach(([attr, increase]) => {
@@ -361,20 +390,20 @@ export default function LevelUpPage() {
           benefits: selectedFeat.benefits,
           acquiredAt: targetLevel,
         };
-        
+
         // Se o feat tem bônus de atributo "any", salvar o atributo escolhido
         if (selectedFeat.attributeBonus?.attribute === "any" && selectedFeatAttribute) {
           featData.chosenAttribute = selectedFeatAttribute;
         }
-        
+
         updatedFeats.push(featData);
-        
+
         // Se o Feat dá bônus de atributo, aplicar também
         if (selectedFeat.attributeBonus) {
-          const attrKey = selectedFeat.attributeBonus.attribute === 'any' 
-            ? selectedFeatAttribute 
+          const attrKey = selectedFeat.attributeBonus.attribute === 'any'
+            ? selectedFeatAttribute
             : selectedFeat.attributeBonus.attribute;
-          
+
           if (attrKey) {
             const currentValue = updatedAttributes[attrKey] || 10;
             updatedAttributes[attrKey] = Math.min(20, currentValue + selectedFeat.attributeBonus.bonus);
@@ -382,11 +411,46 @@ export default function LevelUpPage() {
         }
       }
 
+      // APLICAR FEATURES AUTOMÁTICAS (ex: Campeão Primitivo do Bárbaro nível 20)
+      const autoUpdatedAttributes = applyAutoFeatures(character.characterClass, targetLevel, updatedAttributes);
+      Object.assign(updatedAttributes, autoUpdatedAttributes);
+
+      // RECALCULAR HP se o modificador de CON mudou (retroativo para todos os níveis)
+      const oldConMod = Math.floor(((character.attributes?.constitution || 10) - 10) / 2);
+      const newConMod = Math.floor(((updatedAttributes.constitution || 10) - 10) / 2);
+      const conModChanged = oldConMod !== newConMod;
+
+      let finalMaxHp: number;
+      let finalCurrentHp: number;
+
+      if (conModChanged) {
+        // Se CON mudou, recalcular HP total retroativamente
+        // HP = (Dado máximo no nível 1) + (média do dado × (nível - 1)) + (mod CON × nível) + (bônus HP por nível × nível)
+        const hitDiceMatch = character.hitDice?.match(/1d(\d+)/);
+        const hitDiceSize = hitDiceMatch ? parseInt(hitDiceMatch[1]) : 8;
+        const averageRoll = Math.floor(hitDiceSize / 2) + 1; // Média arredondada para cima
+
+        // HP retroativo: dado máximo no nível 1 + média nos outros níveis + (novo mod CON × nível total) + (bônus HP por nível × nível total)
+        finalMaxHp = hitDiceSize + (averageRoll * (targetLevel - 1)) + (newConMod * targetLevel) + (hpBonusPerLevel * targetLevel);
+
+        // Ajustar currentHp proporcionalmente
+        const hpPercentage = character.maxHp > 0 ? (character.currentHp || 0) / character.maxHp : 1;
+        finalCurrentHp = Math.max(1, Math.floor(finalMaxHp * hpPercentage));
+
+        console.log(`[HP Recalculation] CON mudou de ${character.attributes?.constitution} (${oldConMod}) para ${updatedAttributes.constitution} (${newConMod})`);
+        console.log(`[HP Recalculation] HP antigo: ${character.maxHp}, HP novo: ${finalMaxHp} (ganho retroativo: ${finalMaxHp - (character.maxHp || 0)})`);
+        console.log(`[HP Recalculation] Bônus HP por nível: ${hpBonusPerLevel} × ${targetLevel} = ${hpBonusPerLevel * targetLevel}`);
+      } else {
+        // Se CON não mudou, apenas adicionar o HP do level up
+        finalMaxHp = newMaxHp;
+        finalCurrentHp = newCurrentHp;
+      }
+
       // Preparar objeto base para atualização
       let updateBody: any = {
         level: targetLevel, // Atualizar para o novo nível
-        maxHp: newMaxHp,
-        currentHp: newCurrentHp,
+        maxHp: finalMaxHp,
+        currentHp: finalCurrentHp,
         needsLevelUp: stillNeedsLevelUp, // Manter true se ainda tiver níveis a subir
         pendingHitDiceRoll: stillNeedsLevelUp ? null : null, // Limpar dado pendente quando level up completo
         attributes: updatedAttributes,
@@ -477,6 +541,11 @@ export default function LevelUpPage() {
         });
       }
 
+      // Aplicar Fighting Style
+      if (selectedFightingStyle) {
+        updateBody.fightingStyle = selectedFightingStyle.name;
+      }
+
       const res = await fetch(`/api/characters/${characterId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -537,10 +606,24 @@ export default function LevelUpPage() {
   const targetLevel = character ? character.level + 1 : 1;
   const subclassLevel = character ? getSubclassLevel(character.characterClass) : 99;
   const needsSubclass = character && !character.subclass && !pendingSubclass && targetLevel >= subclassLevel;
+
+  // Debug para Paladino
+  if (character?.characterClass === "Paladino") {
+    console.log("🛡️ Paladino Debug:", {
+      currentLevel: character.level,
+      targetLevel,
+      subclassLevel,
+      hasSubclass: !!character.subclass,
+      currentSubclass: character.subclass,
+      pendingSubclass: pendingSubclass?.name,
+      needsSubclass
+    });
+  }
+
   const isDraconic = character && (character.subclass === "Linhagem Dracônica" || pendingSubclass?.name === "Linhagem Dracônica");
   const needsDragonType = isDraconic && !character.dragonType && !pendingDragonType;
   const needsPact = character && character.characterClass === 'Bruxo' && targetLevel >= 3 && !character.pact && !pendingPact;
-  
+
   // Verificar se tem ASI neste nível
   const hasASI = features.some(f => f.type === "ability_score_improvement");
   const totalASIPoints = hasASI ? 2 : 0;
@@ -562,7 +645,7 @@ export default function LevelUpPage() {
               XP: {character.experiencePoints || 0}
             </p>
           </div>
-          
+
           {/* Botão de Corrigir Nível */}
           <Button
             variant="outline"
@@ -592,6 +675,124 @@ export default function LevelUpPage() {
           </Button>
         </div>
 
+        {/* Dado de Vida e HP */}
+        <Card className="bg-card/60 border-white/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Dice1 className="h-5 w-5" />
+              Dado de Vida
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!hitDiceRoll ? (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Role seu dado de vida ({character.hitDice}) para determinar quanto HP você ganha.
+                </p>
+                <Button
+                  onClick={rollHitDice}
+                  className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                  size="lg"
+                >
+                  <Dice1 className="mr-2 h-5 w-5" />
+                  Rolar {character.hitDice}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-primary/10 rounded-lg border border-primary/20">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Resultado do Dado</p>
+                    <p className="text-3xl font-bold text-primary">{hitDiceRoll}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Modificador CON</p>
+                    <p className="text-3xl font-bold">{conModifier >= 0 ? '+' : ''}{conModifier}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">HP Ganho</p>
+                    <p className="text-3xl font-bold text-green-400">+{hpGain}</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-card/40 rounded-lg">
+                  <div>
+                    <p className="text-sm text-muted-foreground">HP Atual</p>
+                    <p className="text-xl font-bold">{character.maxHp || 0} PV</p>
+                  </div>
+                  <div className="text-2xl">→</div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Novo HP Máximo</p>
+                    <p className="text-2xl font-bold text-green-400">
+                      {(character.maxHp || 0) + hpGain} PV
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Features do Nível */}
+        <Card className="bg-card/60 border-white/10">
+          <CardHeader>
+            <CardTitle>Novas Habilidades</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {features.map((feature, idx) => (
+                <div key={idx} className="p-3 bg-card/40 rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold">{feature.name}</h3>
+                    <Badge variant="outline">{feature.type}</Badge>
+                  </div>
+                  {/* Não mostrar descrição para ASI, pois já tem a escolha ASI/Feat */}
+                  {feature.type !== "ability_score_improvement" && (
+                    <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  )}
+                </div>
+              ))}
+
+              {/* Escolha de atributo para Feat com "any" */}
+              {asiChoice === "feat" && selectedFeat && selectedFeat.attributeBonus?.attribute === "any" && (
+                <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg space-y-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-4 h-4 text-primary" />
+                    <h3 className="font-semibold text-primary">Escolha o Atributo para {selectedFeat.name}</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Este talento concede +{selectedFeat.attributeBonus.bonus} em um atributo à sua escolha:
+                  </p>
+                  <Select
+                    value={selectedFeatAttribute || ""}
+                    onValueChange={(value) => setSelectedFeatAttribute(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um atributo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="strength">Força</SelectItem>
+                      <SelectItem value="dexterity">Destreza</SelectItem>
+                      <SelectItem value="constitution">Constituição</SelectItem>
+                      <SelectItem value="intelligence">Inteligência</SelectItem>
+                      <SelectItem value="wisdom">Sabedoria</SelectItem>
+                      <SelectItem value="charisma">Carisma</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {selectedFeatAttribute && (
+                    <p className="text-sm text-green-400 mt-2">
+                      ✓ {selectedFeatAttribute === "strength" ? "Força" :
+                        selectedFeatAttribute === "dexterity" ? "Destreza" :
+                          selectedFeatAttribute === "constitution" ? "Constituição" :
+                            selectedFeatAttribute === "intelligence" ? "Inteligência" :
+                              selectedFeatAttribute === "wisdom" ? "Sabedoria" : "Carisma"} receberá +{selectedFeat.attributeBonus.bonus}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Seleção de Subclasse */}
         {needsSubclass && (
           <Card className="bg-card/60 border-white/10 border-l-4 border-l-purple-500">
@@ -609,7 +810,7 @@ export default function LevelUpPage() {
                 onClick={() => setShowSubclassSelector(true)}
                 className="w-full bg-purple-600 hover:bg-purple-700"
               >
-                Escolher {character.characterClass === 'Bruxo' ? 'Patrono' : 'Subclasse'}
+                Escolher {character.characterClass === 'Bruxo' ? 'Patrono' : character.characterClass === 'Paladino' ? 'Juramento Sagrado' : 'Subclasse'}
               </Button>
             </CardContent>
           </Card>
@@ -723,6 +924,43 @@ export default function LevelUpPage() {
           </Card>
         )}
 
+        {/* Seleção de Fighting Style */}
+        {needsFightingStyleSelection(character?.characterClass || "", targetLevel) && !character?.fightingStyle && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedFightingStyle ? 'border-l-green-500' : 'border-l-orange-500'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-orange-400" />
+                {selectedFightingStyle ? 'Estilo de Combate Selecionado' : 'Escolha seu Estilo de Combate'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedFightingStyle ? (
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-bold">{selectedFightingStyle.name}</h3>
+                    <p className="text-sm text-muted-foreground">{selectedFightingStyle.description}</p>
+                  </div>
+                  <Button variant="outline" onClick={() => setShowFightingStyleSelector(true)}>
+                    Alterar
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-4 text-muted-foreground">
+                    Você aprendeu um estilo de combate que define como você luta em batalha.
+                  </p>
+                  <Button
+                    onClick={() => setShowFightingStyleSelector(true)}
+                    className="w-full bg-orange-600 hover:bg-orange-700"
+                  >
+                    Escolher Estilo de Combate
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Escolha: ASI ou Feat */}
         {hasASI && (
           <Card className={`bg-card/60 border-white/10 border-l-4 ${asiChoice ? 'border-l-green-500' : 'border-l-yellow-500'}`}>
@@ -753,7 +991,7 @@ export default function LevelUpPage() {
                       Distribua +2 pontos nos seus atributos (máximo +1 por atributo ou +2 em um único).
                     </p>
                   </Button>
-                  
+
                   <Button
                     size="lg"
                     variant="outline"
@@ -792,7 +1030,7 @@ export default function LevelUpPage() {
                       Mudar escolha
                     </Button>
                   </div>
-                  
+
                   <p className="text-sm font-bold">
                     Pontos disponíveis: <span className={remainingASIPoints === 0 ? "text-green-400" : "text-yellow-400"}>{remainingASIPoints}/2</span>
                   </p>
@@ -899,20 +1137,20 @@ export default function LevelUpPage() {
                           Trocar
                         </Button>
                       </div>
-                      
+
                       {selectedFeat.attributeBonus && (
                         <Badge variant="secondary" className="flex items-center gap-1 w-fit">
                           <TrendingUp className="w-3 h-3" />
                           +{selectedFeat.attributeBonus.bonus}{" "}
-                          {selectedFeat.attributeBonus.attribute === "any" ? "Atributo à escolha" : 
-                           selectedFeat.attributeBonus.attribute === "strength" ? "Força" :
-                           selectedFeat.attributeBonus.attribute === "dexterity" ? "Destreza" :
-                           selectedFeat.attributeBonus.attribute === "constitution" ? "Constituição" :
-                           selectedFeat.attributeBonus.attribute === "intelligence" ? "Inteligência" :
-                           selectedFeat.attributeBonus.attribute === "wisdom" ? "Sabedoria" : "Carisma"}
+                          {selectedFeat.attributeBonus.attribute === "any" ? "Atributo à escolha" :
+                            selectedFeat.attributeBonus.attribute === "strength" ? "Força" :
+                              selectedFeat.attributeBonus.attribute === "dexterity" ? "Destreza" :
+                                selectedFeat.attributeBonus.attribute === "constitution" ? "Constituição" :
+                                  selectedFeat.attributeBonus.attribute === "intelligence" ? "Inteligência" :
+                                    selectedFeat.attributeBonus.attribute === "wisdom" ? "Sabedoria" : "Carisma"}
                         </Badge>
                       )}
-                      
+
                       <div className="space-y-1">
                         <p className="text-sm font-semibold">Benefícios:</p>
                         <ul className="text-sm space-y-1">
@@ -946,200 +1184,99 @@ export default function LevelUpPage() {
           </Card>
         )}
 
-        {/* Rolagem de Dado de Vida */}
-        <Card className="bg-card/60 border-white/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Dice1 className="h-5 w-5" />
-              Rolagem de Dado de Vida
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Dado de Vida da Classe</Label>
-              <p className="text-lg font-bold">{character.hitDice}</p>
-            </div>
-            <div>
-              <Label>Modificador de Constituição</Label>
-              <p className="text-lg font-bold">
-                {conModifier >= 0 ? "+" : ""}{conModifier}
-              </p>
-            </div>
-            {!hitDiceRoll ? (
-              <Button onClick={rollHitDice} className="w-full">
-                Rolar Dado de Vida
-              </Button>
-            ) : (
-              <div className="space-y-2">
-                <div className="bg-primary/10 p-4 rounded-lg">
-                  <p className="text-sm text-muted-foreground">Resultado do dado:</p>
-                  <p className="text-3xl font-bold">{hitDiceRoll}</p>
-                </div>
-                <div className="bg-primary/10 p-4 rounded-lg">
-                  <p className="text-sm text-muted-foreground">Ganho de PV:</p>
-                  <p className="text-2xl font-bold">
-                    {hitDiceRoll} + {conModifier} = {hpGain} PV
-                  </p>
-                </div>
-                <div className="bg-green-500/10 p-4 rounded-lg border border-green-500/20">
-                  <p className="text-sm text-muted-foreground">Novos PV Máximos:</p>
-                  <p className="text-2xl font-bold text-green-400">
-                    {(character.maxHp || 0) + hpGain} PV
-                  </p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Features do Nível */}
-        {features.length > 0 && (
-          <Card className="bg-card/60 border-white/10">
-            <CardHeader>
-              <CardTitle>Novas Habilidades</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {features.map((feature, idx) => (
-                  <div key={idx} className="p-3 bg-card/40 rounded-lg">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold">{feature.name}</h3>
-                      <Badge variant="outline">{feature.type}</Badge>
-                    </div>
-                    {/* Não mostrar descrição para ASI, pois já tem a escolha ASI/Feat */}
-                    {feature.type !== "ability_score_improvement" && (
-                      <p className="text-sm text-muted-foreground">{feature.description}</p>
-                    )}
-                  </div>
-                ))}
-                
-                {/* Escolha de atributo para Feat com "any" */}
-                {asiChoice === "feat" && selectedFeat && selectedFeat.attributeBonus?.attribute === "any" && (
-                  <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg space-y-2">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-4 h-4 text-primary" />
-                      <h3 className="font-semibold text-primary">Escolha o Atributo para {selectedFeat.name}</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Este talento concede +{selectedFeat.attributeBonus.bonus} em um atributo à sua escolha:
-                    </p>
-                    <Select
-                      value={selectedFeatAttribute || ""}
-                      onValueChange={(value) => setSelectedFeatAttribute(value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um atributo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="strength">Força</SelectItem>
-                        <SelectItem value="dexterity">Destreza</SelectItem>
-                        <SelectItem value="constitution">Constituição</SelectItem>
-                        <SelectItem value="intelligence">Inteligência</SelectItem>
-                        <SelectItem value="wisdom">Sabedoria</SelectItem>
-                        <SelectItem value="charisma">Carisma</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {selectedFeatAttribute && (
-                      <p className="text-sm text-green-400 mt-2">
-                        ✓ {selectedFeatAttribute === "strength" ? "Força" :
-                            selectedFeatAttribute === "dexterity" ? "Destreza" :
-                            selectedFeatAttribute === "constitution" ? "Constituição" :
-                            selectedFeatAttribute === "intelligence" ? "Inteligência" :
-                            selectedFeatAttribute === "wisdom" ? "Sabedoria" : "Carisma"} receberá +{selectedFeat.attributeBonus.bonus}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Slots de Magia */}
-        {spellSlots && (
-          <Card className="bg-card/60 border-white/10">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                Slots de Magia
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-5 gap-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((level) => {
-                  const slots = spellSlots[`level${level}` as keyof typeof spellSlots] || 0;
-                  if (slots === 0 && level > 1) return null;
-                  return (
-                    <div key={level} className="text-center p-2 bg-card/40 rounded">
-                      <p className="text-xs text-muted-foreground">{level}º</p>
-                      <p className="text-xl font-bold">{slots}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {
+          spellSlots && (
+            <Card className="bg-card/60 border-white/10">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  Slots de Magia
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-5 gap-2">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((level) => {
+                    const slots = spellSlots[`level${level}` as keyof typeof spellSlots] || 0;
+                    if (slots === 0 && level > 1) return null;
+                    return (
+                      <div key={level} className="text-center p-2 bg-card/40 rounded">
+                        <p className="text-xs text-muted-foreground">{level}º</p>
+                        <p className="text-xl font-bold">{slots}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )
+        }
 
         {/* Seleção de Magias */}
-        {canCastSpells(character.characterClass) && (spellsToSelect > 0 || cantripsToSelect > 0) && (
-          <Card className="bg-card/60 border-white/10">
-            <CardHeader>
-              <CardTitle>Selecionar Magias</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                {cantripsToSelect > 0 && spellsToSelect > 0
-                  ? `Selecione ${cantripsToSelect} truque(s) e ${spellsToSelect} magia(s) para aprender neste nível`
-                  : cantripsToSelect > 0
-                    ? `Selecione ${cantripsToSelect} truque(s) para aprender neste nível`
-                    : `Selecione ${spellsToSelect} magia(s) para aprender neste nível`
-                }
-              </p>
-              {(selectedSpells.length > 0 || selectedCantrips.length > 0) && (
-                <div className="space-y-2">
-                  <Label>
-                    Selecionadas ({selectedSpells.length + selectedCantrips.length}/{spellsToSelect + cantripsToSelect})
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {[...selectedCantrips, ...selectedSpells].map((spellIndex) => {
-                      const spell = availableSpells.find(s => s.index === spellIndex);
-                      const isCantrip = spell?.level === 0;
-                      return (
-                        <Badge key={spellIndex} variant="outline" className="p-2">
-                          {spell ? translateSpell(spell.name) : spellIndex}
-                          {isCantrip && " (Truque)"}
-                          <button
-                            onClick={() => {
-                              if (isCantrip) {
-                                setSelectedCantrips(prev => prev.filter(s => s !== spellIndex));
-                              } else {
-                                setSelectedSpells(prev => prev.filter(s => s !== spellIndex));
-                              }
-                            }}
-                            className="ml-2 text-red-400 hover:text-red-300"
-                          >
-                            ×
-                          </button>
-                        </Badge>
-                      );
-                    })}
+        {
+          canCastSpells(character.characterClass) && (spellsToSelect > 0 || cantripsToSelect > 0) && (
+            <Card className="bg-card/60 border-white/10">
+              <CardHeader>
+                <CardTitle>Selecionar Magias</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  {isMagicalSecrets ? (
+                    `Você ganhou Segredos Mágicos! Selecione ${spellsToSelect} magias de QUALQUER classe.`
+                  ) : (
+                    cantripsToSelect > 0 && spellsToSelect > 0
+                      ? `Selecione ${cantripsToSelect} truque(s) e ${spellsToSelect} magia(s) para aprender neste nível`
+                      : cantripsToSelect > 0
+                        ? `Selecione ${cantripsToSelect} truque(s) para aprender neste nível`
+                        : `Selecione ${spellsToSelect} magia(s) para aprender neste nível`
+                  )}
+                </p>
+                {(selectedSpells.length > 0 || selectedCantrips.length > 0) && (
+                  <div className="space-y-2">
+                    <Label>
+                      Selecionadas ({selectedSpells.length + selectedCantrips.length}/{spellsToSelect + cantripsToSelect})
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {[...selectedCantrips, ...selectedSpells].map((spellIndex) => {
+                        const spell = availableSpells.find(s => s.index === spellIndex);
+                        const isCantrip = spell?.level === 0;
+                        return (
+                          <Badge key={spellIndex} variant="outline" className="p-2">
+                            {spell ? translateSpell(spell.name) : spellIndex}
+                            {isCantrip && " (Truque)"}
+                            <button
+                              onClick={() => {
+                                if (isCantrip) {
+                                  setSelectedCantrips(prev => prev.filter(s => s !== spellIndex));
+                                } else {
+                                  setSelectedSpells(prev => prev.filter(s => s !== spellIndex));
+                                }
+                              }}
+                              className="ml-2 text-red-400 hover:text-red-300"
+                            >
+                              ×
+                            </button>
+                          </Badge>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
-              <Button
-                onClick={() => setShowSpellDialog(true)}
-                variant="outline"
-                className="w-full"
-                disabled={(selectedSpells.length >= spellsToSelect && selectedCantrips.length >= cantripsToSelect)}
-              >
-                {(selectedSpells.length >= spellsToSelect && selectedCantrips.length >= cantripsToSelect)
-                  ? "Todas as magias selecionadas"
-                  : `Selecionar Magias (${selectedSpells.length + selectedCantrips.length}/${spellsToSelect + cantripsToSelect})`}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+                )}
+                <Button
+                  onClick={() => setShowSpellDialog(true)}
+                  variant="outline"
+                  className="w-full"
+                  disabled={(selectedSpells.length >= spellsToSelect && selectedCantrips.length >= cantripsToSelect)}
+                >
+                  {(selectedSpells.length >= spellsToSelect && selectedCantrips.length >= cantripsToSelect)
+                    ? "Todas as magias selecionadas"
+                    : `Selecionar Magias (${selectedSpells.length + selectedCantrips.length}/${spellsToSelect + cantripsToSelect})`}
+                </Button>
+              </CardContent>
+            </Card>
+          )
+        }
 
         {/* Botão Finalizar */}
         <Card className="bg-card/60 border-white/10">
@@ -1173,33 +1310,35 @@ export default function LevelUpPage() {
         </Card>
 
         {/* Dialog de Seleção de Magias */}
-        {showSpellDialog && (
-          <SpellSelectionDialog
-            open={showSpellDialog}
-            onOpenChange={setShowSpellDialog}
-            availableSpells={availableSpells}
-            selectedSpells={[...selectedCantrips, ...selectedSpells]}
-            onSpellsChange={(spells) => {
-              // Separar truques de magias
-              const cantrips = spells.filter(idx => {
-                const spell = availableSpells.find(s => s.index === idx);
-                return spell?.level === 0;
-              });
-              const regularSpells = spells.filter(idx => {
-                const spell = availableSpells.find(s => s.index === idx);
-                return spell?.level !== undefined && spell.level > 0;
-              });
-              setSelectedCantrips(cantrips);
-              setSelectedSpells(regularSpells);
-            }}
-            maxSpells={spellsToSelect}
-            maxCantrips={cantripsToSelect}
-            characterClass={character.characterClass}
-            characterLevel={character.level}
-            knownSpells={character.spellcasting?.knownSpells || []}
-            allowSwap={false}
-          />
-        )}
+        {
+          showSpellDialog && (
+            <SpellSelectionDialog
+              open={showSpellDialog}
+              onOpenChange={setShowSpellDialog}
+              availableSpells={availableSpells}
+              selectedSpells={[...selectedCantrips, ...selectedSpells]}
+              onSpellsChange={(spells) => {
+                // Separar truques de magias
+                const cantrips = spells.filter(idx => {
+                  const spell = availableSpells.find(s => s.index === idx);
+                  return spell?.level === 0;
+                });
+                const regularSpells = spells.filter(idx => {
+                  const spell = availableSpells.find(s => s.index === idx);
+                  return spell?.level !== undefined && spell.level > 0;
+                });
+                setSelectedCantrips(cantrips);
+                setSelectedSpells(regularSpells);
+              }}
+              maxSpells={spellsToSelect}
+              maxCantrips={cantripsToSelect}
+              characterClass={character.characterClass}
+              characterLevel={character.level}
+              knownSpells={character.spellcasting?.knownSpells || []}
+              allowSwap={false}
+            />
+          )
+        }
 
         {/* Dialog de Seleção de Subclasse */}
         <SubclassSelector
@@ -1249,7 +1388,22 @@ export default function LevelUpPage() {
             toast.success(`Pacto "${pact.name}" selecionado!`);
           }}
         />
-      </div>
-    </FantasyLayout>
+
+        {/* Dialog de Seleção de Fighting Style */}
+        {
+          showFightingStyleSelector && (
+            <FightingStyleSelector
+              availableStyles={getFightingStylesForClass(character?.characterClass || "")}
+              selectedStyle={selectedFightingStyle}
+              onSelect={(style) => {
+                setSelectedFightingStyle(style);
+                toast.success(`Estilo de Combate "${style.name}" selecionado!`);
+              }}
+              onClose={() => setShowFightingStyleSelector(false)}
+            />
+          )
+        }
+      </div >
+    </FantasyLayout >
   );
 }
