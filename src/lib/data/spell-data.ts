@@ -108,6 +108,25 @@ const CLASS_NAME_MAP: Record<string, string> = {
 };
 
 /**
+ * Retorna magias de todas as classes combinadas
+ */
+export function getSpellsFromAllClasses(maxLevel?: number): string[] {
+    const spellsByClass = spellsByClassData as Record<string, Record<string, string[]>>;
+    const allSpellsSet = new Set<string>();
+
+    Object.values(spellsByClass).forEach(classSpells => {
+        for (let level = 0; level <= (maxLevel || 9); level++) {
+            const levelKey = `level${level}`;
+            if (classSpells[levelKey]) {
+                classSpells[levelKey].forEach(index => allSpellsSet.add(index));
+            }
+        }
+    });
+
+    return Array.from(allSpellsSet);
+}
+
+/**
  * Retorna magias de uma classe (aceita nome em PT-BR)
  */
 export function getSpellsByClassPTBR(className: string, maxLevel?: number): string[] {

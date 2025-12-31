@@ -23,6 +23,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { SpellDetailDialog } from "@/components/character/SpellDetailDialog";
 
 interface PreparedSpellsManagerProps {
     character: any;
@@ -490,84 +491,11 @@ export function PreparedSpellsManager({
             </Card>
 
             {/* Modal de Detalhes da Magia */}
-            <Dialog open={!!selectedSpell} onOpenChange={() => setSelectedSpell(null)}>
-                <DialogContent className="max-w-2xl max-h-[90vh] bg-card border-white/10">
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl font-cinzel text-primary flex items-center gap-2">
-                            <Sparkles className="w-6 h-6" />
-                            {selectedSpellDetail ? (selectedSpellDetail.namePT || selectedSpellDetail.name) : ""}
-                        </DialogTitle>
-                    </DialogHeader>
-                    {selectedSpellDetail && (
-                        <div className="space-y-4 overflow-y-auto pr-2" style={{ maxHeight: 'calc(90vh - 120px)' }}>
-                            <div className="bg-primary/5 p-3 rounded-md border border-primary/20 mb-4">
-                                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                                    {selectedSpellDetail.descriptionPT || selectedSpellDetail.description}
-                                </p>
-                                {!selectedSpellDetail.descriptionPT && (
-                                    <p className="text-xs text-yellow-500 mt-2 italic">
-                                        ⚠️ Tradução de descrição não disponível
-                                    </p>
-                                )}
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase">Nível</p>
-                                    <p className="font-semibold">{selectedSpellDetail.level}º Nível</p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase">Escola</p>
-                                    <p className="font-semibold">
-                                        {translateDnd5e(selectedSpellDetail.school)}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase">Tempo de Conjuração</p>
-                                    <p className="font-semibold">
-                                        {translateDnd5e(selectedSpellDetail.casting_time || "")}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase">Alcance</p>
-                                    <p className="font-semibold">{translateDnd5e(selectedSpellDetail.range || "")}</p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase">Componentes</p>
-                                    <p className="font-semibold">
-                                        {selectedSpellDetail.components?.join(", ") || ""}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase">Duração</p>
-                                    <p className="font-semibold">
-                                        {translateDnd5e(selectedSpellDetail.duration || "")}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className="text-xs text-muted-foreground uppercase mb-2">Descrição</p>
-                                <div className="space-y-2 text-sm">
-                                    {selectedSpellDetail.desc?.map((paragraph: string, index: number) => (
-                                        <p key={index}>{translateDnd5e(paragraph)}</p>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {selectedSpellDetail.higher_level && selectedSpellDetail.higher_level.length > 0 && (
-                                <div>
-                                    <p className="text-xs text-muted-foreground uppercase mb-2">Em Níveis Superiores</p>
-                                    <div className="space-y-2 text-sm">
-                                        {selectedSpellDetail.higher_level.map((paragraph: string, index: number) => (
-                                            <p key={index}>{translateDnd5e(paragraph)}</p>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
+            <SpellDetailDialog
+                isOpen={!!selectedSpell}
+                onClose={() => setSelectedSpell(null)}
+                spell={selectedSpellDetail}
+            />
         </>
     );
 }

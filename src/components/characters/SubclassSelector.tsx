@@ -8,6 +8,65 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sparkles, BookOpen, Shield, Zap } from 'lucide-react';
 import { Subclass, getSubclassesByClass, getSubclassBenefitsSummary } from '@/lib/subclasses';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
+// Perícias disponíveis
+const SKILLS = [
+    { key: "acrobatics", label: "Acrobacia" },
+    { key: "animalHandling", label: "Adestrar Animais" },
+    { key: "arcana", label: "Arcanismo" },
+    { key: "athletics", label: "Atletismo" },
+    { key: "deception", label: "Enganação" },
+    { key: "history", label: "História" },
+    { key: "insight", label: "Intuição" },
+    { key: "intimidation", label: "Intimidação" },
+    { key: "investigation", label: "Investigação" },
+    { key: "medicine", label: "Medicina" },
+    { key: "nature", label: "Natureza" },
+    { key: "perception", label: "Percepção" },
+    { key: "performance", label: "Atuação" },
+    { key: "persuasion", label: "Persuasão" },
+    { key: "religion", label: "Religião" },
+    { key: "sleightOfHand", label: "Prestidigitação" },
+    { key: "stealth", label: "Furtividade" },
+    { key: "survival", label: "Sobrevivência" },
+];
+
+// Estilos de Luta disponíveis
+const FIGHTING_STYLES = [
+    {
+        key: "archery",
+        label: "Arquearia",
+        description: "+2 de bônus nas jogadas de ataque com armas de ataque à distância"
+    },
+    {
+        key: "defense",
+        label: "Defesa",
+        description: "+1 de bônus na CA enquanto estiver usando armadura"
+    },
+    {
+        key: "dueling",
+        label: "Duelo",
+        description: "+2 de bônus no dano quando empunhar uma arma corpo a corpo em uma mão"
+    },
+    {
+        key: "great-weapon",
+        label: "Arma Grande",
+        description: "Pode rolar novamente 1 ou 2 no dado de dano de armas corpo a corpo de duas mãos"
+    },
+    {
+        key: "protection",
+        label: "Proteção",
+        description: "Impor desvantagem em ataques contra aliados próximos (requer escudo)"
+    },
+    {
+        key: "two-weapon",
+        label: "Duas Armas",
+        description: "Adiciona modificador de habilidade ao dano do ataque com a segunda arma"
+    },
+];
 
 interface SubclassSelectorProps {
     open: boolean;
@@ -29,6 +88,8 @@ export function SubclassSelector({
 }: SubclassSelectorProps) {
     const [selectedSubclass, setSelectedSubclass] = useState<Subclass | null>(null);
     const [homebrewSubclasses, setHomebrewSubclasses] = useState<Subclass[]>([]);
+    const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+    const [selectedFightingStyle, setSelectedFightingStyle] = useState<string>('');
     const availableSubclasses = [...getSubclassesByClass(className, type), ...homebrewSubclasses];
 
     useEffect(() => {
@@ -58,10 +119,54 @@ export function SubclassSelector({
         }
     };
 
+    const toggleSkill = (skillKey: string, maxSkills: number) => {
+        setSelectedSkills(prev => {
+            if (prev.includes(skillKey)) {
+                return prev.filter(s => s !== skillKey);
+            } else if (prev.length < maxSkills) {
+                return [...prev, skillKey];
+            }
+            return prev;
+        });
+    };
+
     const handleSelect = () => {
         if (selectedSubclass) {
-            onSelect(selectedSubclass);
+            // Validar escolhas necessárias
+            const skillBenefit = selectedSubclass.benefits?.find(b =>
+                b.type === 'skill' && typeof b.value === 'string' && b.value.includes('choose')
+            );
+
+            if (skillBenefit && typeof skillBenefit.value === 'string') {
+                const requiredCount = parseInt(skillBenefit.value.match(/\d+/)?.[0] || '0');
+                if (selectedSkills.length < requiredCount) {
+                    return; // Não permite confirmar sem todas as perícias
+                }
+            }
+
+            const needsFightingStyle = selectedSubclass.features.some(f =>
+                f.name === 'Estilo de Luta' && f.level === 3
+            );
+
+            if (needsFightingStyle && !selectedFightingStyle) {
+                return; // Não permite confirmar sem estilo de luta
+            }
+
+            // Passar as escolhas junto com a subclasse
+            const subclassWithChoices = {
+                ...selectedSubclass,
+                choices: {
+                    skills: selectedSkills,
+                    fightingStyle: selectedFightingStyle
+                }
+            };
+
+            onSelect(subclassWithChoices as Subclass);
             onOpenChange(false);
+
+            // Reset
+            setSelectedSkills([]);
+            setSelectedFightingStyle('');
         }
     };
 
@@ -247,6 +352,93 @@ export function SubclassSelector({
                         )}
                     </ScrollArea>
                 </div>
+
+                {/* Escolhas Necessárias */}
+                {selectedSubclass && (() => {
+                    const skillBenefit = selectedSubclass.benefits?.find(b =>
+                        b.type === 'skill' && typeof b.value === 'string' && b.value.includes('choose')
+                    );
+                    const needsFightingStyle = selectedSubclass.features.some(f =>
+                        f.name === 'Estilo de Luta' && f.level === 3
+                    );
+                    const requiredSkills = skillBenefit && typeof skillBenefit.value === 'string'
+                        ? parseInt(skillBenefit.value.match(/\d+/)?.[0] || '0')
+                        : 0;
+
+                    return (skillBenefit || needsFightingStyle) ? (
+                        <div className="border-t pt-4 space-y-4 mt-4">
+                            <h3 className="text-sm font-semibold text-amber-400 flex items-center gap-2">
+                                <Sparkles className="w-4 h-4" />
+                                Escolhas Necessárias
+                            </h3>
+
+                            {/* Seletor de Perícias */}
+                            {skillBenefit && (
+                                <Card className="bg-card/50 border-primary/20">
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="text-sm flex items-center justify-between">
+                                            <span>Escolha {requiredSkills} Perícia{requiredSkills > 1 ? 's' : ''}</span>
+                                            <Badge variant="outline" className={selectedSkills.length === requiredSkills ? "bg-green-500/20 text-green-300" : "bg-amber-500/20 text-amber-300"}>
+                                                {selectedSkills.length}/{requiredSkills}
+                                            </Badge>
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {SKILLS.map(skill => (
+                                                <div key={skill.key} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={`skill-${skill.key}`}
+                                                        checked={selectedSkills.includes(skill.key)}
+                                                        onCheckedChange={() => toggleSkill(skill.key, requiredSkills)}
+                                                        disabled={!selectedSkills.includes(skill.key) && selectedSkills.length >= requiredSkills}
+                                                    />
+                                                    <Label
+                                                        htmlFor={`skill-${skill.key}`}
+                                                        className="text-xs cursor-pointer"
+                                                    >
+                                                        {skill.label}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {/* Seletor de Estilo de Luta */}
+                            {needsFightingStyle && (
+                                <Card className="bg-card/50 border-primary/20">
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="text-sm flex items-center justify-between">
+                                            <span>Escolha um Estilo de Luta</span>
+                                            {selectedFightingStyle && (
+                                                <Badge variant="outline" className="bg-green-500/20 text-green-300">
+                                                    Selecionado
+                                                </Badge>
+                                            )}
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <RadioGroup value={selectedFightingStyle} onValueChange={setSelectedFightingStyle}>
+                                            <div className="space-y-3">
+                                                {FIGHTING_STYLES.map(style => (
+                                                    <div key={style.key} className="flex items-start space-x-2">
+                                                        <RadioGroupItem value={style.key} id={`style-${style.key}`} className="mt-1" />
+                                                        <Label htmlFor={`style-${style.key}`} className="cursor-pointer flex-1">
+                                                            <span className="font-medium text-sm block">{style.label}</span>
+                                                            <span className="text-xs text-muted-foreground block mt-0.5">{style.description}</span>
+                                                        </Label>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </RadioGroup>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </div>
+                    ) : null;
+                })()}
 
                 {/* Botões de Ação */}
                 <div className="flex justify-end gap-2 mt-4 flex-shrink-0">

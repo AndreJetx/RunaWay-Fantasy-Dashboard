@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Search, Sparkles, X } from "lucide-react";
 import { getSpellcastingLevel } from "@/lib/spell-slots";
 import { useTranslation } from "@/lib/i18n/context";
+import { getTranslatedDescription } from "@/lib/data/spell-data";
 
 const DND_API_BASE = "https://www.dnd5eapi.co";
 
@@ -347,7 +348,7 @@ export function SpellSelectionDialog({
                           </div>
                           {detail && detail.desc && (
                             <p className="text-sm text-muted-foreground line-clamp-2">
-                              {detail.desc[0]}
+                              {getTranslatedDescription(spell.name, 'pt-BR') || detail.desc[0]}
                             </p>
                           )}
                         </div>

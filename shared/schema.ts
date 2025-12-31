@@ -144,6 +144,7 @@ const characterColumns = {
   system: text("system").notNull().default("dnd5e"),
   name: text("name").notNull(),
   race: text("race"),
+  subrace: text("subrace"), // Subrace (ex: Hill Dwarf, High Elf, etc)
   characterClass: text("character_class").notNull(),
   subclass: text("subclass"),
   pact: text("pact"), // Para Bruxos: Pacto da Lâmina, Pacto da Corrente, etc.
@@ -161,6 +162,7 @@ const characterColumns = {
   maxHp: integer("max_hp").default(10),
   tempHp: integer("temp_hp").default(0),
   hitDice: text("hit_dice"),
+  hpBonusPerLevel: integer("hp_bonus_per_level").default(0), // Bônus de HP por nível (ex: Anão Hill = 1)
   attributes: jsonb("attributes").default(sql`'{}'::jsonb`),
   savingThrows: jsonb("saving_throws").default(sql`'{}'::jsonb`),
   skills: jsonb("skills").default(sql`'{}'::jsonb`),

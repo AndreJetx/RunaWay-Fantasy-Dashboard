@@ -772,6 +772,7 @@ function NewCharacterPageContent() {
     maxHp: 10,
     tempHp: 0,
     hitDice: "1d8",
+    hpBonusPerLevel: 0, // Bônus de HP por nível (ex: Anão Hill)
 
     // Personalidade
     personalityTraits: "",
@@ -1039,8 +1040,29 @@ function NewCharacterPageContent() {
       const bonuses = charClass.bonuses;
       const conModifier = calculateModifier(prev.attributes.constitution || 0);
 
-      // HP base é sempre hitPoints da classe + CON (nível 1)
-      const newMaxHp = bonuses.hitPoints + conModifier;
+      // Detectar bônus de HP por nível da raça/subrace
+      let hpBonusPerLevel = 0;
+      const selectedRaceData = allRaceExpansions
+        .flatMap(exp => exp.races)
+        .find(r => r.name === formData.race);
+
+      if (selectedRaceData) {
+        // Verificar se a raça tem o bônus
+        if (selectedRaceData.advantages?.some(adv => adv.includes('+1 HP por nível'))) {
+          hpBonusPerLevel = 1;
+        }
+
+        // Verificar se a subrace tem o bônus
+        if (formData.subrace && selectedRaceData.subraces) {
+          const selectedSubraceData = selectedRaceData.subraces.find(sr => sr.name === formData.subrace);
+          if (selectedSubraceData?.advantages?.some(adv => adv.includes('+1 HP por nível'))) {
+            hpBonusPerLevel = 1;
+          }
+        }
+      }
+
+      // HP base é sempre hitPoints da classe + CON + bônus racial (nível 1)
+      const newMaxHp = bonuses.hitPoints + conModifier + hpBonusPerLevel;
 
       // Atualizar dado de vida baseado na classe
       const hitDiceValue = `1d${bonuses.hitDie}`;
@@ -1071,9 +1093,10 @@ function NewCharacterPageContent() {
         currentHp: newCurrentHp,
         hitDice: hitDiceValue,
         armorClass: bonuses.unarmoredDefense ? newArmorClass : prev.armorClass,
+        hpBonusPerLevel, // Salvar o bônus para uso futuro em level-ups
       };
     });
-  }, [formData.attributes.constitution, formData.attributes.dexterity, formData.attributes.wisdom, formData.characterClass, allCharacterClasses]);
+  }, [formData.attributes.constitution, formData.attributes.dexterity, formData.attributes.wisdom, formData.characterClass, formData.race, formData.subrace, allCharacterClasses, allRaceExpansions]);
 
   const calculateModifier = (value: number): number => {
     return Math.floor((value - 10) / 2);
@@ -2031,6 +2054,7 @@ function NewCharacterPageContent() {
       if (formData.backstory) payload.backstory = formData.backstory;
       if (formData.notes) payload.notes = formData.notes;
       if (formData.image) payload.image = formData.image;
+      if (formData.hpBonusPerLevel) payload.hpBonusPerLevel = formData.hpBonusPerLevel;
 
       // Adicionar features da classe
       if (formData.characterClass) {

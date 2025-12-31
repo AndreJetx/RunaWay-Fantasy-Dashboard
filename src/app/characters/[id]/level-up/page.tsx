@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getSpellsByClassPTBR, getSpellDetails } from "@/lib/data/spell-data";
+import { getSpellsByClassPTBR, getSpellDetails, getSpellsFromAllClasses } from "@/lib/data/spell-data";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,7 @@ import { SpellSelectionDialog } from "@/components/characters/SpellSelectionDial
 import { SubclassSelector } from "@/components/characters/SubclassSelector";
 import { DragonTypeSelector } from "@/components/characters/DragonTypeSelector";
 import { FeatSelector } from "@/components/characters/FeatSelector";
-import { getSubclassLevel, needsSubclassSelection } from "@/lib/subclasses";
+import { getSubclassLevel, needsSubclassSelection, getSubclassFeaturesAtLevel } from "@/lib/subclasses";
 import { applySubclassBenefits } from "@/lib/benefit-application";
 import type { Feat } from "@/lib/feats";
 import type { Subclass } from "@/lib/subclasses";
@@ -63,6 +63,7 @@ export default function LevelUpPage() {
   const [selectedSpells, setSelectedSpells] = useState<string[]>([]);
   const [selectedCantrips, setSelectedCantrips] = useState<string[]>([]);
   const [spellsToSelect, setSpellsToSelect] = useState(0);
+  const [isMagicalSecrets, setIsMagicalSecrets] = useState(false);
   const [cantripsToSelect, setCantripsToSelect] = useState(0);
   const [showSpellDialog, setShowSpellDialog] = useState(false);
   const [showSubclassSelector, setShowSubclassSelector] = useState(false);
@@ -154,12 +155,27 @@ export default function LevelUpPage() {
           previousLevel
         );
 
-        setCantripsToSelect(learningInfo.newCantrips);
-        setSpellsToSelect(learningInfo.newSpells);
+        // Detectar "Magia Mística" ou "Segredos Mágicos Adicionais"
+        const features = getFeaturesAtLevel(characterData.characterClass, targetLevel);
+        const subFeatures = characterData.subclass ? getSubclassFeaturesAtLevel(characterData.subclass, targetLevel) : [];
+        const allFeatures = [...features, ...subFeatures];
 
-        if (learningInfo.newSpells > 0 || learningInfo.newCantrips > 0) {
-          // Buscar magias disponíveis para a classe
-          await fetchAvailableSpells(characterData.characterClass, targetLevel);
+        const hasMagicalSecrets = allFeatures.some(f =>
+          f.name === "Magia Mística" || f.name === "Segredos Mágicos Adicionais"
+        );
+
+        let adjustedSpellsToSelect = learningInfo.newSpells;
+        // Se for Lore Bard no lv 6, adicionar 2 magias extras (Additional Magical Secrets)
+        if (hasMagicalSecrets && characterData.subclass === "Colégio do Conhecimento" && targetLevel === 6) {
+          adjustedSpellsToSelect += 2;
+        }
+
+        setCantripsToSelect(learningInfo.newCantrips);
+        setSpellsToSelect(adjustedSpellsToSelect);
+
+        if (adjustedSpellsToSelect > 0 || learningInfo.newCantrips > 0) {
+          // Buscar magias disponíveis para a classe (ou todas se for Magia Mística)
+          await fetchAvailableSpells(characterData.characterClass, targetLevel, hasMagicalSecrets);
         }
       }
     } catch (error: any) {
@@ -174,15 +190,20 @@ export default function LevelUpPage() {
     fetchCharacterData();
   }, [fetchCharacterData]);
 
-  const fetchAvailableSpells = async (className: string, level: number) => {
+  const fetchAvailableSpells = async (className: string, level: number, isMagiaMistica: boolean = false) => {
     try {
       // Usar a base de dados local
 
       // Nível máximo de magia que pode aprender
       const maxSpellLevel = getSpellcastingLevel(className, level);
 
-      // Buscar lista de magias para a classe
-      const spellIndices = getSpellsByClassPTBR(className, maxSpellLevel);
+      // Buscar lista de magias para a classe (ou todas se for Magia Mística)
+      let spellIndices: string[];
+      if (isMagiaMistica) {
+        spellIndices = getSpellsFromAllClasses(maxSpellLevel);
+      } else {
+        spellIndices = getSpellsByClassPTBR(className, maxSpellLevel);
+      }
 
       // Converter para o formato esperado pelo componente
       const validSpells: Spell[] = spellIndices.map((index: string) => {
@@ -196,6 +217,7 @@ export default function LevelUpPage() {
       });
 
       setAvailableSpells(validSpells);
+      setIsMagicalSecrets(isMagiaMistica);
     } catch (error) {
       console.error("Error loading local spells:", error);
     }
@@ -307,8 +329,11 @@ export default function LevelUpPage() {
 
     setSaving(true);
     try {
-      const newMaxHp = (character.maxHp || 0) + hpGain;
-      const newCurrentHp = Math.min((character.currentHp || 0) + hpGain, newMaxHp);
+      // Calcular bônus de HP por nível (ex: Anão Hill)
+      const hpBonusPerLevel = character.hpBonusPerLevel || 0;
+
+      const newMaxHp = (character.maxHp || 0) + hpGain + hpBonusPerLevel;
+      const newCurrentHp = Math.min((character.currentHp || 0) + hpGain + hpBonusPerLevel, newMaxHp);
 
       // Preparar dados de spellcasting
       const currentSpellcasting = character.spellcasting || {};
@@ -400,13 +425,13 @@ export default function LevelUpPage() {
 
       if (conModChanged) {
         // Se CON mudou, recalcular HP total retroativamente
-        // HP = (Dado máximo no nível 1) + (média do dado × (nível - 1)) + (mod CON × nível)
+        // HP = (Dado máximo no nível 1) + (média do dado × (nível - 1)) + (mod CON × nível) + (bônus HP por nível × nível)
         const hitDiceMatch = character.hitDice?.match(/1d(\d+)/);
         const hitDiceSize = hitDiceMatch ? parseInt(hitDiceMatch[1]) : 8;
         const averageRoll = Math.floor(hitDiceSize / 2) + 1; // Média arredondada para cima
 
-        // HP retroativo: dado máximo no nível 1 + média nos outros níveis + (novo mod CON × nível total)
-        finalMaxHp = hitDiceSize + (averageRoll * (targetLevel - 1)) + (newConMod * targetLevel);
+        // HP retroativo: dado máximo no nível 1 + média nos outros níveis + (novo mod CON × nível total) + (bônus HP por nível × nível total)
+        finalMaxHp = hitDiceSize + (averageRoll * (targetLevel - 1)) + (newConMod * targetLevel) + (hpBonusPerLevel * targetLevel);
 
         // Ajustar currentHp proporcionalmente
         const hpPercentage = character.maxHp > 0 ? (character.currentHp || 0) / character.maxHp : 1;
@@ -414,6 +439,7 @@ export default function LevelUpPage() {
 
         console.log(`[HP Recalculation] CON mudou de ${character.attributes?.constitution} (${oldConMod}) para ${updatedAttributes.constitution} (${newConMod})`);
         console.log(`[HP Recalculation] HP antigo: ${character.maxHp}, HP novo: ${finalMaxHp} (ganho retroativo: ${finalMaxHp - (character.maxHp || 0)})`);
+        console.log(`[HP Recalculation] Bônus HP por nível: ${hpBonusPerLevel} × ${targetLevel} = ${hpBonusPerLevel * targetLevel}`);
       } else {
         // Se CON não mudou, apenas adicionar o HP do level up
         finalMaxHp = newMaxHp;
@@ -1196,12 +1222,15 @@ export default function LevelUpPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  {cantripsToSelect > 0 && spellsToSelect > 0
-                    ? `Selecione ${cantripsToSelect} truque(s) e ${spellsToSelect} magia(s) para aprender neste nível`
-                    : cantripsToSelect > 0
-                      ? `Selecione ${cantripsToSelect} truque(s) para aprender neste nível`
-                      : `Selecione ${spellsToSelect} magia(s) para aprender neste nível`
-                  }
+                  {isMagicalSecrets ? (
+                    `Você ganhou Segredos Mágicos! Selecione ${spellsToSelect} magias de QUALQUER classe.`
+                  ) : (
+                    cantripsToSelect > 0 && spellsToSelect > 0
+                      ? `Selecione ${cantripsToSelect} truque(s) e ${spellsToSelect} magia(s) para aprender neste nível`
+                      : cantripsToSelect > 0
+                        ? `Selecione ${cantripsToSelect} truque(s) para aprender neste nível`
+                        : `Selecione ${spellsToSelect} magia(s) para aprender neste nível`
+                  )}
                 </p>
                 {(selectedSpells.length > 0 || selectedCantrips.length > 0) && (
                   <div className="space-y-2">

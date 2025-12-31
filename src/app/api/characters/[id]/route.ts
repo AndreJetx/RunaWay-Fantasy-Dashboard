@@ -268,3 +268,98 @@ export async function PUT(
   }
 }
 
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const characterId = params.id;
+
+    // Buscar personagem
+    const [character] = await db
+      .select()
+      .from(schema.characters)
+      .where(eq(schema.characters.id, characterId))
+      .limit(1);
+
+    if (!character) {
+      return NextResponse.json({ error: "Character not found" }, { status: 404 });
+    }
+
+    // Buscar usuário no banco de dados
+    let dbUser = await db
+      .select({
+        id: schema.users.id,
+        username: schema.users.username,
+        email: schema.users.email,
+        role: schema.users.role,
+      })
+      .from(schema.users)
+      .where(eq(schema.users.id, user.id))
+      .limit(1);
+
+    // Se não encontrou por ID, buscar por email
+    if (dbUser.length === 0 && user.email) {
+      const userByEmail = await db
+        .select({
+          id: schema.users.id,
+          username: schema.users.username,
+          email: schema.users.email,
+          role: schema.users.role,
+        })
+        .from(schema.users)
+        .where(eq(schema.users.email, user.email))
+        .limit(1);
+      if (userByEmail.length > 0) {
+        dbUser = userByEmail;
+      }
+    }
+
+    // Verificar se é o dono do personagem (usar dbUserId se disponível)
+    const characterPlayerIdStr = String(character.playerId || "");
+    const userIdStr = String(user.id || "");
+    const dbUserIdStr = dbUser.length > 0 ? String(dbUser[0].id || "") : "";
+    const isOwner = characterPlayerIdStr === dbUserIdStr || characterPlayerIdStr === userIdStr;
+
+    // Verificar se é DM (se tiver role)
+    const isDM = dbUser.length > 0 && dbUser[0].role === "dm";
+
+    // Se não for DM e não for o dono, negar acesso
+    if (!isDM && !isOwner) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    // Verificar se o personagem está vinculado a uma campanha
+    if (character.campaignId) {
+      return NextResponse.json(
+        { error: "Cannot delete a character that is part of a campaign. Remove it from the campaign first." },
+        { status: 400 }
+      );
+    }
+
+    // Deletar o personagem
+    await db
+      .delete(schema.characters)
+      .where(eq(schema.characters.id, characterId));
+
+    return NextResponse.json({
+      success: true,
+      message: "Character deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting character:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

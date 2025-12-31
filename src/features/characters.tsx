@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Shield, Zap, Heart, Brain } from "lucide-react";
+import { Search, Plus, Shield, Zap, Heart, Brain, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import avatarPlaceholder from "@assets/generated_images/fantasy_character_silhouette_avatar.png";
 import Image from "next/image";
@@ -19,6 +19,7 @@ interface Character {
   name: string;
   characterClass: string;
   playerId?: string;
+  campaignId?: string | null;
   level: number;
   currentHp: number;
   maxHp: number;
@@ -36,6 +37,7 @@ export default function Characters() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDM, setIsDM] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const checkRole = async () => {
@@ -109,6 +111,37 @@ export default function Characters() {
     char.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     char.characterClass.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleDeleteCharacter = async (characterId: string, characterName: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevenir navegação ao clicar no botão de delete
+
+    if (!confirm(`Tem certeza que deseja excluir o personagem "${characterName}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    setDeletingId(characterId);
+
+    try {
+      const res = await fetch(`/api/characters/${characterId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to delete character");
+      }
+
+      toast.success("Personagem excluído com sucesso!");
+
+      // Remover da lista local
+      setCharacters(prev => prev.filter(char => char.id !== characterId));
+    } catch (error: any) {
+      console.error("Error deleting character:", error);
+      toast.error(error.message || "Erro ao excluir personagem");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <FantasyLayout>
@@ -225,6 +258,22 @@ export default function Characters() {
                           <span className="text-white font-bold text-[10px] leading-tight block truncate">{intelligence}</span>
                         </div>
                       </div>
+
+                      {/* Botão de Excluir (apenas para personagens avulsos - sem campaignId) */}
+                      {!char.campaignId && (
+                        <div className="mt-3 pt-3 border-t border-white/5">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="w-full"
+                            onClick={(e) => handleDeleteCharacter(char.id, char.name, e)}
+                            disabled={deletingId === char.id}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            {deletingId === char.id ? "Excluindo..." : "Excluir Personagem"}
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </motion.div>
