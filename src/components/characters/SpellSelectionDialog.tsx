@@ -24,6 +24,7 @@ interface Spell {
   name: string;
   url: string;
   level?: number;
+  patron?: string[];
 }
 
 interface SpellDetail {
@@ -331,6 +332,11 @@ export function SpellSelectionDialog({
                                 {getLevelName(spell.level)}
                               </Badge>
                             )}
+                            {spell.patron && spell.patron.map((p: string) => (
+                              <Badge key={p} variant="secondary" className="bg-orange-500/20 text-orange-300 border-orange-500/50">
+                                {p}
+                              </Badge>
+                            ))}
                             {detail?.school && (
                               <Badge variant="outline" className="text-xs">
                                 {translateDnd5e(detail.school.name)}

@@ -1,0 +1,245 @@
+{
+    "dissonant-whispers": {
+        "index": "dissonant-whispers",
+        "name": "Dissonant Whispers",
+        "level": 1,
+        "school": "Enchantment",
+        "classes": [
+            "Bard"
+        ],
+        "description": "You whisper a discordant melody that only one creature of your choice within range can hear, wracking it with terrible pain. The target must make a Wisdom saving throw. On a failed save, it takes 3d6 psychic damage and must immediately use its reaction, if available, to move as far as its speed allows away from you.",
+        "higherLevel": "When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st.",
+        "range": "60 feet",
+        "components": [
+            "V"
+        ],
+        "material": "",
+        "ritual": false,
+        "duration": "Instantaneous",
+        "concentration": false,
+        "castingTime": "1 action",
+        "damage": {
+            "damage_type": {
+                "index": "psychic",
+                "name": "Psychic",
+                "url": ""
+            },
+            "damage_at_slot_level": {
+                "1": "3d6",
+                "2": "4d6",
+                "3": "5d6",
+                "4": "6d6",
+                "5": "7d6"
+            }
+        },
+        "dc": {
+            "dc_type": {
+                "index": "wis",
+                "name": "WIS",
+                "url": ""
+            },
+            "dc_success": "half"
+        },
+        "namePT": "Sussurros Dissonantes",
+        "descriptionPT": "Você sussurra uma melodia discordante. O alvo deve fazer um teste de Resistência de Sabedoria. Se falhar, sofre 3d6 de dano psíquico e deve usar sua reação para se afastar de você.",
+        "source": "PHB"
+    },
+    "phantasmal-force": {
+        "index": "phantasmal-force",
+        "name": "Phantasmal Force",
+        "level": 2,
+        "school": "Illusion",
+        "classes": [
+            "Bard",
+            "Sorcerer",
+            "Wizard"
+        ],
+        "description": "You craft an illusion that takes root in the mind of a creature that you can see within range. The target must make an Intelligence saving throw. On a failed save, you create a phantasmal object, creature, or other visible phenomenon of your choice that is no larger than a 10-foot cube and that is perceivable only to the target.",
+        "higherLevel": "",
+        "range": "60 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "material": "A bit of fleece.",
+        "ritual": false,
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "castingTime": "1 action",
+        "damage": {
+            "damage_type": {
+                "index": "psychic",
+                "name": "Psychic",
+                "url": ""
+            },
+            "damage_at_slot_level": {
+                "2": "1d6"
+            }
+        },
+        "dc": {
+            "dc_type": {
+                "index": "int",
+                "name": "INT",
+                "url": ""
+            },
+            "dc_success": "none"
+        },
+        "namePT": "Força Fantasmagórica",
+        "descriptionPT": "Você cria uma ilusão na mente de uma criatura. O alvo deve fazer um teste de Inteligência. Se falhar, ela percebe um objeto ou criatura que só ela vê, causando 1d6 de dano psíquico por turno se for atacada pela ilusão.",
+        "source": "PHB"
+    },
+    "wrathful-smite": {
+        "index": "wrathful-smite",
+        "name": "Wrathful Smite",
+        "level": 1,
+        "school": "Evocation",
+        "classes": [
+            "Paladin"
+        ],
+        "description": "The next time you hit with a melee weapon attack during this spell's duration, your attack deals an extra 1d6 psychic damage. Additionally, if the target is a creature, it must make a Wisdom saving throw or be frightened of you until the spell ends.",
+        "higherLevel": "",
+        "range": "Self",
+        "components": [
+            "V"
+        ],
+        "material": "",
+        "ritual": false,
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "castingTime": "1 bonus action",
+        "damage": {
+            "damage_type": {
+                "index": "psychic",
+                "name": "Psychic",
+                "url": ""
+            },
+            "damage_at_slot_level": {
+                "1": "1d6"
+            }
+        },
+        "dc": {
+            "dc_type": {
+                "index": "wis",
+                "name": "WIS",
+                "url": ""
+            },
+            "dc_success": "none"
+        },
+        "namePT": "Punição Colérica",
+        "descriptionPT": "Seu próximo ataque causa 1d6 de dano psíquico extra. O alvo deve fazer um teste de Sabedoria ou ficar amedrontado por você.",
+        "source": "PHB"
+    },
+    "staggering-smite": {
+        "index": "staggering-smite",
+        "name": "Staggering Smite",
+        "level": 4,
+        "school": "Evocation",
+        "classes": [
+            "Paladin"
+        ],
+        "description": "The next time you hit a creature with a melee weapon attack during this spell's duration, your weapon pierces both body and mind, and the attack deals an extra 4d6 psychic damage to the target. The target must make a Wisdom saving throw. On a failed save, it has disadvantage on attack rolls and ability checks, and can't take reactions, until the end of its next turn.",
+        "higherLevel": "",
+        "range": "Self",
+        "components": [
+            "V"
+        ],
+        "material": "",
+        "ritual": false,
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "castingTime": "1 bonus action",
+        "damage": {
+            "damage_type": {
+                "index": "psychic",
+                "name": "Psychic",
+                "url": ""
+            },
+            "damage_at_slot_level": {
+                "4": "4d6"
+            }
+        },
+        "dc": {
+            "dc_type": {
+                "index": "wis",
+                "name": "WIS",
+                "url": ""
+            },
+            "dc_success": "none"
+        },
+        "namePT": "Punição Estonteante",
+        "descriptionPT": "Seu próximo ataque causa 4d6 de dano psíquico extra. O alvo deve fazer um teste de Sabedoria ou ter desvantagem em ataques e testes, e não poder usar reações.",
+        "source": "PHB"
+    },
+    "banishing-smite": {
+        "index": "banishing-smite",
+        "name": "Banishing Smite",
+        "level": 5,
+        "school": "Abjuration",
+        "classes": [
+            "Paladin"
+        ],
+        "description": "The next time you hit a creature with a weapon attack before this spell ends, your weapon crackles with force, and the attack deals an extra 5d10 force damage to the target. Additionally, if this attack reduces the target to 50 hit points or fewer, you banish it.",
+        "higherLevel": "",
+        "range": "Self",
+        "components": [
+            "V"
+        ],
+        "material": "",
+        "ritual": false,
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "castingTime": "1 bonus action",
+        "damage": {
+            "damage_type": {
+                "index": "force",
+                "name": "Force",
+                "url": ""
+            },
+            "damage_at_slot_level": {
+                "5": "5d10"
+            }
+        },
+        "dc": null,
+        "namePT": "Punição Banidora",
+        "descriptionPT": "Seu próximo ataque causa 5d10 de dano de força extra. Se o alvo tiver 50 PV ou menos, ele é banido para outro plano.",
+        "source": "PHB"
+    },
+    "elemental-weapon": {
+        "index": "elemental-weapon",
+        "name": "Elemental Weapon",
+        "level": 3,
+        "school": "Transmutation",
+        "classes": [
+            "Paladin"
+        ],
+        "description": "A nonmagical weapon you touch becomes a magic weapon. Choose one of the following damage types: acid, cold, fire, lightning, or thunder. For the duration, the weapon has a +1 bonus to attack rolls and deals an extra 1d4 damage of the chosen type on a hit.",
+        "higherLevel": "When you cast this spell using a spell slot of 5th or 6th level, the bonus to attack rolls increases to +2 and the extra damage increases to 2d4. When you use a spell slot of 7th level or higher, the bonus increases to +3 and the extra damage increases to 3d4.",
+        "range": "Touch",
+        "components": [
+            "V",
+            "S"
+        ],
+        "material": "",
+        "ritual": false,
+        "duration": "Up to 1 hour",
+        "concentration": true,
+        "castingTime": "1 action",
+        "damage": {
+            "damage_type": {
+                "index": "varies",
+                "name": "Varies",
+                "url": ""
+            },
+            "damage_at_slot_level": {
+                "3": "1d4",
+                "5": "2d4",
+                "7": "3d4"
+            }
+        },
+        "dc": null,
+        "namePT": "Arma Elemental",
+        "descriptionPT": "Uma arma não mágica que você toca se torna mágica. Escolha ácido, frio, fogo, elétrico ou trovejante. A arma recebe +1 em ataques e causa 1d4 de dano extra do tipo escolhido.",
+        "source": "PHB"
+    }
+}

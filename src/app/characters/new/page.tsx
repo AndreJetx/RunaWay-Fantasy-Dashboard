@@ -659,6 +659,7 @@ function NewCharacterPageContent() {
   const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
   const [showDragonTypeSelector, setShowDragonTypeSelector] = useState(false);
   const [characterType, setCharacterType] = useState<"campaign" | "standalone">("campaign");
+  const [targetLevel, setTargetLevel] = useState(1);
   const [hasExistingCharacter, setHasExistingCharacter] = useState(false);
 
   // Homebrew Integration State
@@ -831,6 +832,12 @@ function NewCharacterPageContent() {
           } catch (error) {
             console.error("Error fetching campaigns:", error);
           }
+
+          // Para personagem avulso (sem campanha), definir sistema padrão como "fixed"
+          setCampaignData({
+            attributeSystem: "fixed",
+            initialMoney: "0",
+          });
         }
 
         // Se tiver campaignId, buscar dados da campanha e verificar se já existe personagem
@@ -1097,6 +1104,31 @@ function NewCharacterPageContent() {
       };
     });
   }, [formData.attributes.constitution, formData.attributes.dexterity, formData.attributes.wisdom, formData.characterClass, formData.race, formData.subrace, allCharacterClasses, allRaceExpansions]);
+  // Atualizar magias disponíveis quando a classe ou subclasse mudar
+  useEffect(() => {
+    if (formData.characterClass) {
+      // SEMPRE usar nível 1 para buscar magias na criação de personagem
+      fetchSpellsForClass(formData.characterClass, 1, formData.subclass);
+    }
+  }, [formData.characterClass, formData.subclass]);
+
+  // Sincronizar experiencePoints com targetLevel
+  // Isso garante que o XP seja sempre correto para o nível selecionado
+  useEffect(() => {
+    const xp = getXPForLevel(targetLevel);
+    setFormData(prev => ({
+      ...prev,
+      experiencePoints: xp,
+    }));
+  }, [targetLevel]);
+
+  // Automatizar a "rolagem" de atributos quando o sistema for fixo
+  useEffect(() => {
+    if (campaignData?.attributeSystem === "fixed" && !hasRolled && rolledValues.length === 0) {
+      console.log("🎲 Automatizando valores fixos para personagem...");
+      rollAttributes();
+    }
+  }, [campaignData?.attributeSystem, hasRolled, rolledValues.length]);
 
   const calculateModifier = (value: number): number => {
     return Math.floor((value - 10) / 2);
@@ -1245,46 +1277,73 @@ function NewCharacterPageContent() {
       };
     });
 
-    // Se a classe pode conjurar magias, buscar magias disponíveis
-    if (canCastSpells(className)) {
-      fetchSpellsForClass(className, 1);
-    } else {
+    // Se a classe mudar, as magias disponíveis serão atualizadas pelo useEffect
+    if (!canCastSpells(className)) {
       setAvailableSpells([]);
       setSelectedSpells([]);
     }
   };
 
   // Função para buscar magias disponíveis para uma classe
-  const fetchSpellsForClass = async (className: string, level: number) => {
+  const fetchSpellsForClass = async (className: string, level: number, subclassName?: string) => {
     try {
-      const spellsRes = await fetch(`https://www.dnd5eapi.co/api/2014/spells`);
-      if (!spellsRes.ok) return;
-
-      const spellsData = await spellsRes.json();
-      const allSpells: any[] = spellsData.results || [];
       const maxSpellLevel = getSpellcastingLevel(className, level);
 
-      // Filtrar magias por nível máximo
-      const filteredSpells: any[] = [];
-      const spellPromises = allSpells.slice(0, 200).map(async (spell: any) => {
-        try {
-          const detailRes = await fetch(`https://www.dnd5eapi.co${spell.url}`);
-          if (detailRes.ok) {
-            const detail = await detailRes.json();
-            if (detail.level <= maxSpellLevel) {
-              return { ...spell, level: detail.level };
-            }
+      console.log(`[Spell Fetch] Loading spells for ${className} level ${level}, max spell level: ${maxSpellLevel}`);
+
+      // Mapear nome da classe PT-BR para EN
+      const classNameMap: Record<string, string> = {
+        'Paladino': 'Paladin',
+        'Clérigo': 'Cleric',
+        'Druida': 'Druid',
+        'Mago': 'Wizard',
+        'Ranger': 'Ranger',
+        'Bruxo': 'Warlock',
+        'Bardo': 'Bard',
+        'Feiticeiro': 'Sorcerer',
+      };
+
+      const apiClassName = classNameMap[className];
+      if (!apiClassName) {
+        console.warn(`[Spell Fetch] Class not found: ${className}`);
+        setAvailableSpells([]);
+        setSelectedSpells([]);
+        return;
+      }
+
+      // Importar funções da base de dados local
+      const { getSpellsByClass, getSpellDetails } = await import('@/lib/data/spell-data');
+
+      // Buscar TODAS as magias da classe (incluindo truques)
+      // maxLevel = 9 para pegar todas as magias, filtraremos depois
+      const classSpellIndices = getSpellsByClass(apiClassName, 9, subclassName);
+
+      console.log(`[Spell Fetch] Total spell indices for ${apiClassName}: ${classSpellIndices.length}`);
+
+      // Buscar detalhes de cada magia e filtrar por nível
+      const spellsWithDetails = classSpellIndices
+        .map(index => {
+          const details = getSpellDetails(index);
+          if (!details) return null;
+
+          // Incluir truques (level 0) sempre, ou magias até o nível máximo
+          if (details.level === 0 || details.level <= maxSpellLevel) {
+            return {
+              index: details.index,
+              name: details.name,
+              url: `/api/spells/${details.index}`, // URL fictícia para compatibilidade
+              level: details.level,
+              patron: details.patron,
+            };
           }
-        } catch (error) {
-          console.error(`Error fetching spell ${spell.name}:`, error);
-        }
-        return null;
-      });
+          return null;
+        })
+        .filter((spell): spell is any => spell !== null);
 
-      const results = await Promise.all(spellPromises);
-      const validSpells = results.filter((s): s is any => s !== null && s.level !== undefined);
+      console.log(`[Spell Fetch] Valid spells found: ${spellsWithDetails.length}`);
+      console.log(`[Spell Fetch] Cantrips: ${spellsWithDetails.filter(s => s.level === 0).length}`);
 
-      setAvailableSpells(validSpells);
+      setAvailableSpells(spellsWithDetails);
 
       // Resetar seleção quando mudar de classe
       setSelectedSpells([]);
@@ -1993,8 +2052,8 @@ function NewCharacterPageContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const finalCampaignId = campaignId || selectedCampaignId;
-    if (!finalCampaignId) {
+    const finalCampaignId = characterType === "standalone" ? null : (campaignId || selectedCampaignId);
+    if (characterType !== "standalone" && !finalCampaignId) {
       setValidationErrors(prev => ({ ...prev, campaign: true }));
       toast.error("Por favor, selecione uma campanha");
       return;
@@ -2033,7 +2092,7 @@ function NewCharacterPageContent() {
         system: "dnd5e",
         name: formData.name,
         characterClass: formData.characterClass,
-        level: formData.level,
+        level: targetLevel, // Send target level to backend for XP calculation
         experiencePoints: formData.experiencePoints || 0,
         armorClass: formData.armorClass,
         initiative: formData.initiative || 0,
@@ -2258,8 +2317,17 @@ function NewCharacterPageContent() {
             availableCampaigns={availableCampaigns}
             hasExistingCharacter={hasExistingCharacter}
             userId={userId}
-            startingLevel={formData.level}
-            onLevelChange={(level) => setFormData(prev => ({ ...prev, level }))}
+            startingLevel={targetLevel}
+            onLevelChange={(level) => {
+              setTargetLevel(level);
+              const xp = getXPForLevel(level);
+              setFormData(prev => ({
+                ...prev,
+                level: 1, // Sempre nível 1 na criação
+                experiencePoints: xp,
+                proficiencyBonus: 2, // Bônus de proficiência fixo nível 1
+              }));
+            }}
           />
 
           {/* Informações Básicas */}
@@ -2274,7 +2342,7 @@ function NewCharacterPageContent() {
                   id="name"
                   value={formData.name}
                   onChange={(e) => {
-                    setFormData({ ...formData, name: e.target.value });
+                    setFormData(prev => ({ ...prev, name: e.target.value }));
                     // Limpar erro ao digitar
                     setValidationErrors(prev => {
                       const newErrors = { ...prev };
@@ -2363,7 +2431,7 @@ function NewCharacterPageContent() {
                     setSelectedSubrace("");
                     // Limpar atributos escolhidos quando trocar de raça
                     setChosenRaceAttributes([]);
-                    setFormData({ ...formData, race: e.target.value, subrace: "" });
+                    setFormData(prev => ({ ...prev, race: e.target.value, subrace: "" }));
                     // Limpar erro ao selecionar
                     setValidationErrors(prev => {
                       const newErrors = { ...prev };
@@ -2774,17 +2842,13 @@ function NewCharacterPageContent() {
                 <Input
                   id="level"
                   type="number"
-                  min="1"
-                  max="20"
                   value={formData.level}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      level: parseInt(e.target.value) || 1,
-                      proficiencyBonus: Math.ceil((parseInt(e.target.value) || 1) / 4) + 1,
-                    })
-                  }
+                  readOnly
+                  className="bg-muted cursor-not-allowed"
                 />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Personagens são criados no nível 1. Use o seletor no topo para definir o XP inicial.
+                </p>
               </div>
               <div>
                 <Label htmlFor="alignment">Alinhamento</Label>
@@ -2792,7 +2856,7 @@ function NewCharacterPageContent() {
                   id="alignment"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   value={formData.alignment}
-                  onChange={(e) => setFormData({ ...formData, alignment: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, alignment: e.target.value }))}
                 >
                   <option value="">Selecione...</option>
                   {ALIGNMENTS.map((align) => (
@@ -2810,7 +2874,7 @@ function NewCharacterPageContent() {
                   min="0"
                   value={formData.experiencePoints}
                   onChange={(e) =>
-                    setFormData({ ...formData, experiencePoints: parseInt(e.target.value) || 0 })
+                    setFormData(prev => ({ ...prev, experiencePoints: parseInt(e.target.value) || 0 }))
                   }
                 />
               </div>
@@ -2820,7 +2884,7 @@ function NewCharacterPageContent() {
                   id="image"
                   type="url"
                   value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
                   placeholder="https://exemplo.com/imagem.jpg"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
@@ -3270,13 +3334,13 @@ function NewCharacterPageContent() {
                             const newValue = parseInt(e.target.value) || 0;
                             const raceBonus = previousRaceBonuses[attr.key as keyof RaceBonus] || 0;
                             const finalValue = newValue + raceBonus;
-                            setFormData({
-                              ...formData,
+                            setFormData(prev => ({
+                              ...prev,
                               attributes: {
-                                ...formData.attributes,
+                                ...prev.attributes,
                                 [attr.key]: finalValue,
                               },
-                            });
+                            }));
                           }}
                           readOnly={!isDM && hasRolled && assignedValue === null}
                         />
@@ -3411,7 +3475,7 @@ function NewCharacterPageContent() {
                     type="number"
                     value={formData.armorClass}
                     onChange={(e) =>
-                      setFormData({ ...formData, armorClass: parseInt(e.target.value) || 10 })
+                      setFormData(prev => ({ ...prev, armorClass: parseInt(e.target.value) || 10 }))
                     }
                   />
                 </div>
@@ -3422,7 +3486,7 @@ function NewCharacterPageContent() {
                     type="number"
                     value={formData.initiative}
                     onChange={(e) =>
-                      setFormData({ ...formData, initiative: parseInt(e.target.value) || 0 })
+                      setFormData(prev => ({ ...prev, initiative: parseInt(e.target.value) || 0 }))
                     }
                     readOnly={!isDM}
                     className={!isDM ? "bg-muted cursor-not-allowed" : ""}
@@ -3440,7 +3504,7 @@ function NewCharacterPageContent() {
                     type="number"
                     value={formData.speed}
                     onChange={(e) =>
-                      setFormData({ ...formData, speed: parseInt(e.target.value) || 30 })
+                      setFormData(prev => ({ ...prev, speed: parseInt(e.target.value) || 30 }))
                     }
                   />
                 </div>
@@ -3449,7 +3513,7 @@ function NewCharacterPageContent() {
                   <Input
                     id="hitDice"
                     value={formData.hitDice}
-                    onChange={(e) => setFormData({ ...formData, hitDice: e.target.value })}
+                    onChange={(e) => setFormData(prev => ({ ...prev, hitDice: e.target.value }))}
                     placeholder="1d8"
                   />
                 </div>
@@ -3483,7 +3547,7 @@ function NewCharacterPageContent() {
                     type="number"
                     value={formData.currentHp}
                     onChange={(e) =>
-                      setFormData({ ...formData, currentHp: parseInt(e.target.value) || 0 })
+                      setFormData(prev => ({ ...prev, currentHp: parseInt(e.target.value) || 0 }))
                     }
                   />
                 </div>
@@ -3495,11 +3559,11 @@ function NewCharacterPageContent() {
                     value={formData.maxHp}
                     onChange={(e) => {
                       const newMaxHp = parseInt(e.target.value) || 10;
-                      setFormData({
-                        ...formData,
+                      setFormData(prev => ({
+                        ...prev,
                         maxHp: newMaxHp,
                         currentHp: Math.max(1, newMaxHp) // Atualizar currentHp para igual ao maxHp ao criar personagem
-                      });
+                      }));
                     }}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
@@ -3513,7 +3577,7 @@ function NewCharacterPageContent() {
                     type="number"
                     value={formData.tempHp}
                     onChange={(e) =>
-                      setFormData({ ...formData, tempHp: parseInt(e.target.value) || 0 })
+                      setFormData(prev => ({ ...prev, tempHp: parseInt(e.target.value) || 0 }))
                     }
                   />
                 </div>
@@ -3532,7 +3596,7 @@ function NewCharacterPageContent() {
                 <Textarea
                   id="personalityTraits"
                   value={formData.personalityTraits}
-                  onChange={(e) => setFormData({ ...formData, personalityTraits: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, personalityTraits: e.target.value }))}
                   rows={3}
                 />
               </div>
@@ -3541,7 +3605,7 @@ function NewCharacterPageContent() {
                 <Textarea
                   id="ideals"
                   value={formData.ideals}
-                  onChange={(e) => setFormData({ ...formData, ideals: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, ideals: e.target.value }))}
                   rows={3}
                 />
               </div>
@@ -3550,7 +3614,7 @@ function NewCharacterPageContent() {
                 <Textarea
                   id="bonds"
                   value={formData.bonds}
-                  onChange={(e) => setFormData({ ...formData, bonds: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, bonds: e.target.value }))}
                   rows={3}
                 />
               </div>
@@ -3559,7 +3623,7 @@ function NewCharacterPageContent() {
                 <Textarea
                   id="flaws"
                   value={formData.flaws}
-                  onChange={(e) => setFormData({ ...formData, flaws: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, flaws: e.target.value }))}
                   rows={3}
                 />
               </div>
@@ -3597,7 +3661,7 @@ function NewCharacterPageContent() {
                             size="sm"
                             onClick={() => {
                               const newInventory = formData.inventory.filter((_, i) => i !== index);
-                              setFormData({ ...formData, inventory: newInventory });
+                              setFormData(prev => ({ ...prev, inventory: newInventory }));
                             }}
                             className="text-red-400 hover:text-red-300"
                           >
@@ -3617,7 +3681,7 @@ function NewCharacterPageContent() {
                   <Textarea
                     id="equipment-notes"
                     value={formData.equipment}
-                    onChange={(e) => setFormData({ ...formData, equipment: e.target.value })}
+                    onChange={(e) => setFormData(prev => ({ ...prev, equipment: e.target.value }))}
                     rows={4}
                     placeholder="Anotações adicionais sobre equipamentos..."
                     className="mt-2"
@@ -3651,10 +3715,10 @@ function NewCharacterPageContent() {
                     step="1"
                     value={Math.floor(formData.currency.pp || 0)}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        currency: { ...formData.currency, pp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
-                      })
+                      setFormData(prev => ({
+                        ...prev,
+                        currency: { ...prev.currency, pp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
+                      }))
                     }
                     disabled={!isDM}
                     className={!isDM ? "bg-muted cursor-not-allowed" : ""}
@@ -3673,10 +3737,10 @@ function NewCharacterPageContent() {
                     step="1"
                     value={Math.floor(formData.currency.gp || 0)}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        currency: { ...formData.currency, gp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
-                      })
+                      setFormData(prev => ({
+                        ...prev,
+                        currency: { ...prev.currency, gp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
+                      }))
                     }
                     disabled={!isDM}
                     className={!isDM ? "bg-muted cursor-not-allowed" : ""}
@@ -3695,10 +3759,10 @@ function NewCharacterPageContent() {
                     step="1"
                     value={Math.floor(formData.currency.ep || 0)}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        currency: { ...formData.currency, ep: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
-                      })
+                      setFormData(prev => ({
+                        ...prev,
+                        currency: { ...prev.currency, ep: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
+                      }))
                     }
                     disabled={!isDM}
                     className={!isDM ? "bg-muted cursor-not-allowed" : ""}
@@ -3717,10 +3781,10 @@ function NewCharacterPageContent() {
                     step="1"
                     value={Math.floor(formData.currency.sp || 0)}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        currency: { ...formData.currency, sp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
-                      })
+                      setFormData(prev => ({
+                        ...prev,
+                        currency: { ...prev.currency, sp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
+                      }))
                     }
                     disabled={!isDM}
                     className={!isDM ? "bg-muted cursor-not-allowed" : ""}
@@ -3739,10 +3803,10 @@ function NewCharacterPageContent() {
                     step="1"
                     value={Math.floor(formData.currency.cp || 0)}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        currency: { ...formData.currency, cp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
-                      })
+                      setFormData(prev => ({
+                        ...prev,
+                        currency: { ...prev.currency, cp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
+                      }))
                     }
                     disabled={!isDM}
                     className={!isDM ? "bg-muted cursor-not-allowed" : ""}
@@ -3929,7 +3993,7 @@ function NewCharacterPageContent() {
               <CardContent>
                 <Textarea
                   value={formData.backstory}
-                  onChange={(e) => setFormData({ ...formData, backstory: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, backstory: e.target.value }))}
                   rows={8}
                   placeholder="Conte a história do seu personagem..."
                 />
@@ -3943,7 +4007,7 @@ function NewCharacterPageContent() {
               <CardContent>
                 <Textarea
                   value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                   rows={8}
                   placeholder="Anotações adicionais..."
                 />
@@ -4005,13 +4069,13 @@ function NewCharacterPageContent() {
               const updatedCharacter = applySubclassBenefits(characterData as any, subclass);
 
               // Atualizar formData com os benefícios aplicados
-              setFormData({
-                ...formData,
+              setFormData(prev => ({
+                ...prev,
                 subclass: subclass.name,
-                skills: updatedCharacter.skills || formData.skills,
-                proficiencies: updatedCharacter.proficiencies || formData.proficiencies,
-                languages: updatedCharacter.languages || formData.languages,
-              });
+                skills: updatedCharacter.skills || prev.skills,
+                proficiencies: updatedCharacter.proficiencies || prev.proficiencies,
+                languages: updatedCharacter.languages || prev.languages,
+              }));
 
               toast.success(`Subclasse "${subclass.name}" selecionada! Benefícios aplicados.`);
             }}
@@ -4032,14 +4096,14 @@ function NewCharacterPageContent() {
             const updatedCharacter = applyBackgroundBenefits(characterData as any, background);
 
             // Atualizar formData com os benefícios aplicados
-            setFormData({
-              ...formData,
+            setFormData(prev => ({
+              ...prev,
               background: background.name,
-              skills: updatedCharacter.skills || formData.skills,
-              proficiencies: updatedCharacter.proficiencies || formData.proficiencies,
-              languages: updatedCharacter.languages || formData.languages,
-              inventory: (updatedCharacter as any).inventory || formData.inventory,
-            });
+              skills: updatedCharacter.skills || prev.skills,
+              proficiencies: updatedCharacter.proficiencies || prev.proficiencies,
+              languages: updatedCharacter.languages || prev.languages,
+              inventory: (updatedCharacter as any).inventory || prev.inventory,
+            }));
 
             toast.success(`Antecedente "${background.name}" selecionado! Benefícios e equipamentos aplicados.`);
           }}
@@ -4051,10 +4115,10 @@ function NewCharacterPageContent() {
           onOpenChange={setShowDragonTypeSelector}
           onSelect={(dragonType: DragonType) => {
             // Atualizar formData com o tipo de dragão selecionado
-            setFormData({
-              ...formData,
+            setFormData(prev => ({
+              ...prev,
               dragonType: dragonType.name,
-            });
+            }));
 
             toast.success(`Dragão Ancestral "${dragonType.name}" selecionado! Você ganhará resistência a ${dragonType.damageType} no nível 6.`);
           }}
@@ -4102,11 +4166,11 @@ function NewCharacterPageContent() {
               cp: Math.floor(formData.currency.cp || 0),
             };
 
-            setFormData({
-              ...formData,
+            setFormData(prev => ({
+              ...prev,
               inventory: newInventory,
               currency: newCurrency,
-            });
+            }));
 
             toast.success(`Compra realizada! ${items.length} item(ns) adicionado(s) ao inventário.`);
           }}

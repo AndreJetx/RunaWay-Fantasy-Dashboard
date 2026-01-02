@@ -1,0 +1,1119 @@
+{
+    "faerie-fire": {
+        "index": "faerie-fire",
+        "name": "Faerie Fire",
+        "level": 1,
+        "school": "Evocation",
+        "classes": [
+            "Bard",
+            "Druid"
+        ],
+        "patron": [
+            "O Arquifada"
+        ],
+        "description": "Objects and creatures in a 20ft cube glow. Attacks have advantage.",
+        "range": "60 feet",
+        "components": [
+            "V"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Fogo Fada",
+        "descriptionPT": "Criaturas em um cubo de 20 pés brilham, garantindo vantagem nos ataques.",
+        "source": "PHB"
+    },
+    "sleep": {
+        "index": "sleep",
+        "name": "Sleep",
+        "level": 1,
+        "school": "Enchantment",
+        "classes": [
+            "Bard",
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Arquifada"
+        ],
+        "description": "Puts 5d8 HP of creatures to sleep.",
+        "range": "90 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "1 minute",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Sono",
+        "descriptionPT": "Coloca criaturas em sono mágico.",
+        "source": "PHB"
+    },
+    "burning-hands": {
+        "index": "burning-hands",
+        "name": "Burning Hands",
+        "level": 1,
+        "school": "Evocation",
+        "classes": [
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Corruptor",
+            "O Gênio"
+        ],
+        "description": "3d6 fire damage in 15ft cone.",
+        "range": "Self (15-foot cone)",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "Instantaneous",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Mãos Flamejantes",
+        "descriptionPT": "Chamas em cone causam 3d6 de dano de fogo.",
+        "source": "PHB"
+    },
+    "command": {
+        "index": "command",
+        "name": "Command",
+        "level": 1,
+        "school": "Enchantment",
+        "classes": [
+            "Cleric",
+            "Paladin"
+        ],
+        "patron": [
+            "O Corruptor"
+        ],
+        "description": "One-word command (WIS save).",
+        "range": "60 feet",
+        "components": [
+            "V"
+        ],
+        "duration": "1 round",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Comando",
+        "descriptionPT": "Dá uma ordem de uma palavra que deve ser obedecida.",
+        "source": "PHB"
+    },
+    "dissonant-whispers": {
+        "index": "dissonant-whispers",
+        "name": "Dissonant Whispers",
+        "level": 1,
+        "school": "Enchantment",
+        "classes": [
+            "Bard"
+        ],
+        "patron": [
+            "O Grande Antigo"
+        ],
+        "description": "3d6 psychic and force move away (WIS save).",
+        "range": "60 feet",
+        "components": [
+            "V"
+        ],
+        "duration": "Instantaneous",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Sussurros Dissonantes",
+        "descriptionPT": "Causa dano psíquico e força o alvo a fugir.",
+        "source": "PHB"
+    },
+    "tashas-hideous-laughter": {
+        "index": "tashas-hideous-laughter",
+        "name": "Tasha's Hideous Laughter",
+        "level": 1,
+        "school": "Enchantment",
+        "classes": [
+            "Bard",
+            "Wizard"
+        ],
+        "patron": [
+            "O Grande Antigo"
+        ],
+        "description": "Target falls prone laughing (WIS save).",
+        "range": "30 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Riso Histérico de Tasha",
+        "descriptionPT": "O alvo cai no chão rindo sem parar.",
+        "source": "PHB"
+    },
+    "cure-wounds": {
+        "index": "cure-wounds",
+        "name": "Cure Wounds",
+        "level": 1,
+        "school": "Evocation",
+        "classes": [
+            "Bard",
+            "Cleric",
+            "Druid",
+            "Paladin",
+            "Ranger"
+        ],
+        "patron": [
+            "O Celestial"
+        ],
+        "description": "Heals 1d8 + modifier.",
+        "range": "Touch",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "Instantaneous",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Curar Ferimentos",
+        "descriptionPT": "Cura 1d8 + modificador no toque.",
+        "source": "PHB"
+    },
+    "guiding-bolt": {
+        "index": "guiding-bolt",
+        "name": "Guiding Bolt",
+        "level": 1,
+        "school": "Evocation",
+        "classes": [
+            "Cleric"
+        ],
+        "patron": [
+            "O Celestial"
+        ],
+        "description": "4d6 radiant and advantage on next attack.",
+        "range": "120 feet",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "1 round",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Raio Guia",
+        "descriptionPT": "Causa 4d6 de dano radiante e dá vantagem no próximo ataque contra o alvo.",
+        "source": "PHB"
+    },
+    "shield": {
+        "index": "shield",
+        "name": "Shield",
+        "level": 1,
+        "school": "Abjuration",
+        "classes": [
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Hexblade"
+        ],
+        "description": "Reaction +5 AC until next turn.",
+        "range": "Self",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "1 round",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 reaction",
+        "namePT": "Escudo",
+        "descriptionPT": "Ganha +5 na CA como reação.",
+        "source": "PHB"
+    },
+    "wrathful-smite": {
+        "index": "wrathful-smite",
+        "name": "Wrathful Smite",
+        "level": 1,
+        "school": "Evocation",
+        "classes": [
+            "Paladin"
+        ],
+        "patron": [
+            "O Hexblade"
+        ],
+        "description": "+1d6 psychic and frightened (WIS save).",
+        "range": "Self",
+        "components": [
+            "V"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 bonus action",
+        "namePT": "Punição Colérica",
+        "descriptionPT": "Dano psíquico extra e pode amedrontar o alvo.",
+        "source": "PHB"
+    },
+    "bane": {
+        "index": "bane",
+        "name": "Bane",
+        "level": 1,
+        "school": "Enchantment",
+        "classes": [
+            "Bard",
+            "Cleric"
+        ],
+        "patron": [
+            "O Morto-Vivo"
+        ],
+        "description": "-1d4 to attacks and saves (CHA save).",
+        "range": "30 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Perdição",
+        "descriptionPT": "Alvos subtraem d4 de ataques e resistências.",
+        "source": "PHB"
+    },
+    "false-life": {
+        "index": "false-life",
+        "name": "False Life",
+        "level": 1,
+        "school": "Necromancy",
+        "classes": [
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Morto-Vivo"
+        ],
+        "description": "Gain 1d4 + 4 temporary hit points.",
+        "range": "Self",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "1 hour",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Vida Falsa",
+        "descriptionPT": "Ganha PV temporários.",
+        "source": "PHB"
+    },
+    "sanctuary": {
+        "index": "sanctuary",
+        "name": "Sanctuary",
+        "level": 1,
+        "school": "Abjuration",
+        "classes": [
+            "Cleric"
+        ],
+        "patron": [
+            "O Gênio"
+        ],
+        "description": "Creatures must make WIS save to attack target.",
+        "range": "30 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "1 minute",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 bonus action",
+        "namePT": "Santuário",
+        "descriptionPT": "Protege uma criatura; inimigos devem passar em teste de Sabedoria para atacá-la.",
+        "source": "PHB"
+    },
+    "thunderwave": {
+        "index": "thunderwave",
+        "name": "Thunderwave",
+        "level": 1,
+        "school": "Evocation",
+        "classes": [
+            "Bard",
+            "Druid",
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Gênio",
+            "O Profundo"
+        ],
+        "description": "2d8 thunder and push back in 15ft cube (CON save half).",
+        "range": "Self (15-foot cube)",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "Instantaneous",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Onda Trovejante",
+        "descriptionPT": "Dano trovejante e empurrão em área.",
+        "source": "PHB"
+    },
+    "fog-cloud": {
+        "index": "fog-cloud",
+        "name": "Fog Cloud",
+        "level": 1,
+        "school": "Conjuration",
+        "classes": [
+            "Druid",
+            "Ranger",
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Gênio"
+        ],
+        "description": "Creates 20ft radius fog.",
+        "range": "120 feet",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "Up to 1 hour",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Névoa",
+        "descriptionPT": "Cria uma nuvem de névoa densa.",
+        "source": "PHB"
+    },
+    "phantasmal-force": {
+        "index": "phantasmal-force",
+        "name": "Phantasmal Force",
+        "level": 2,
+        "school": "Illusion",
+        "classes": [
+            "Bard",
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Arquifada",
+            "O Grande Antigo",
+            "O Gênio",
+            "O Morto-Vivo"
+        ],
+        "description": "Creates an illusion in the mind of a creature (INT save).",
+        "range": "60 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Força Fantasmagórica",
+        "descriptionPT": "Cria uma ilusão mental que apenas o alvo vê.",
+        "source": "PHB"
+    },
+    "blindness-deafness": {
+        "index": "blindness-deafness",
+        "name": "Blindness/Deafness",
+        "level": 2,
+        "school": "Necromancy",
+        "classes": [
+            "Bard",
+            "Cleric",
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Corruptor",
+            "O Morto-Vivo"
+        ],
+        "description": "Blinds or deafens (CON save).",
+        "range": "30 feet",
+        "components": [
+            "V"
+        ],
+        "duration": "1 minute",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Cegueira/Surdez",
+        "descriptionPT": "Causa cegueira ou surdez temporária.",
+        "source": "PHB"
+    },
+    "scorching-ray": {
+        "index": "scorching-ray",
+        "name": "Scorching Ray",
+        "level": 2,
+        "school": "Evocation",
+        "classes": [
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Corruptor",
+            "O Gênio"
+        ],
+        "description": "3 rays deal 2d6 fire each.",
+        "range": "120 feet",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "Instantaneous",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Raio Ardente",
+        "descriptionPT": "Dispara três raios de fogo.",
+        "source": "PHB"
+    },
+    "calm-emotions": {
+        "index": "calm-emotions",
+        "name": "Calm Emotions",
+        "level": 2,
+        "school": "Enchantment",
+        "classes": [
+            "Bard",
+            "Cleric"
+        ],
+        "patron": [
+            "O Arquifada"
+        ],
+        "description": "Calms emotions (CHA save).",
+        "range": "60 feet",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Acalmar Emoções",
+        "descriptionPT": "Suprime efeitos de medo ou encanto.",
+        "source": "PHB"
+    },
+    "detect-thoughts": {
+        "index": "detect-thoughts",
+        "name": "Detect Thoughts",
+        "level": 2,
+        "school": "Divination",
+        "classes": [
+            "Bard",
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Grande Antigo"
+        ],
+        "description": "Reads surface thoughts (WIS save).",
+        "range": "Self",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Detectar Pensamentos",
+        "descriptionPT": "Lê os pensamentos superficiais de criaturas.",
+        "source": "PHB"
+    },
+    "flaming-sphere": {
+        "index": "flaming-sphere",
+        "name": "Flaming Sphere",
+        "level": 2,
+        "school": "Conjuration",
+        "classes": [
+            "Druid",
+            "Wizard"
+        ],
+        "patron": [
+            "O Celestial"
+        ],
+        "description": "Sphere of fire deals 2d6 (DEX save half).",
+        "range": "60 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Esfera Flamejante",
+        "descriptionPT": "Uma esfera de fogo que você pode mover.",
+        "source": "PHB"
+    },
+    "lesser-restoration": {
+        "index": "lesser-restoration",
+        "name": "Lesser Restoration",
+        "level": 2,
+        "school": "Abjuration",
+        "classes": [
+            "Bard",
+            "Cleric",
+            "Druid",
+            "Paladin",
+            "Ranger"
+        ],
+        "patron": [
+            "O Celestial"
+        ],
+        "description": "Cures disease/condition.",
+        "range": "Touch",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "Instantaneous",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Restauração Menor",
+        "descriptionPT": "Remove uma condição negativa ou doença.",
+        "source": "PHB"
+    },
+    "blur": {
+        "index": "blur",
+        "name": "Blur",
+        "level": 2,
+        "school": "Illusion",
+        "classes": [
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Hexblade",
+            "O Gênio"
+        ],
+        "description": "Attacks have disadvantage against you.",
+        "range": "Self",
+        "components": [
+            "V"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Reflexos",
+        "descriptionPT": "Sua imagem fica borrada, dificultando ser atingido.",
+        "source": "PHB"
+    },
+    "branding-smite": {
+        "index": "branding-smite",
+        "name": "Branding Smite",
+        "level": 2,
+        "school": "Evocation",
+        "classes": [
+            "Paladin"
+        ],
+        "patron": [
+            "O Hexblade"
+        ],
+        "description": "Next hit deals +2d6 radiant and reveals invisible.",
+        "range": "Self",
+        "components": [
+            "V"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 bonus action",
+        "namePT": "Punição Marcante",
+        "descriptionPT": "Causa dano radiante e o alvo brilha.",
+        "source": "PHB"
+    },
+    "spike-growth": {
+        "index": "spike-growth",
+        "name": "Spike Growth",
+        "level": 2,
+        "school": "Transmutation",
+        "classes": [
+            "Druid",
+            "Ranger"
+        ],
+        "patron": [
+            "O Gênio"
+        ],
+        "description": "Ground deals 2d4 piericng for every 5ft moved.",
+        "range": "150 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Up to 10 minutes",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Crescimento de Espinhos",
+        "descriptionPT": "O chão fica coberto de espinhos que causam dano ao se mover.",
+        "source": "PHB"
+    },
+    "gust-of-wind": {
+        "index": "gust-of-wind",
+        "name": "Gust of Wind",
+        "level": 2,
+        "school": "Evocation",
+        "classes": [
+            "Druid",
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Gênio",
+            "O Profundo"
+        ],
+        "description": "Line of wind pushes creatures away.",
+        "range": "Self (60-foot line)",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Rajada de Vento",
+        "descriptionPT": "Um vento forte sopra em linha reta.",
+        "source": "PHB"
+    },
+    "silence": {
+        "index": "silence",
+        "name": "Silence",
+        "level": 2,
+        "school": "Illusion",
+        "classes": [
+            "Bard",
+            "Cleric",
+            "Ranger"
+        ],
+        "patron": [
+            "O Profundo"
+        ],
+        "description": "No sound can be made/heard in 20ft radius.",
+        "range": "120 feet",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "Up to 10 minutes",
+        "concentration": true,
+        "ritual": true,
+        "castingTime": "1 action",
+        "namePT": "Silêncio",
+        "descriptionPT": "Cria uma esfera onde nenhum som pode ser produzido.",
+        "source": "PHB"
+    },
+    "fireball": {
+        "index": "fireball",
+        "name": "Fireball",
+        "level": 3,
+        "school": "Evocation",
+        "classes": [
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Corruptor",
+            "O Gênio"
+        ],
+        "description": "8d6 fire in 20ft radius sphere (DEX save half).",
+        "range": "150 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Instantaneous",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Bola de Fogo",
+        "descriptionPT": "Uma grande explosão de fogo.",
+        "source": "PHB"
+    },
+    "revivify": {
+        "index": "revivify",
+        "name": "Revivify",
+        "level": 3,
+        "school": "Necromancy",
+        "classes": [
+            "Cleric",
+            "Paladin"
+        ],
+        "patron": [
+            "O Celestial"
+        ],
+        "description": "Revive creature died within 1 min.",
+        "range": "Touch",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Instantaneous",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Reviver",
+        "descriptionPT": "Traz de volta uma criatura morta recentemente.",
+        "source": "PHB"
+    },
+    "lightning-bolt": {
+        "index": "lightning-bolt",
+        "name": "Lightning Bolt",
+        "level": 3,
+        "school": "Evocation",
+        "classes": [
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Profundo"
+        ],
+        "description": "8d6 lightning in 100ft line (DEX save half).",
+        "range": "Self (100-foot line)",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Instantaneous",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Relâmpago",
+        "descriptionPT": "Uma linha de eletricidade que causa 8d6 de dano.",
+        "source": "PHB"
+    },
+    "sleet-storm": {
+        "index": "sleet-storm",
+        "name": "Sleet Storm",
+        "level": 3,
+        "school": "Conjuration",
+        "classes": [
+            "Druid",
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Gênio",
+            "O Profundo"
+        ],
+        "description": "Freeze ground and obscure vision.",
+        "range": "150 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Tempestade de Gelo",
+        "descriptionPT": "Cria chuva congelante que dificulta o movimento e visão.",
+        "source": "PHB"
+    },
+    "blink": {
+        "index": "blink",
+        "name": "Blink",
+        "level": 3,
+        "school": "Transmutation",
+        "classes": [
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Arquifada",
+            "O Hexblade"
+        ],
+        "description": "Roll d20 to vanish to Ethereal Plane.",
+        "range": "Self",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "1 minute",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Piscar",
+        "descriptionPT": "Você viaja entre o plano material e o etéreo.",
+        "source": "PHB"
+    },
+    "plant-growth": {
+        "index": "plant-growth",
+        "name": "Plant Growth",
+        "level": 3,
+        "school": "Transmutation",
+        "classes": [
+            "Bard",
+            "Druid",
+            "Ranger"
+        ],
+        "patron": [
+            "O Arquifada"
+        ],
+        "description": "Overgrow area to impede movement.",
+        "range": "150 feet / 1/2 mile",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "Instantaneous",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action / 8 hours",
+        "namePT": "Crescimento de Plantas",
+        "descriptionPT": "Faz as plantas crescerem rápido para travar inimigos ou fertilizar a terra.",
+        "source": "PHB"
+    },
+    "fire-shield": {
+        "index": "fire-shield",
+        "name": "Fire Shield",
+        "level": 4,
+        "school": "Evocation",
+        "classes": [
+            "Wizard"
+        ],
+        "patron": [
+            "O Corruptor",
+            "O Gênio"
+        ],
+        "description": "Cold or fire resistance and damage to attackers.",
+        "range": "Self",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "10 minutes",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Escudo de Fogo",
+        "descriptionPT": "Protege você com fogo ou gelo e pune quem te ataca corpo a corpo.",
+        "source": "PHB"
+    },
+    "wall-of-fire": {
+        "index": "wall-of-fire",
+        "name": "Wall of Fire",
+        "level": 4,
+        "school": "Evocation",
+        "classes": [
+            "Druid",
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Corruptor",
+            "O Celestial",
+            "O Gênio"
+        ],
+        "description": "Creates wall of fire dealing 5d8 (DEX save half).",
+        "range": "120 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Muralha de Fogo",
+        "descriptionPT": "Uma barreira de fogo intenso.",
+        "source": "PHB"
+    },
+    "greater-invisibility": {
+        "index": "greater-invisibility",
+        "name": "Greater Invisibility",
+        "level": 4,
+        "school": "Illusion",
+        "classes": [
+            "Bard",
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Arquifada",
+            "O Gênio",
+            "O Morto-Vivo"
+        ],
+        "description": "Invisible creature can attack/cast without breaking.",
+        "range": "Touch",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Invisibilidade Maior",
+        "descriptionPT": "Invisibilidade que não quebra ao atacar.",
+        "source": "PHB"
+    },
+    "death-ward": {
+        "index": "death-ward",
+        "name": "Death Ward",
+        "level": 4,
+        "school": "Abjuration",
+        "classes": [
+            "Cleric",
+            "Paladin"
+        ],
+        "patron": [
+            "O Morto-Vivo"
+        ],
+        "description": "Prevents death once.",
+        "range": "Touch",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "8 hours",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Proteção contra Morte",
+        "descriptionPT": "Impede o alvo de cair a 0 pontos de vida.",
+        "source": "PHB"
+    },
+    "control-water": {
+        "index": "control-water",
+        "name": "Control Water",
+        "level": 4,
+        "school": "Transmutation",
+        "classes": [
+            "Cleric",
+            "Druid",
+            "Wizard"
+        ],
+        "patron": [
+            "O Gênio",
+            "O Profundo"
+        ],
+        "description": "Manipulate large body of water.",
+        "range": "300 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Up to 10 minutes",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Controlar Água",
+        "descriptionPT": "Manipula grandes massas de água.",
+        "source": "PHB"
+    },
+    "cone-of-cold": {
+        "index": "cone-of-cold",
+        "name": "Cone of Cold",
+        "level": 5,
+        "school": "Evocation",
+        "classes": [
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Hexblade",
+            "O Gênio",
+            "O Profundo"
+        ],
+        "description": "8d8 cold in 60ft cone (CON save half).",
+        "range": "Self (60-foot cone)",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Instantaneous",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Cone de Frio",
+        "descriptionPT": "Uma explosão de frio extremo em cone.",
+        "source": "PHB"
+    },
+    "flame-strike": {
+        "index": "flame-strike",
+        "name": "Flame Strike",
+        "level": 5,
+        "school": "Evocation",
+        "classes": [
+            "Cleric"
+        ],
+        "patron": [
+            "O Corruptor",
+            "O Celestial",
+            "O Gênio"
+        ],
+        "description": "4d6 fire and 4d6 radiant in 10ft radius cylinder.",
+        "range": "60 feet",
+        "components": [
+            "V",
+            "S",
+            "M"
+        ],
+        "duration": "Instantaneous",
+        "concentration": false,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Coluna de Chamas",
+        "descriptionPT": "Fogo e luz sagrada descem do céu.",
+        "source": "PHB"
+    },
+    "dominate-person": {
+        "index": "dominate-person",
+        "name": "Dominate Person",
+        "level": 5,
+        "school": "Enchantment",
+        "classes": [
+            "Bard",
+            "Sorcerer",
+            "Wizard"
+        ],
+        "patron": [
+            "O Arquifada",
+            "O Grande Antigo"
+        ],
+        "description": "Beguile a humanoid (WIS save).",
+        "range": "60 feet",
+        "components": [
+            "V",
+            "S"
+        ],
+        "duration": "Up to 1 minute",
+        "concentration": true,
+        "ritual": false,
+        "castingTime": "1 action",
+        "namePT": "Dominar Pessoa",
+        "descriptionPT": "Controla totalmente as ações de um humanoide.",
+        "source": "PHB"
+    }
+}

@@ -186,6 +186,9 @@ const characterColumns = {
   backstory: text("backstory"),
   notes: text("notes"),
   feats: jsonb("feats").default(sql`'[]'::jsonb`), // Array de feats escolhidos
+  eldritchInvocations: text("eldritch_invocations").array().default(sql`'{}'`), // Array de IDs de Invocações Arcanas (Bruxo)
+  bookOfShadowsCantrips: text("book_of_shadows_cantrips").array().default(sql`'{}'`), // Array de IDs de truques do Livro das Sombras (Pacto do Tomo)
+  mysticArcanum: jsonb("mystic_arcanum").default(sql`'{}'::jsonb`), // Mystic Arcanum spells (Bruxo níveis 11+) - {"6": "spell-id", "7": "spell-id", ...}
   preparedSpells: jsonb("prepared_spells").default(sql`'[]'::jsonb`), // Array de magias preparadas (apenas para classes que preparam)
   lastSpellPrepDate: text("last_spell_prep_date"), // Última data em que magias foram preparadas
   usedSpellSlots: jsonb("used_spell_slots").default(sql`'{}'::jsonb`), // Slots de magia usados por nível

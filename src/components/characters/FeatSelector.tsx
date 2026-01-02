@@ -20,9 +20,10 @@ interface FeatSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelect: (feat: Feat) => void;
+  currentFeats?: any[]; // Feats já escolhidos
 }
 
-export function FeatSelector({ open, onOpenChange, onSelect }: FeatSelectorProps) {
+export function FeatSelector({ open, onOpenChange, onSelect, currentFeats = [] }: FeatSelectorProps) {
   const [search, setSearch] = useState("");
   const [selectedFeat, setSelectedFeat] = useState<Feat | null>(null);
 
@@ -68,37 +69,49 @@ export function FeatSelector({ open, onOpenChange, onSelect }: FeatSelectorProps
           {/* LISTA */}
           <ScrollArea className="h-full pr-2">
             <div className="space-y-2">
-              {filteredFeats.map((feat) => (
-                <Card
-                  key={feat.name}
-                  className={`cursor-pointer transition-all hover:border-primary/50 ${
-                    selectedFeat?.name === feat.name
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border/50'
-                  }`}
-                  onClick={() => setSelectedFeat(feat)}
-                >
-                  <CardHeader className="p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-sm font-semibold">{feat.name}</h3>
-                      {feat.attributeBonus && (
-                        <Badge variant="secondary" className="flex items-center gap-1 flex-shrink-0">
-                          <TrendingUp className="w-3 h-3" />
-                          +1
-                        </Badge>
+              {filteredFeats.map((feat) => {
+                const isAlreadyChosen = currentFeats.some((f: any) => f.name === feat.name);
+
+                return (
+                  <Card
+                    key={feat.name}
+                    className={`cursor-pointer transition-all ${isAlreadyChosen
+                        ? 'opacity-50 cursor-not-allowed border-muted bg-muted/30'
+                        : selectedFeat?.name === feat.name
+                          ? 'border-primary bg-primary/5 hover:border-primary/50'
+                          : 'border-border/50 hover:border-primary/50'
+                      }`}
+                    onClick={() => !isAlreadyChosen && setSelectedFeat(feat)}
+                  >
+                    <CardHeader className="p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-sm font-semibold">{feat.name}</h3>
+                        <div className="flex items-center gap-2">
+                          {isAlreadyChosen && (
+                            <Badge variant="secondary" className="flex items-center gap-1 flex-shrink-0 bg-green-500/20 text-green-400">
+                              ✓ Escolhido
+                            </Badge>
+                          )}
+                          {feat.attributeBonus && (
+                            <Badge variant="secondary" className="flex items-center gap-1 flex-shrink-0">
+                              <TrendingUp className="w-3 h-3" />
+                              +1
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      {feat.prerequisite && (
+                        <p className="text-xs text-amber-400 mt-1">
+                          📋 {feat.prerequisite}
+                        </p>
                       )}
-                    </div>
-                    {feat.prerequisite && (
-                      <p className="text-xs text-amber-400 mt-1">
-                        📋 {feat.prerequisite}
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                        {feat.description}
                       </p>
-                    )}
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                      {feat.description}
-                    </p>
-                  </CardHeader>
-                </Card>
-              ))}
+                    </CardHeader>
+                  </Card>
+                )
+              })}
             </div>
           </ScrollArea>
 

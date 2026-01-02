@@ -28,8 +28,15 @@ import type { DragonType } from "@/lib/dragon-types";
 import type { FightingStyle } from "@/lib/fighting-styles";
 import { getFightingStylesForClass, needsFightingStyleSelection } from "@/lib/fighting-styles";
 import { FightingStyleSelector } from "@/components/characters/FightingStyleSelector";
+import { EldritchInvocationSelector } from "@/components/characters/EldritchInvocationSelector";
 import { useTranslation } from "@/lib/i18n/context";
 import { applyAutoFeatures } from "@/lib/auto-features";
+import { getInvocationsCount, getNewInvocationsCount, ELDRITCH_INVOCATIONS } from "@/lib/eldritch-invocations";
+import { applyPactBoonBenefits, hasPactBoonItems } from "@/lib/pact-boon-helper";
+import { BookOfShadowsSelector } from "@/components/characters/BookOfShadowsSelector";
+import { calculateInitiativeBonus } from "@/lib/initiative-helper";
+import { getMysticArcanumLevel, getNewMysticArcanumLevel } from "@/lib/mystic-arcanum-helper";
+import { MysticArcanumSelector } from "@/components/characters/MysticArcanumSelector";
 
 const DND_API_BASE = "https://www.dnd5eapi.co";
 
@@ -80,6 +87,14 @@ export default function LevelUpPage() {
   const [selectedFeatAttribute, setSelectedFeatAttribute] = useState<string | null>(null); // Atributo escolhido para feat com "any"
   const [showFightingStyleSelector, setShowFightingStyleSelector] = useState(false);
   const [selectedFightingStyle, setSelectedFightingStyle] = useState<FightingStyle | null>(null);
+  const [showInvocationSelector, setShowInvocationSelector] = useState(false);
+  const [selectedInvocations, setSelectedInvocations] = useState<string[]>([]);
+  const [invocationsToSelect, setInvocationsToSelect] = useState(0);
+  const [showBookOfShadowsSelector, setShowBookOfShadowsSelector] = useState(false);
+  const [selectedBookCantrips, setSelectedBookCantrips] = useState<string[]>([]);
+  const [showMysticArcanumSelector, setShowMysticArcanumSelector] = useState(false);
+  const [mysticArcanumLevel, setMysticArcanumLevel] = useState<number | null>(null);
+  const [selectedMysticArcanum, setSelectedMysticArcanum] = useState<string>("");
   const { translateSpell } = useTranslation();
 
   const fetchCharacterData = useCallback(async () => {
@@ -176,6 +191,30 @@ export default function LevelUpPage() {
         if (adjustedSpellsToSelect > 0 || learningInfo.newCantrips > 0) {
           // Buscar magias disponíveis para a classe (ou todas se for Magia Mística)
           await fetchAvailableSpells(characterData.characterClass, targetLevel, hasMagicalSecrets);
+        }
+      }
+
+      // Verificar se é Bruxo e precisa selecionar Invocações Arcanas
+      if (characterData.characterClass === "Bruxo") {
+        const currentInvocations = characterData.eldritchInvocations || [];
+        setSelectedInvocations(currentInvocations);
+
+        const currentInvocationsCount = getInvocationsCount(currentLevel);
+        const targetInvocationsCount = getInvocationsCount(targetLevel);
+        const newInvocations = targetInvocationsCount - currentInvocationsCount;
+
+        setInvocationsToSelect(newInvocations);
+
+        console.log(`[Invocations] Level ${currentLevel} -> ${targetLevel}: Need ${newInvocations} new invocations (total: ${targetInvocationsCount})`);
+
+        // Verificar se precisa selecionar Mystic Arcanum
+        const newArcanumLevel = getNewMysticArcanumLevel(currentLevel, targetLevel);
+        if (newArcanumLevel) {
+          const currentArcanum = characterData.mysticArcanum || {};
+          if (!currentArcanum[newArcanumLevel.toString()]) {
+            setMysticArcanumLevel(newArcanumLevel);
+            setSelectedMysticArcanum("");
+          }
         }
       }
     } catch (error: any) {
@@ -448,12 +487,17 @@ export default function LevelUpPage() {
 
       const newProficiencyBonus = Math.ceil(targetLevel / 4) + 1;
 
+      // RECALCULAR INICIATIVA baseado em DEX e feats
+      const dexMod = Math.floor(((updatedAttributes.dexterity || 10) - 10) / 2);
+      const newInitiative = calculateInitiativeBonus(dexMod, updatedFeats);
+
       // Preparar objeto base para atualização
       let updateBody: any = {
         level: targetLevel, // Atualizar para o novo nível
         maxHp: finalMaxHp,
         currentHp: finalCurrentHp,
         proficiencyBonus: newProficiencyBonus,
+        initiative: newInitiative, // Atualizar iniciativa com bônus de feats
         needsLevelUp: stillNeedsLevelUp, // Manter true se ainda tiver níveis a subir
         pendingHitDiceRoll: stillNeedsLevelUp ? null : null, // Limpar dado pendente quando level up completo
         attributes: updatedAttributes,
@@ -542,6 +586,74 @@ export default function LevelUpPage() {
             });
           }
         });
+
+        // Aplicar itens e benefícios automáticos do Pacto
+        const pactBenefits = applyPactBoonBenefits(character.characterClass, pendingPact, targetLevel);
+
+        // Adicionar itens do pacto ao inventário (se não existirem)
+        if (pactBenefits.inventory && pactBenefits.inventory.length > 0) {
+          const currentInventory = character.inventory || [];
+          const hasItems = hasPactBoonItems(currentInventory, pendingPact.name);
+
+          if (!hasItems) {
+            const updatedInventory = [...currentInventory, ...pactBenefits.inventory];
+            updateBody.inventory = updatedInventory;
+          }
+        }
+
+        // Adicionar features do pacto
+        if (pactBenefits.features) {
+          Object.entries(pactBenefits.features).forEach(([level, features]) => {
+            const lvl = parseInt(level);
+            if (!newFeatures[lvl]) {
+              newFeatures[lvl] = [];
+            }
+            features.forEach((feature: any) => {
+              const exists = newFeatures[lvl].some((f: any) => f.name === feature.name);
+              if (!exists) {
+                newFeatures[lvl].push(feature);
+              }
+            });
+          });
+        }
+
+        // Adicionar magias do pacto (ex: Find Familiar para Pacto da Corrente)
+        if (pactBenefits.spellcasting?.knownSpells) {
+          pactBenefits.spellcasting.knownSpells.forEach(spell => {
+            if (!newKnownSpells.includes(spell)) {
+              newKnownSpells.push(spell);
+            }
+          });
+        }
+      }
+
+      // Aplicar Invocações Arcanas (Bruxo)
+      if (character.characterClass === "Bruxo" && selectedInvocations.length > 0) {
+        updateBody.eldritchInvocations = selectedInvocations;
+      }
+
+      // Aplicar Truques do Livro das Sombras (Pacto do Tomo)
+      if (pendingPact?.name === "Pacto do Tomo" && selectedBookCantrips.length > 0) {
+        updateBody.bookOfShadowsCantrips = selectedBookCantrips;
+        // Adicionar os truques às magias conhecidas também
+        selectedBookCantrips.forEach(cantrip => {
+          if (!newKnownSpells.includes(cantrip)) {
+            newKnownSpells.push(cantrip);
+          }
+        });
+      }
+
+      // Aplicar Mystic Arcanum (Bruxo)
+      if (mysticArcanumLevel && selectedMysticArcanum) {
+        const currentArcanum = character.mysticArcanum || {};
+        updateBody.mysticArcanum = {
+          ...currentArcanum,
+          [mysticArcanumLevel.toString()]: selectedMysticArcanum
+        };
+        // Adicionar Mystic Arcanum às magias conhecidas
+        if (!newKnownSpells.includes(selectedMysticArcanum)) {
+          newKnownSpells.push(selectedMysticArcanum);
+        }
       }
 
       // Aplicar Fighting Style
@@ -927,6 +1039,91 @@ export default function LevelUpPage() {
           </Card>
         )}
 
+        {/* Seleção de Truques do Livro das Sombras (Pacto do Tomo) */}
+        {pendingPact?.name === "Pacto do Tomo" && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedBookCantrips.length === 3 ? 'border-l-green-500' : 'border-l-purple-500'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-400" />
+                {selectedBookCantrips.length === 3 ? 'Truques do Livro das Sombras Selecionados' : 'Escolha Truques para o Livro das Sombras'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedBookCantrips.length === 3 ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Você selecionou 3 truques:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedBookCantrips.map((cantrip) => (
+                      <Badge key={cantrip} variant="secondary" className="text-sm">
+                        {cantrip}
+                      </Badge>
+                    ))}
+                  </div>
+                  <Button variant="outline" onClick={() => setShowBookOfShadowsSelector(true)} className="w-full">
+                    Alterar Truques
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-4 text-muted-foreground">
+                    O Livro das Sombras permite que você aprenda 3 truques de qualquer classe. Estes truques não contam contra seu número de truques conhecidos!
+                  </p>
+                  <Button
+                    onClick={() => setShowBookOfShadowsSelector(true)}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Escolher 3 Truques
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Seleção de Mystic Arcanum (Bruxo Níveis 11, 13, 15, 17) */}
+        {mysticArcanumLevel && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedMysticArcanum ? 'border-l-green-500' : 'border-l-purple-500'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-400" />
+                {selectedMysticArcanum ? 'Mystic Arcanum Selecionado' : 'Escolha Mystic Arcanum'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedMysticArcanum ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Você selecionou uma magia de {mysticArcanumLevel}º nível:
+                  </p>
+                  <Badge variant="secondary" className="text-sm">
+                    {selectedMysticArcanum}
+                  </Badge>
+                  <Button variant="outline" onClick={() => setShowMysticArcanumSelector(true)} className="w-full">
+                    Alterar Magia
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-4 text-muted-foreground">
+                    Mystic Arcanum permite que você aprenda 1 magia de {mysticArcanumLevel}º nível. Esta magia pode ser conjurada 1x por descanso longo sem gastar espaço de magia!
+                  </p>
+                  <Button
+                    onClick={() => setShowMysticArcanumSelector(true)}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Escolher Magia de {mysticArcanumLevel}º Nível
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+
         {/* Seleção de Fighting Style */}
         {needsFightingStyleSelection(character?.characterClass || "", targetLevel) && !character?.fightingStyle && (
           <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedFightingStyle ? 'border-l-green-500' : 'border-l-orange-500'}`}>
@@ -957,6 +1154,56 @@ export default function LevelUpPage() {
                     className="w-full bg-orange-600 hover:bg-orange-700"
                   >
                     Escolher Estilo de Combate
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Seleção de Invocações Arcanas (Bruxo) */}
+        {character?.characterClass === "Bruxo" && invocationsToSelect > 0 && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedInvocations.length >= getInvocationsCount(targetLevel) ? 'border-l-green-500' : 'border-l-purple-500'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-400" />
+                {selectedInvocations.length >= getInvocationsCount(targetLevel) ? 'Invocações Arcanas Selecionadas' : 'Escolha Invocações Arcanas'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedInvocations.length >= getInvocationsCount(targetLevel) ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Você selecionou {selectedInvocations.length} invocação(ões):
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedInvocations.map((invId) => {
+                      const inv = ELDRITCH_INVOCATIONS.find(i => i.id === invId);
+                      return inv && (
+                        <Badge key={invId} variant="secondary" className="text-sm">
+                          {inv.name}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                  <Button variant="outline" onClick={() => setShowInvocationSelector(true)} className="w-full">
+                    Alterar Invocações
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-4 text-muted-foreground">
+                    Você alcançou o nível {character.level + 1} e pode escolher {invocationsToSelect} nova(s) invocação(ões) arcana(s)!
+                    {character.eldritchInvocations && character.eldritchInvocations.length > 0 && (
+                      <> Você já possui {character.eldritchInvocations.length} invocação(ões).</>
+                    )}
+                  </p>
+                  <Button
+                    onClick={() => setShowInvocationSelector(true)}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Escolher Invocações Arcanas
                   </Button>
                 </>
               )}
@@ -1292,7 +1539,10 @@ export default function LevelUpPage() {
                 (canCastSpells(character.characterClass) && (selectedSpells.length < spellsToSelect || selectedCantrips.length < cantripsToSelect)) ||
                 (needsSubclass && !pendingSubclass) ||
                 (needsDragonType && !pendingDragonType) ||
-                (needsPact && !pendingPact)
+                (needsPact && !pendingPact) ||
+                (character.characterClass === "Bruxo" && invocationsToSelect > 0 && selectedInvocations.length < getInvocationsCount(targetLevel)) ||
+                (pendingPact?.name === "Pacto do Tomo" && selectedBookCantrips.length < 3) ||
+                (mysticArcanumLevel && !selectedMysticArcanum)
               }
               className="w-full"
               size="lg"
@@ -1371,6 +1621,7 @@ export default function LevelUpPage() {
         <FeatSelector
           open={showFeatSelector}
           onOpenChange={setShowFeatSelector}
+          currentFeats={character?.feats || []}
           onSelect={(feat) => {
             setSelectedFeat(feat);
             setSelectedFeatAttribute(null); // Resetar atributo ao trocar de feat
@@ -1403,6 +1654,57 @@ export default function LevelUpPage() {
                 toast.success(`Estilo de Combate "${style.name}" selecionado!`);
               }}
               onClose={() => setShowFightingStyleSelector(false)}
+            />
+          )
+        }
+
+        {/* Dialog de Seleção de Invocações Arcanas */}
+        {
+          showInvocationSelector && character && (
+            <EldritchInvocationSelector
+              open={showInvocationSelector}
+              onOpenChange={setShowInvocationSelector}
+              onSelect={(invocations) => {
+                setSelectedInvocations(invocations);
+                toast.success(`${invocations.length} invocação(ões) selecionada(s)!`);
+              }}
+              currentInvocations={character.eldritchInvocations || []}
+              maxInvocations={getInvocationsCount(targetLevel)}
+              characterLevel={targetLevel}
+              pactBoon={character.pact}
+              knownSpells={character.spellcasting?.knownSpells || []}
+            />
+          )
+        }
+
+        {/* Dialog de Seleção de Truques do Livro das Sombras */}
+        {
+          showBookOfShadowsSelector && character && (
+            <BookOfShadowsSelector
+              open={showBookOfShadowsSelector}
+              onOpenChange={setShowBookOfShadowsSelector}
+              onSelect={(cantrips) => {
+                setSelectedBookCantrips(cantrips);
+                toast.success(`3 truques selecionados para o Livro das Sombras!`);
+              }}
+              currentCantrips={character.bookOfShadowsCantrips || []}
+              characterLevel={targetLevel}
+            />
+          )
+        }
+
+        {/* Dialog de Seleção de Mystic Arcanum */}
+        {
+          showMysticArcanumSelector && character && mysticArcanumLevel && (
+            <MysticArcanumSelector
+              open={showMysticArcanumSelector}
+              onOpenChange={setShowMysticArcanumSelector}
+              onSelect={(spellIndex) => {
+                setSelectedMysticArcanum(spellIndex);
+                toast.success(`Mystic Arcanum de ${mysticArcanumLevel}º nível selecionado!`);
+              }}
+              spellLevel={mysticArcanumLevel}
+              currentSelection={selectedMysticArcanum}
             />
           )
         }

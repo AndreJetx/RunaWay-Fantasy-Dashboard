@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from "react";
 import { getSpellDetails } from "@/lib/data/spell-data";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
+import { PactDetailsDialog } from "@/components/characters/PactDetailsDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -117,6 +118,7 @@ export default function CharacterPage() {
     type?: 'feature' | 'ability_score_improvement' | 'spellcasting' | 'subclass';
   } | null>(null);
   const [selectedFeatureType, setSelectedFeatureType] = useState<'class' | 'subclass'>('class');
+  const [showPactDialog, setShowPactDialog] = useState(false);
   const [selectedSubclassName, setSelectedSubclassName] = useState<string | undefined>(undefined);
   const [spellDialogOpen, setSpellDialogOpen] = useState(false);
   const [selectedSpellDetailData, setSelectedSpellDetailData] = useState<any>(null);
@@ -629,7 +631,10 @@ export default function CharacterPage() {
                     )}
 
                     {character.characterClass === 'Bruxo' && character.pact && (
-                      <div className="bg-background/50 rounded-lg p-4 border-2 border-primary/30">
+                      <div
+                        onClick={() => setShowPactDialog(true)}
+                        className="bg-background/50 rounded-lg p-4 border-2 border-primary/30 cursor-pointer hover:border-primary/50 hover:bg-background/70 transition-all"
+                      >
                         <p className="text-sm text-muted-foreground mb-1">Pacto (Nível 3)</p>
                         <p className="text-lg font-bold text-primary">{character.pact}</p>
                       </div>
@@ -1752,6 +1757,16 @@ export default function CharacterPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de Detalhes do Pacto */}
+      {character?.pact && (
+        <PactDetailsDialog
+          open={showPactDialog}
+          onOpenChange={setShowPactDialog}
+          pactName={character.pact}
+          bookOfShadowsCantrips={character.bookOfShadowsCantrips || []}
+        />
+      )}
     </FantasyLayout>
   );
 }
