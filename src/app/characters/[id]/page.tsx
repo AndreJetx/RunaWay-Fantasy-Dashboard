@@ -38,8 +38,16 @@ import {
   Coins,
   BookOpen,
   User,
-  Scroll
+  Scroll,
+  Camera
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import Image from "next/image";
 import avatarPlaceholder from "@assets/generated_images/fantasy_character_silhouette_avatar.png";
@@ -112,6 +120,8 @@ export default function CharacterPage() {
   const [selectedSubclassName, setSelectedSubclassName] = useState<string | undefined>(undefined);
   const [spellDialogOpen, setSpellDialogOpen] = useState(false);
   const [selectedSpellDetailData, setSelectedSpellDetailData] = useState<any>(null);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [imageUrlInput, setImageUrlInput] = useState("");
 
   // Carregar detalhes das magias quando o personagem for carregado
   useEffect(() => {
@@ -251,6 +261,31 @@ export default function CharacterPage() {
     }
   };
 
+  const handleUpdateImage = async () => {
+    if (!character) return;
+
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/characters/${characterId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imageUrlInput }),
+      });
+
+      if (!res.ok) throw new Error("Erro ao atualizar imagem");
+
+      const data = await res.json();
+      setCharacter(data.character);
+      setIsImageDialogOpen(false);
+      toast.success("Imagem atualizada com sucesso!");
+    } catch (error: any) {
+      console.error("Error updating image:", error);
+      toast.error(error.message || "Erro ao atualizar imagem");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const updateField = (field: string, value: any) => {
     setCharacter((prev: any) => ({
       ...prev,
@@ -364,16 +399,28 @@ export default function CharacterPage() {
           </Button>
 
           {/* Profile Picture */}
-          {character.image && (
-            <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary/30 shadow-lg shrink-0">
+          <div className="relative group shrink-0">
+            <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary/30 shadow-lg bg-card/40">
               <Image
-                src={character.image}
+                src={character.image || avatarPlaceholder}
                 alt={character.name}
                 fill
                 className="object-cover"
               />
             </div>
-          )}
+            {canEdit && (
+              <button
+                onClick={() => {
+                  setImageUrlInput(character.image || "");
+                  setIsImageDialogOpen(true);
+                }}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer"
+                title="Editar foto de perfil"
+              >
+                <Camera className="w-8 h-8 text-white" />
+              </button>
+            )}
+          </div>
 
           <div className="flex-1">
             <h1 className="text-4xl font-bold font-cinzel text-primary">
@@ -1655,6 +1702,56 @@ export default function CharacterPage() {
         onClose={() => setSpellDialogOpen(false)}
         spell={selectedSpellDetailData}
       />
+
+      {/* Diálogo para Editar Imagem */}
+      <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+        <DialogContent className="bg-card border-white/10">
+          <DialogHeader>
+            <DialogTitle className="font-cinzel text-xl text-primary flex items-center gap-2">
+              <Camera className="w-5 h-5" />
+              Editar Foto do Personagem
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="image-url">URL da Imagem</Label>
+              <Input
+                id="image-url"
+                value={imageUrlInput}
+                onChange={(e) => setImageUrlInput(e.target.value)}
+                placeholder="https://exemplo.com/imagem.png"
+                className="bg-card/40"
+              />
+              <p className="text-xs text-muted-foreground italic">
+                Dica: Use URLs diretas de imagens (.png, .jpg, .webp) para melhor resultado.
+              </p>
+            </div>
+            {imageUrlInput && (
+              <div className="flex flex-col items-center gap-2">
+                <Label className="self-start">Prévia:</Label>
+                <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-primary/30 shadow-lg bg-card/40">
+                  <img
+                    src={imageUrlInput}
+                    alt="Prévia"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as any).src = avatarPlaceholder.src || avatarPlaceholder;
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsImageDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateImage} disabled={saving}>
+              {saving ? "Salvando..." : "Salvar Foto"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </FantasyLayout>
   );
 }

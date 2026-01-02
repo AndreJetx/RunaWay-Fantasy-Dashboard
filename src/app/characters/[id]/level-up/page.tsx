@@ -446,11 +446,14 @@ export default function LevelUpPage() {
         finalCurrentHp = newCurrentHp;
       }
 
+      const newProficiencyBonus = Math.ceil(targetLevel / 4) + 1;
+
       // Preparar objeto base para atualização
       let updateBody: any = {
         level: targetLevel, // Atualizar para o novo nível
         maxHp: finalMaxHp,
         currentHp: finalCurrentHp,
+        proficiencyBonus: newProficiencyBonus,
         needsLevelUp: stillNeedsLevelUp, // Manter true se ainda tiver níveis a subir
         pendingHitDiceRoll: stillNeedsLevelUp ? null : null, // Limpar dado pendente quando level up completo
         attributes: updatedAttributes,

@@ -35,13 +35,28 @@ export function applySubclassBenefits(
 
     // Inicializar campos se não existirem
     if (!updatedCharacter.skills) updatedCharacter.skills = {};
+    else updatedCharacter.skills = { ...updatedCharacter.skills };
+
     if (!updatedCharacter.proficiencies) updatedCharacter.proficiencies = [];
+    else updatedCharacter.proficiencies = [...updatedCharacter.proficiencies];
+
     if (!updatedCharacter.languages) updatedCharacter.languages = [];
+    else updatedCharacter.languages = [...updatedCharacter.languages];
+
     if (!updatedCharacter.spellcasting) updatedCharacter.spellcasting = {};
+    else updatedCharacter.spellcasting = { ...updatedCharacter.spellcasting };
+
     if (!updatedCharacter.spellcasting.knownSpells) updatedCharacter.spellcasting.knownSpells = [];
+    else updatedCharacter.spellcasting.knownSpells = [...updatedCharacter.spellcasting.knownSpells];
+
     if (!updatedCharacter.spellcasting.cantrips) updatedCharacter.spellcasting.cantrips = [];
+    else updatedCharacter.spellcasting.cantrips = [...updatedCharacter.spellcasting.cantrips];
+
     if (!updatedCharacter.features) updatedCharacter.features = {} as any; // features é um objeto JSONB
+    else updatedCharacter.features = { ...updatedCharacter.features };
+
     if (!updatedCharacter.resistances) updatedCharacter.resistances = [];
+    else updatedCharacter.resistances = [...updatedCharacter.resistances];
 
     // Aplicar benefícios do nível atual
     const currentLevelBenefits = subclass.benefits.filter(
@@ -118,7 +133,7 @@ export function applySubclassBenefits(
                 if (!updatedCharacter.features) {
                     updatedCharacter.features = {};
                 }
-                
+
                 if (!(updatedCharacter.features as any)[featureName]) {
                     (updatedCharacter.features as any)[featureName] = {
                         name: featureName,
@@ -160,9 +175,16 @@ export function applyBackgroundBenefits(
 
     // Inicializar campos se não existirem
     if (!updatedCharacter.skills) updatedCharacter.skills = {};
+    else updatedCharacter.skills = { ...updatedCharacter.skills }; // Clonar para evitar mutação direta
+
     if (!updatedCharacter.proficiencies) updatedCharacter.proficiencies = [];
+    else updatedCharacter.proficiencies = [...updatedCharacter.proficiencies];
+
     if (!updatedCharacter.languages) updatedCharacter.languages = [];
-    if (!updatedCharacter.features) updatedCharacter.features = {} as any; // features é um objeto JSONB
+    else updatedCharacter.languages = [...updatedCharacter.languages];
+
+    if (!updatedCharacter.features) updatedCharacter.features = {} as any;
+    else updatedCharacter.features = { ...updatedCharacter.features };
 
     // Aplicar perícias (não duplica se já existe)
     background.skillProficiencies.forEach(skill => {

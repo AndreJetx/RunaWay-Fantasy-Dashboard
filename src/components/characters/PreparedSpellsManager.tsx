@@ -69,7 +69,7 @@ export function PreparedSpellsManager({
                     'Clérigo': 'Cleric',
                     'Druida': 'Druid',
                     'Ranger': 'Ranger',
-                    // Mago NÃO está aqui - prepara do grimório (knownSpells)
+                    'Mago': 'Wizard',
                 };
 
                 const apiClassName = classNameMap[character.characterClass];
@@ -92,9 +92,18 @@ export function PreparedSpellsManager({
                 }
 
                 console.log('[PreparedSpells] Max spell level:', maxSpellLevel);
-                console.log('[PreparedSpells] Character class:', character.characterClass, '→', apiClassName);
 
-                const classSpells = getSpellsByClass(apiClassName, maxSpellLevel);
+                // Determinar quais magias estão disponíveis para preparar
+                let classSpells: string[] = [];
+
+                if (character.characterClass === 'Mago') {
+                    // Mago prepara do grimório (knownSpells)
+                    classSpells = character.spellcasting?.knownSpells || [];
+                } else {
+                    // Outras classes preparam da lista completa da classe
+                    classSpells = getSpellsByClass(apiClassName, maxSpellLevel);
+                }
+
                 console.log('[PreparedSpells] Found spells:', classSpells.length);
 
                 setAvailableSpells(classSpells);

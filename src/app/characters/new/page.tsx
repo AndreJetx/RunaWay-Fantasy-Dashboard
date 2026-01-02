@@ -27,7 +27,7 @@ import { getClassFeatures } from "@/lib/class-features";
 import { getSubclassLevel, needsSubclassSelection } from "@/lib/subclasses";
 import { applySubclassBenefits, applyBackgroundBenefits } from "@/lib/benefit-application";
 import type { Subclass } from "@/lib/subclasses";
-import type { Background } from "@/lib/backgrounds";
+import { Background, BACKGROUNDS } from "@/lib/backgrounds";
 import type { DragonType } from "@/lib/dragon-types";
 
 
@@ -1189,9 +1189,15 @@ function NewCharacterPageContent() {
       // Remover APENAS perícias anteriores da classe (preservando raça e background)
       const newSkills = { ...prev.skills };
 
-      // Remove apenas as perícias que vieram da classe anterior
+      // Buscar perícias do antecedente para não removê-las
+      const backgroundData = BACKGROUNDS.find(b => b.name === prev.background);
+      const backgroundSkills = backgroundData?.skillProficiencies || [];
+
+      // Remove apenas as perícias que vieram da classe anterior, SE não forem do antecedente
       [...previousClassSkills, ...chosenClassSkills].forEach(skillKey => {
-        delete newSkills[skillKey];
+        if (!backgroundSkills.includes(skillKey)) {
+          delete newSkills[skillKey];
+        }
       });
 
       // Aplicar perícias garantidas da classe (não duplica se já existe)
@@ -1416,10 +1422,17 @@ function NewCharacterPageContent() {
         newNotes += advantagesText;
       }
 
-      // Remover perícias anteriores da raça (garantidas e escolhidas)
+      // Remover perícias anteriores da raça (garantidas e escolhidas), preservando background
       const newSkills = { ...prev.skills };
+
+      // Buscar perícias do antecedente para não removê-las
+      const backgroundData = BACKGROUNDS.find(b => b.name === prev.background);
+      const backgroundSkills = backgroundData?.skillProficiencies || [];
+
       [...previousRaceSkills, ...chosenRaceSkills].forEach(skillKey => {
-        delete newSkills[skillKey];
+        if (!backgroundSkills.includes(skillKey)) {
+          delete newSkills[skillKey];
+        }
       });
 
       // Aplicar perícias garantidas da nova raça
@@ -2075,7 +2088,9 @@ function NewCharacterPageContent() {
 
       // Adicionar spellcasting se a classe pode conjurar magias
       if (canCastSpells(formData.characterClass) && selectedSpells.length > 0) {
-        const spellSlots = getSpellSlots(formData.characterClass, formData.level);
+        // IMPORTANTE: Sempre usar nível 1 para spell slots na criação
+        // Os slots adicionais serão ganhos durante o level-up
+        const spellSlots = getSpellSlots(formData.characterClass, 1);
         payload.spellcasting = {
           knownSpells: selectedSpells,
           spellSlots: spellSlots,
