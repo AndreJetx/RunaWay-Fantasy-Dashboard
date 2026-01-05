@@ -37,6 +37,8 @@ import { BookOfShadowsSelector } from "@/components/characters/BookOfShadowsSele
 import { calculateInitiativeBonus } from "@/lib/initiative-helper";
 import { getMysticArcanumLevel, getNewMysticArcanumLevel } from "@/lib/mystic-arcanum-helper";
 import { MysticArcanumSelector } from "@/components/characters/MysticArcanumSelector";
+import { MetamagicSelector } from "@/components/characters/MetamagicSelector";
+import { getMetamagicCount, getNewMetamagicCount } from "@/lib/metamagic";
 
 const DND_API_BASE = "https://www.dnd5eapi.co";
 
@@ -95,6 +97,9 @@ export default function LevelUpPage() {
   const [showMysticArcanumSelector, setShowMysticArcanumSelector] = useState(false);
   const [mysticArcanumLevel, setMysticArcanumLevel] = useState<number | null>(null);
   const [selectedMysticArcanum, setSelectedMysticArcanum] = useState<string>("");
+  const [showMetamagicSelector, setShowMetamagicSelector] = useState(false);
+  const [selectedMetamagics, setSelectedMetamagics] = useState<string[]>([]);
+  const [metamagicsToSelect, setMetamagicsToSelect] = useState(0);
   const { translateSpell } = useTranslation();
 
   const fetchCharacterData = useCallback(async () => {
@@ -745,6 +750,17 @@ export default function LevelUpPage() {
   const usedASIPoints = Object.values(attributeIncreases).reduce((sum, val) => sum + val, 0);
   const remainingASIPoints = totalASIPoints - usedASIPoints;
 
+  // Verificar se Feiticeiro ganha metamágicas neste nível
+  const newMetamagicsCount = character?.characterClass === "Feiticeiro"
+    ? getNewMetamagicCount(character.level, targetLevel)
+    : 0;
+
+  // Inicializar metamagics com as já conhecidas
+  if (newMetamagicsCount > 0 && metamagicsToSelect === 0) {
+    setMetamagicsToSelect(newMetamagicsCount);
+    setSelectedMetamagics(character.metamagics || []);
+  }
+
   return (
     <FantasyLayout>
       <div className="space-y-6 max-w-4xl mx-auto">
@@ -1210,6 +1226,56 @@ export default function LevelUpPage() {
                   >
                     <Sparkles className="w-4 h-4 mr-2" />
                     Escolher Invocações Arcanas
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Seleção de Metamágicas (Feiticeiro) */}
+        {character?.characterClass === "Feiticeiro" && metamagicsToSelect > 0 && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedMetamagics.length >= getMetamagicCount(targetLevel) ? 'border-l-green-500' : 'border-l-purple-500'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-400" />
+                {selectedMetamagics.length >= getMetamagicCount(targetLevel) ? 'Metamágicas Selecionadas' : 'Escolha Metamágicas'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedMetamagics.length >= getMetamagicCount(targetLevel) ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Você selecionou {selectedMetamagics.length} metamágica(s):
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedMetamagics.map((metamagicId) => {
+                      const { METAMAGICS } = require('@/lib/metamagic');
+                      const metamagic = METAMAGICS[metamagicId];
+                      return metamagic && (
+                        <Badge key={metamagicId} variant="secondary" className="text-sm">
+                          {metamagic.name}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                  <Button variant="outline" onClick={() => setShowMetamagicSelector(true)} className="w-full">
+                    Alterar Metamágicas
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-4 text-muted-foreground">
+                    Metamágicas permitem que você modifique suas magias gastando Pontos de Feitiçaria. Selecione {
+                      getNewMetamagicCount(character.level, targetLevel)
+                    } nova(s) metamágica(s).
+                  </p>
+                  <Button
+                    onClick={() => setShowMetamagicSelector(true)}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Escolher Metamágicas
                   </Button>
                 </>
               )}
@@ -1753,6 +1819,22 @@ export default function LevelUpPage() {
               }}
               spellLevel={mysticArcanumLevel}
               currentSelection={selectedMysticArcanum}
+            />
+          )
+        }
+
+        {/* Dialog de Seleção de Metamágicas */}
+        {
+          showMetamagicSelector && character && (
+            <MetamagicSelector
+              open={showMetamagicSelector}
+              onOpenChange={setShowMetamagicSelector}
+              onSelect={(metamagics) => {
+                setSelectedMetamagics(metamagics);
+                toast.success(`${metamagics.length} metamágica(s) selecionada(s)!`);
+              }}
+              currentMetamagics={character.metamagics || []}
+              maxMetamagics={getMetamagicCount(targetLevel)}
             />
           )
         }

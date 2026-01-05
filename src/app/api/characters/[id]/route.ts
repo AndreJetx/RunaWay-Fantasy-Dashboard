@@ -250,6 +250,15 @@ export async function PUT(
     if (body.preparedSpells !== undefined) updateData.preparedSpells = body.preparedSpells;
     if (body.lastSpellPrepDate !== undefined) updateData.lastSpellPrepDate = body.lastSpellPrepDate;
     if (body.usedSpellSlots !== undefined) updateData.usedSpellSlots = body.usedSpellSlots;
+    if (body.createdSpellSlots !== undefined) updateData.createdSpellSlots = body.createdSpellSlots;
+    if (body.eldritchInvocations !== undefined) updateData.eldritchInvocations = body.eldritchInvocations;
+    if (body.bookOfShadowsCantrips !== undefined) updateData.bookOfShadowsCantrips = body.bookOfShadowsCantrips;
+    if (body.mysticArcanum !== undefined) updateData.mysticArcanum = body.mysticArcanum;
+    if (body.metamagics !== undefined) updateData.metamagics = body.metamagics;
+    if (body.sorceryPoints !== undefined) updateData.sorceryPoints = body.sorceryPoints;
+    if (body.maxSorceryPoints !== undefined) updateData.maxSorceryPoints = body.maxSorceryPoints;
+    if (body.fightingStyle !== undefined) updateData.fightingStyle = body.fightingStyle;
+    if (body.hpBonusPerLevel !== undefined) updateData.hpBonusPerLevel = body.hpBonusPerLevel;
 
 
     const [updatedCharacter] = await db

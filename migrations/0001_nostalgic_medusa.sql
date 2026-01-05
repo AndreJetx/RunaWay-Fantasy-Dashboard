@@ -1,0 +1,1 @@
+ALTER TABLE "characters" ADD COLUMN "metamagics" text[] DEFAULT '{}';

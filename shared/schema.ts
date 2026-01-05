@@ -176,6 +176,8 @@ const characterColumns = {
   spellcasting: jsonb("spellcasting").default(sql`'{}'::jsonb`),
   mana: integer("mana").default(0),
   maxMana: integer("max_mana").default(0),
+  sorceryPoints: integer("sorcery_points").default(0), // Pontos de Feitiçaria (Feiticeiro)
+  maxSorceryPoints: integer("max_sorcery_points").default(0), // Pontos de Feitiçaria Máximos (Feiticeiro)
   divindade: text("divindade"),
   origem: text("origem"),
   poderes: jsonb("poderes").default(sql`'{}'::jsonb`),
@@ -189,9 +191,11 @@ const characterColumns = {
   eldritchInvocations: text("eldritch_invocations").array().default(sql`'{}'`), // Array de IDs de Invocações Arcanas (Bruxo)
   bookOfShadowsCantrips: text("book_of_shadows_cantrips").array().default(sql`'{}'`), // Array de IDs de truques do Livro das Sombras (Pacto do Tomo)
   mysticArcanum: jsonb("mystic_arcanum").default(sql`'{}'::jsonb`), // Mystic Arcanum spells (Bruxo níveis 11+) - {"6": "spell-id", "7": "spell-id", ...}
+  metamagics: text("metamagics").array().default(sql`'{}'`), // Array de IDs de Metamágicas escolhidas (Feiticeiro)
   preparedSpells: jsonb("prepared_spells").default(sql`'[]'::jsonb`), // Array de magias preparadas (apenas para classes que preparam)
   lastSpellPrepDate: text("last_spell_prep_date"), // Última data em que magias foram preparadas
   usedSpellSlots: jsonb("used_spell_slots").default(sql`'{}'::jsonb`), // Slots de magia usados por nível
+  createdSpellSlots: jsonb("created_spell_slots").default(sql`'{}'::jsonb`), // Slots de magia criados (Feiticeiro) por nível
   needsLevelUp: boolean("needs_level_up").default(false),
   pendingHitDiceRoll: integer("pending_hit_dice_roll"),
   createdAt: timestamp("created_at", { withTimezone: true })

@@ -2,6 +2,8 @@
 
 import { PreparedSpellsManager } from "@/components/characters/PreparedSpellsManager";
 import { SpellSlotTracker } from "@/components/characters/SpellSlotTracker";
+import { SorceryPointManager } from "@/components/characters/SorceryPointManager";
+import { MetamagicManager } from "@/components/characters/MetamagicManager";
 import { FeatureDetailDialog } from "@/components/character/FeatureDetailDialog";
 import { SpellDetailDialog } from "@/components/character/SpellDetailDialog";
 import { useState, useEffect, useCallback } from "react";
@@ -1043,6 +1045,20 @@ export default function CharacterPage() {
 
                 {/* Rastreador de Slots de Magia */}
                 <SpellSlotTracker
+                  character={character}
+                  onUpdate={fetchCharacter}
+                  canEdit={canEdit}
+                />
+
+                {/* Pontos de Feitiçaria (Feiticeiro only) */}
+                <SorceryPointManager
+                  character={character}
+                  onUpdate={fetchCharacter}
+                  canEdit={canEdit}
+                />
+
+                {/* Metamágicas (Feiticeiro only) */}
+                <MetamagicManager
                   character={character}
                   onUpdate={fetchCharacter}
                   canEdit={canEdit}

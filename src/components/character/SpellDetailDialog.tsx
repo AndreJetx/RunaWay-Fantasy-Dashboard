@@ -70,7 +70,7 @@ export function SpellDetailDialog({
                     </div>
                 </DialogHeader>
 
-                <ScrollArea className="flex-1 p-6 pt-2">
+                <div className="flex-1 overflow-y-auto p-6 pt-2">
                     <div className="space-y-6">
                         {/* Grade de Atributos da Magia */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -166,7 +166,7 @@ export function SpellDetailDialog({
                             </div>
                         )}
                     </div>
-                </ScrollArea>
+                </div>
 
                 <div className="p-4 border-t border-border/50 bg-background/50 flex justify-end">
                     <button
