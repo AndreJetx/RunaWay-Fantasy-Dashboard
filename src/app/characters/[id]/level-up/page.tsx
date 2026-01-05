@@ -867,43 +867,49 @@ export default function LevelUpPage() {
                 </div>
               ))}
 
-              {/* Escolha de atributo para Feat com "any" */}
-              {asiChoice === "feat" && selectedFeat && selectedFeat.attributeBonus?.attribute === "any" && (
-                <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg space-y-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-4 h-4 text-primary" />
-                    <h3 className="font-semibold text-primary">Escolha o Atributo para {selectedFeat.name}</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Este talento concede +{selectedFeat.attributeBonus.bonus} em um atributo à sua escolha:
-                  </p>
-                  <Select
-                    value={selectedFeatAttribute || ""}
-                    onValueChange={(value) => setSelectedFeatAttribute(value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um atributo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="strength">Força</SelectItem>
-                      <SelectItem value="dexterity">Destreza</SelectItem>
-                      <SelectItem value="constitution">Constituição</SelectItem>
-                      <SelectItem value="intelligence">Inteligência</SelectItem>
-                      <SelectItem value="wisdom">Sabedoria</SelectItem>
-                      <SelectItem value="charisma">Carisma</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {selectedFeatAttribute && (
-                    <p className="text-sm text-green-400 mt-2">
-                      ✓ {selectedFeatAttribute === "strength" ? "Força" :
-                        selectedFeatAttribute === "dexterity" ? "Destreza" :
-                          selectedFeatAttribute === "constitution" ? "Constituição" :
-                            selectedFeatAttribute === "intelligence" ? "Inteligência" :
-                              selectedFeatAttribute === "wisdom" ? "Sabedoria" : "Carisma"} receberá +{selectedFeat.attributeBonus.bonus}
-                    </p>
-                  )}
-                </div>
-              )}
+              {/* Features da Subclasse (se aplicável) */}
+              {(() => {
+                // Se tem subclasse pendente OU subclasse já escolhida
+                const currentSubclass = pendingSubclass || (character.subclass ? character.subclass : null);
+
+                if (!currentSubclass) return null;
+
+                // Buscar subclasse completa se for apenas uma string
+                let subclassData = currentSubclass;
+                if (typeof currentSubclass === 'string') {
+                  const { ALL_SUBCLASSES } = require('@/lib/subclasses');
+                  subclassData = ALL_SUBCLASSES.find((s: any) => s.name === currentSubclass);
+                }
+
+                if (!subclassData || !subclassData.features) return null;
+
+                // Pegar features da subclasse que são do novo nível
+                const newLevel = character.level + 1;
+                const subclassFeatures = subclassData.features.filter((f: any) => f.level === newLevel);
+
+                if (subclassFeatures.length === 0) return null;
+
+                return (
+                  <>
+                    <div className="border-t border-border my-3"></div>
+                    <div className="mb-2">
+                      <h4 className="text-sm font-semibold text-primary flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" />
+                        Habilidades de {subclassData.name}
+                      </h4>
+                    </div>
+                    {subclassFeatures.map((feature: any, idx: number) => (
+                      <div key={`subclass-${idx}`} className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-primary">{feature.name}</h3>
+                          <Badge variant="outline" className="bg-primary/20">Nível {feature.level}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{feature.description}</p>
+                      </div>
+                    ))}
+                  </>
+                );
+              })()}
             </div>
           </CardContent>
         </Card>
@@ -1429,6 +1435,48 @@ export default function LevelUpPage() {
                     </Button>
                   )}
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Card dedicado para escolha de atributo do Feat - DEPOIS de Aumento de Poder */}
+        {asiChoice === "feat" && selectedFeat && selectedFeat.attributeBonus?.attribute === "any" && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedFeatAttribute ? 'border-l-green-500' : 'border-l-primary'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                {selectedFeatAttribute ? 'Atributo Selecionado' : 'Escolha o Atributo para ' + selectedFeat.name}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-3">
+                Este talento concede +{selectedFeat.attributeBonus.bonus} em um atributo à sua escolha:
+              </p>
+              <Select
+                value={selectedFeatAttribute || ""}
+                onValueChange={(value) => setSelectedFeatAttribute(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um atributo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="strength">Força</SelectItem>
+                  <SelectItem value="dexterity">Destreza</SelectItem>
+                  <SelectItem value="constitution">Constituição</SelectItem>
+                  <SelectItem value="intelligence">Inteligência</SelectItem>
+                  <SelectItem value="wisdom">Sabedoria</SelectItem>
+                  <SelectItem value="charisma">Carisma</SelectItem>
+                </SelectContent>
+              </Select>
+              {selectedFeatAttribute && (
+                <p className="text-sm text-green-400 mt-3">
+                  ✓ {selectedFeatAttribute === "strength" ? "Força" :
+                    selectedFeatAttribute === "dexterity" ? "Destreza" :
+                      selectedFeatAttribute === "constitution" ? "Constituição" :
+                        selectedFeatAttribute === "intelligence" ? "Inteligência" :
+                          selectedFeatAttribute === "wisdom" ? "Sabedoria" : "Carisma"} receberá +{selectedFeat.attributeBonus.bonus}
+                </p>
               )}
             </CardContent>
           </Card>

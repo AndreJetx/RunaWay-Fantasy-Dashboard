@@ -9,6 +9,7 @@ import { getSpellDetails } from "@/lib/data/spell-data";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
 import { PactDetailsDialog } from "@/components/characters/PactDetailsDialog";
+import { FeatDetailsDialog } from "@/components/characters/FeatDetailsDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -119,6 +120,8 @@ export default function CharacterPage() {
   } | null>(null);
   const [selectedFeatureType, setSelectedFeatureType] = useState<'class' | 'subclass'>('class');
   const [showPactDialog, setShowPactDialog] = useState(false);
+  const [showFeatDialog, setShowFeatDialog] = useState(false);
+  const [selectedFeatName, setSelectedFeatName] = useState<string>("");
   const [selectedSubclassName, setSelectedSubclassName] = useState<string | undefined>(undefined);
   const [spellDialogOpen, setSpellDialogOpen] = useState(false);
   const [selectedSpellDetailData, setSelectedSpellDetailData] = useState<any>(null);
@@ -680,7 +683,14 @@ export default function CharacterPage() {
                   <CardContent>
                     <div className="grid md:grid-cols-2 gap-4">
                       {character.feats.map((feat: any, idx: number) => (
-                        <div key={idx} className="bg-background/50 rounded-lg p-4 border border-amber-500/20">
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setSelectedFeatName(feat.name);
+                            setShowFeatDialog(true);
+                          }}
+                          className="bg-background/50 rounded-lg p-4 border border-amber-500/20 cursor-pointer hover:border-amber-500/40 hover:bg-background/70 transition-all"
+                        >
                           <div className="flex items-start justify-between mb-2">
                             <h3 className="font-bold text-lg text-amber-400">{feat.name}</h3>
                             <Badge variant="secondary" className="text-xs">
@@ -870,6 +880,56 @@ export default function CharacterPage() {
                       className="bg-muted cursor-not-allowed"
                     />
                   </div>
+
+                  {/* CD de Magia e Modificador de Ataque de Magia (para classes conjuradoras) */}
+                  {(() => {
+                    // Mapa de classes para seus atributos de conjuração
+                    const spellcastingAttributes: Record<string, keyof typeof attributes> = {
+                      'Bardo': 'charisma',
+                      'Bruxo': 'charisma',
+                      'Clérigo': 'wisdom',
+                      'Druida': 'wisdom',
+                      'Feiticeiro': 'charisma',
+                      'Paladino': 'charisma',
+                      'Ranger': 'wisdom',
+                      'Mago': 'intelligence',
+                    };
+
+                    const spellcastingAttr = spellcastingAttributes[character.characterClass];
+
+                    if (!spellcastingAttr) return null;
+
+                    const spellcastingModifier = calculateModifier(attributes[spellcastingAttr] || 10);
+                    const proficiencyBonus = character.proficiencyBonus || 2;
+                    const spellSaveDC = 8 + proficiencyBonus + spellcastingModifier;
+                    const spellAttackBonus = proficiencyBonus + spellcastingModifier;
+
+                    return (
+                      <>
+                        <div>
+                          <Label htmlFor="spellSaveDC">CD de Magia</Label>
+                          <Input
+                            id="spellSaveDC"
+                            type="number"
+                            value={spellSaveDC}
+                            readOnly
+                            className="bg-primary/10 cursor-not-allowed font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="spellAttack">Ataque de Magia</Label>
+                          <Input
+                            id="spellAttack"
+                            type="text"
+                            value={`+${spellAttackBonus}`}
+                            readOnly
+                            className="bg-primary/10 cursor-not-allowed font-semibold"
+                          />
+                        </div>
+                      </>
+                    );
+                  })()}
+
                   {/* Testes de Resistência (apenas os da classe) */}
                   {getClassSavingThrows().map((attrKey) => {
                     const attr = ATTRIBUTES.find(a => a.key === attrKey);
@@ -1765,6 +1825,15 @@ export default function CharacterPage() {
           onOpenChange={setShowPactDialog}
           pactName={character.pact}
           bookOfShadowsCantrips={character.bookOfShadowsCantrips || []}
+        />
+      )}
+
+      {/* Dialog de Detalhes do Feat */}
+      {selectedFeatName && (
+        <FeatDetailsDialog
+          open={showFeatDialog}
+          onOpenChange={setShowFeatDialog}
+          featName={selectedFeatName}
         />
       )}
     </FantasyLayout>

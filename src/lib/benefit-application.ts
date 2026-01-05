@@ -58,6 +58,13 @@ export function applySubclassBenefits(
     if (!updatedCharacter.resistances) updatedCharacter.resistances = [];
     else updatedCharacter.resistances = [...updatedCharacter.resistances];
 
+    // Processar escolhas da subclasse (perícias, estilo de luta, etc)
+    if ((subclass as any).choices?.skills) {
+        (subclass as any).choices.skills.forEach((skillKey: string) => {
+            updatedCharacter.skills![skillKey] = true;
+        });
+    }
+
     // Aplicar benefícios do nível atual
     const currentLevelBenefits = subclass.benefits.filter(
         b => b.level <= character.level
@@ -74,7 +81,7 @@ export function applySubclassBenefits(
                 } else if (typeof benefit.value === 'string' && !benefit.value.startsWith('choose-')) {
                     updatedCharacter.skills![benefit.value] = true;
                 }
-                // Nota: 'choose-X' será tratado na UI
+                // Nota: 'choose-X' é tratado via choices.skills acima
                 break;
 
             case 'proficiency':

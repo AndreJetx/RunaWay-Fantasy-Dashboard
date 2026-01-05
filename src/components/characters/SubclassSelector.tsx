@@ -344,6 +344,93 @@ export function SubclassSelector({
                                         </div>
                                     ) : null;
                                 })()}
+
+                                {/* Escolhas Necessárias - Agora dentro do scroll */}
+                                {(() => {
+                                    const skillBenefit = selectedSubclass.benefits?.find(b =>
+                                        b.type === 'skill' && typeof b.value === 'string' && b.value.includes('choose')
+                                    );
+                                    const needsFightingStyle = selectedSubclass.features.some(f =>
+                                        f.name === 'Estilo de Luta' && f.level === 3
+                                    );
+                                    const requiredSkills = skillBenefit && typeof skillBenefit.value === 'string'
+                                        ? parseInt(skillBenefit.value.match(/\d+/)?.[0] || '0')
+                                        : 0;
+
+                                    return (skillBenefit || needsFightingStyle) ? (
+                                        <div className="border-t pt-4 space-y-4 mt-4">
+                                            <h3 className="text-sm font-semibold text-amber-400 flex items-center gap-2">
+                                                <Sparkles className="w-4 h-4" />
+                                                Escolhas Necessárias
+                                            </h3>
+
+                                            {/* Seletor de Perícias */}
+                                            {skillBenefit && (
+                                                <Card className="bg-card/50 border-primary/20">
+                                                    <CardHeader className="pb-3">
+                                                        <CardTitle className="text-sm flex items-center justify-between">
+                                                            <span>Escolha {requiredSkills} Perícia{requiredSkills > 1 ? 's' : ''}</span>
+                                                            <Badge variant="outline" className={selectedSkills.length === requiredSkills ? "bg-green-500/20 text-green-300" : "bg-amber-500/20 text-amber-300"}>
+                                                                {selectedSkills.length}/{requiredSkills}
+                                                            </Badge>
+                                                        </CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            {SKILLS.map(skill => (
+                                                                <div key={skill.key} className="flex items-center space-x-2">
+                                                                    <Checkbox
+                                                                        id={`skill-${skill.key}`}
+                                                                        checked={selectedSkills.includes(skill.key)}
+                                                                        onCheckedChange={() => toggleSkill(skill.key, requiredSkills)}
+                                                                        disabled={!selectedSkills.includes(skill.key) && selectedSkills.length >= requiredSkills}
+                                                                    />
+                                                                    <Label
+                                                                        htmlFor={`skill-${skill.key}`}
+                                                                        className="text-xs cursor-pointer"
+                                                                    >
+                                                                        {skill.label}
+                                                                    </Label>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            )}
+
+                                            {/* Seletor de Estilo de Luta */}
+                                            {needsFightingStyle && (
+                                                <Card className="bg-card/50 border-primary/20">
+                                                    <CardHeader className="pb-3">
+                                                        <CardTitle className="text-sm flex items-center justify-between">
+                                                            <span>Escolha um Estilo de Luta</span>
+                                                            {selectedFightingStyle && (
+                                                                <Badge variant="outline" className="bg-green-500/20 text-green-300">
+                                                                    Selecionado
+                                                                </Badge>
+                                                            )}
+                                                        </CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent>
+                                                        <RadioGroup value={selectedFightingStyle} onValueChange={setSelectedFightingStyle}>
+                                                            <div className="space-y-3">
+                                                                {FIGHTING_STYLES.map(style => (
+                                                                    <div key={style.key} className="flex items-start space-x-2">
+                                                                        <RadioGroupItem value={style.key} id={`style-${style.key}`} className="mt-1" />
+                                                                        <Label htmlFor={`style-${style.key}`} className="cursor-pointer flex-1">
+                                                                            <span className="font-medium text-sm block">{style.label}</span>
+                                                                            <span className="text-xs text-muted-foreground block mt-0.5">{style.description}</span>
+                                                                        </Label>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </RadioGroup>
+                                                    </CardContent>
+                                                </Card>
+                                            )}
+                                        </div>
+                                    ) : null;
+                                })()}
                             </div>
                         ) : (
                             <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -352,93 +439,6 @@ export function SubclassSelector({
                         )}
                     </ScrollArea>
                 </div>
-
-                {/* Escolhas Necessárias */}
-                {selectedSubclass && (() => {
-                    const skillBenefit = selectedSubclass.benefits?.find(b =>
-                        b.type === 'skill' && typeof b.value === 'string' && b.value.includes('choose')
-                    );
-                    const needsFightingStyle = selectedSubclass.features.some(f =>
-                        f.name === 'Estilo de Luta' && f.level === 3
-                    );
-                    const requiredSkills = skillBenefit && typeof skillBenefit.value === 'string'
-                        ? parseInt(skillBenefit.value.match(/\d+/)?.[0] || '0')
-                        : 0;
-
-                    return (skillBenefit || needsFightingStyle) ? (
-                        <div className="border-t pt-4 space-y-4 mt-4">
-                            <h3 className="text-sm font-semibold text-amber-400 flex items-center gap-2">
-                                <Sparkles className="w-4 h-4" />
-                                Escolhas Necessárias
-                            </h3>
-
-                            {/* Seletor de Perícias */}
-                            {skillBenefit && (
-                                <Card className="bg-card/50 border-primary/20">
-                                    <CardHeader className="pb-3">
-                                        <CardTitle className="text-sm flex items-center justify-between">
-                                            <span>Escolha {requiredSkills} Perícia{requiredSkills > 1 ? 's' : ''}</span>
-                                            <Badge variant="outline" className={selectedSkills.length === requiredSkills ? "bg-green-500/20 text-green-300" : "bg-amber-500/20 text-amber-300"}>
-                                                {selectedSkills.length}/{requiredSkills}
-                                            </Badge>
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {SKILLS.map(skill => (
-                                                <div key={skill.key} className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                        id={`skill-${skill.key}`}
-                                                        checked={selectedSkills.includes(skill.key)}
-                                                        onCheckedChange={() => toggleSkill(skill.key, requiredSkills)}
-                                                        disabled={!selectedSkills.includes(skill.key) && selectedSkills.length >= requiredSkills}
-                                                    />
-                                                    <Label
-                                                        htmlFor={`skill-${skill.key}`}
-                                                        className="text-xs cursor-pointer"
-                                                    >
-                                                        {skill.label}
-                                                    </Label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
-
-                            {/* Seletor de Estilo de Luta */}
-                            {needsFightingStyle && (
-                                <Card className="bg-card/50 border-primary/20">
-                                    <CardHeader className="pb-3">
-                                        <CardTitle className="text-sm flex items-center justify-between">
-                                            <span>Escolha um Estilo de Luta</span>
-                                            {selectedFightingStyle && (
-                                                <Badge variant="outline" className="bg-green-500/20 text-green-300">
-                                                    Selecionado
-                                                </Badge>
-                                            )}
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <RadioGroup value={selectedFightingStyle} onValueChange={setSelectedFightingStyle}>
-                                            <div className="space-y-3">
-                                                {FIGHTING_STYLES.map(style => (
-                                                    <div key={style.key} className="flex items-start space-x-2">
-                                                        <RadioGroupItem value={style.key} id={`style-${style.key}`} className="mt-1" />
-                                                        <Label htmlFor={`style-${style.key}`} className="cursor-pointer flex-1">
-                                                            <span className="font-medium text-sm block">{style.label}</span>
-                                                            <span className="text-xs text-muted-foreground block mt-0.5">{style.description}</span>
-                                                        </Label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </RadioGroup>
-                                    </CardContent>
-                                </Card>
-                            )}
-                        </div>
-                    ) : null;
-                })()}
 
                 {/* Botões de Ação */}
                 <div className="flex justify-end gap-2 mt-4 flex-shrink-0">
