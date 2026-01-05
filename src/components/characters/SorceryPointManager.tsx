@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Zap, Plus, Minus, RefreshCw } from 'lucide-react';
+import { Sparkles, Zap, Plus, Minus, RefreshCw, RotateCcw } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
@@ -166,6 +166,24 @@ export function SorceryPointManager({ character, onUpdate, canEdit }: SorceryPoi
         }
     };
 
+    const handleShortRest = async () => {
+        try {
+            const res = await fetch(`/api/characters/${character.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sorceryPoints: Math.min(currentPF + 4, maxPF),
+                }),
+            });
+
+            if (!res.ok) throw new Error('Erro ao restaurar pontos via descanso curto');
+            toast.success('4 Pontos de Feitiçaria restaurados! (Restauração Feiticeira)');
+            onUpdate();
+        } catch (error) {
+            toast.error('Erro ao restaurar pontos');
+        }
+    };
+
     if (character.characterClass !== 'Feiticeiro' || character.level < 2) {
         return null;
     }
@@ -223,12 +241,23 @@ export function SorceryPointManager({ character, onUpdate, canEdit }: SorceryPoi
                                             Usar Metamágica
                                         </Button>
                                     )}
+                                    {character.level >= 20 && (
+                                        <Button
+                                            variant="outline"
+                                            onClick={handleShortRest}
+                                            className="border-indigo-500/30 hover:bg-indigo-500/10"
+                                            title="Restauração Feiticeira: Recupere 4 Pontos de Feitiçaria"
+                                        >
+                                            <Sparkles className="w-4 h-4 mr-2" />
+                                            Descanso Curto (+4 PF)
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="outline"
                                         onClick={handleLongRest}
                                         className="border-amber-500/30 hover:bg-amber-500/10"
                                     >
-                                        <Sparkles className="w-4 h-4 mr-2" />
+                                        <RotateCcw className="w-4 h-4 mr-2" />
                                         Descanso Longo
                                     </Button>
                                 </div>

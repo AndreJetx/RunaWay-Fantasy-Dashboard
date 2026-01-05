@@ -666,6 +666,11 @@ export default function LevelUpPage() {
         updateBody.fightingStyle = selectedFightingStyle.name;
       }
 
+      // Aplicar Metamágicas (Feiticeiro)
+      if (character.characterClass === "Feiticeiro" && selectedMetamagics.length > 0) {
+        updateBody.metamagics = selectedMetamagics;
+      }
+
       const res = await fetch(`/api/characters/${characterId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
