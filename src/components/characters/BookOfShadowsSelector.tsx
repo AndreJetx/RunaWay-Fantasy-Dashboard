@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, BookOpen, CheckCircle2 } from "lucide-react";
-import { getSpellsFromAllClasses } from "@/lib/data/spell-data";
+import { getSpellsFromAllClasses, getSpellDetails } from "@/lib/data/spell-data";
 
 interface Spell {
     index: string;
@@ -54,9 +54,21 @@ export function BookOfShadowsSelector({
     const fetchAllCantrips = async () => {
         try {
             setLoading(true);
-            // Get all cantrips (level 0 spells) from all classes
-            const allSpells = await getSpellsFromAllClasses();
-            const cantripsOnly = allSpells.filter((spell) => spell.level === 0);
+            // Get all spell IDs
+            const allSpellIds = getSpellsFromAllClasses();
+
+            // Map IDs to full spell objects and filter for cantrips (level 0)
+            const cantripsOnly = allSpellIds
+                .map(id => getSpellDetails(id))
+                .filter((spell): spell is any => spell !== null && spell.level === 0)
+                .map(spell => ({
+                    index: spell.index,
+                    name: spell.name,
+                    level: spell.level,
+                    school: spell.school,
+                    classes: spell.classes
+                }));
+
             setAllCantrips(cantripsOnly);
         } catch (error) {
             console.error("Error fetching cantrips:", error);
