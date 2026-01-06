@@ -29,6 +29,8 @@ import { applySubclassBenefits, applyBackgroundBenefits } from "@/lib/benefit-ap
 import type { Subclass } from "@/lib/subclasses";
 import { Background, BACKGROUNDS } from "@/lib/backgrounds";
 import type { DragonType } from "@/lib/dragon-types";
+import { getFightingStylesForClass, needsFightingStyleSelection, type FightingStyle } from "@/lib/fighting-styles";
+import { FightingStyleSelector } from "@/components/characters/FightingStyleSelector";
 
 
 // Atributos D&D 5e
@@ -658,6 +660,8 @@ function NewCharacterPageContent() {
   const [showSubclassSelector, setShowSubclassSelector] = useState(false);
   const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
   const [showDragonTypeSelector, setShowDragonTypeSelector] = useState(false);
+  const [showFightingStyleSelector, setShowFightingStyleSelector] = useState(false);
+  const [selectedFightingStyle, setSelectedFightingStyle] = useState<FightingStyle | null>(null);
   const [characterType, setCharacterType] = useState<"campaign" | "standalone">("campaign");
   const [targetLevel, setTargetLevel] = useState(1);
   const [hasExistingCharacter, setHasExistingCharacter] = useState(false);
@@ -1980,6 +1984,12 @@ function NewCharacterPageContent() {
       hasErrors = true;
     }
 
+    // Validar seleção de Fighting Style para Guerreiro
+    if (formData.characterClass === "Guerreiro" && !selectedFightingStyle) {
+      errors.fightingStyle = true;
+      hasErrors = true;
+    }
+
     // Validar atributos baseado no sistema escolhido
     const attributeSystem = campaignData?.attributeSystem || "fixed";
 
@@ -2111,6 +2121,13 @@ function NewCharacterPageContent() {
       if (formData.race) payload.race = formData.race;
       if (formData.subrace) payload.subrace = formData.subrace;
       if (formData.subclass) payload.subclass = formData.subclass;
+      if (formData.dragonType) payload.dragonType = formData.dragonType;
+      if (selectedFightingStyle) {
+        payload.fightingStyle = selectedFightingStyle.name;
+        console.log("✅ Fighting Style adicionado ao payload:", selectedFightingStyle.name);
+      } else {
+        console.log("⚠️ selectedFightingStyle está vazio!");
+      }
       if (formData.background) payload.background = formData.background;
       if (formData.alignment) payload.alignment = formData.alignment;
       if (formData.hitDice) payload.hitDice = formData.hitDice;
@@ -2897,6 +2914,57 @@ function NewCharacterPageContent() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Seleção de Estilo de Luta (Guerreiro) */}
+          {formData.characterClass === "Guerreiro" && (
+            <Card className="bg-card/60 border-white/10 border-l-4 border-l-orange-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-orange-400" />
+                  Estilo de Luta
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {selectedFightingStyle ? (
+                  <div className="space-y-3">
+                    <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                      <h3 className="font-bold text-lg text-orange-400">{selectedFightingStyle.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedFightingStyle.description}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {selectedFightingStyle.benefits.map((benefit, idx) => (
+                          <Badge key={idx} variant="outline" className="bg-orange-500/20">
+                            {benefit}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowFightingStyleSelector(true)}
+                      className="w-full"
+                    >
+                      Alterar Estilo de Luta
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="mb-4 text-muted-foreground">
+                      Como Guerreiro, você deve escolher um Estilo de Luta que define sua abordagem em combate.
+                    </p>
+                    <Button
+                      type="button"
+                      onClick={() => setShowFightingStyleSelector(true)}
+                      className="w-full bg-orange-600 hover:bg-orange-700"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Escolher Estilo de Luta
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Atributos e Modificadores */}
           <Card className="bg-card/60 border-white/10">
@@ -4123,6 +4191,19 @@ function NewCharacterPageContent() {
             toast.success(`Dragão Ancestral "${dragonType.name}" selecionado! Você ganhará resistência a ${dragonType.damageType} no nível 6.`);
           }}
         />
+
+        {/* Dialog de Seleção de Estilo de Luta */}
+        {showFightingStyleSelector && (
+          <FightingStyleSelector
+            availableStyles={getFightingStylesForClass(formData.characterClass)}
+            selectedStyle={selectedFightingStyle}
+            onSelect={(style) => {
+              setSelectedFightingStyle(style);
+              toast.success(`Estilo de Combate "${style.name}" selecionado!`);
+            }}
+            onClose={() => setShowFightingStyleSelector(false)}
+          />
+        )}
 
         {/* Dialog de Loja */}
         <ShopDialog

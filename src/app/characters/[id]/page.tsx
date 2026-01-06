@@ -645,6 +645,13 @@ export default function CharacterPage() {
                       </div>
                     )}
 
+                    {character.fightingStyle && (
+                      <div className="bg-background/50 rounded-lg p-4 border-2 border-orange-500/30">
+                        <p className="text-sm text-muted-foreground mb-1">Estilo de Luta</p>
+                        <p className="text-lg font-bold text-orange-400">{character.fightingStyle}</p>
+                      </div>
+                    )}
+
                     {character.characterClass === 'Feiticeiro' && character.subclass === 'Linhagem Dracônica' && character.dragonType && (
                       <div className="bg-background/50 rounded-lg p-4 border-2 border-red-500/30">
                         <p className="text-sm text-muted-foreground mb-1">Dragão Ancestral</p>

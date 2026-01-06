@@ -18,6 +18,7 @@ const createCharacterSchema = z.object({
   subclass: z.string().optional(),
   pact: z.string().optional().transform(val => val === "" ? undefined : val),
   dragonType: z.string().optional().transform(val => val === "" ? undefined : val),
+  fightingStyle: z.string().optional().transform(val => val === "" ? undefined : val),
   level: z.coerce.number().int().min(1).max(20).optional(),
   experiencePoints: z.coerce.number().int().min(0).optional(),
   background: z.string().optional(),
@@ -297,6 +298,7 @@ export async function POST(request: Request) {
         subclass: parsed.subclass,
         pact: parsed.pact,
         dragonType: parsed.dragonType,
+        fightingStyle: parsed.fightingStyle,
         level: startingLevel,
         experiencePoints: calculatedXP, // Auto-assign XP based on level
         needsLevelUp: needsLevelUp || false, // Enable level-up for characters starting above level 1
