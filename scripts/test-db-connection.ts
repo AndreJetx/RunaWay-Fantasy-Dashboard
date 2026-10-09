@@ -61,7 +61,7 @@ async function testDatabaseConnection() {
       const tableExists = await client`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
-          WHERE table_schema = 'public' 
+          WHERE table_schema = 'runaway' 
           AND table_name = ${tableName}
         )
       `;
@@ -80,7 +80,7 @@ async function testDatabaseConnection() {
       const columns = await client`
         SELECT column_name, data_type 
         FROM information_schema.columns 
-        WHERE table_name = 'campaign_chapters'
+        WHERE table_schema = 'runaway' AND table_name = 'campaign_chapters'
         ORDER BY ordinal_position
       `;
       if (columns.length > 0) {
@@ -101,7 +101,7 @@ async function testDatabaseConnection() {
       const columns = await client`
         SELECT column_name, data_type 
         FROM information_schema.columns 
-        WHERE table_name = 'campaign_npcs'
+        WHERE table_schema = 'runaway' AND table_name = 'campaign_npcs'
         ORDER BY ordinal_position
       `;
       if (columns.length > 0) {

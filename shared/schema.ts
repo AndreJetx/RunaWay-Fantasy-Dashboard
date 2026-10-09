@@ -4,8 +4,7 @@ import {
   integer,
   jsonb,
   numeric,
-  pgEnum,
-  pgTable,
+  pgSchema,
   text,
   timestamp,
   uniqueIndex,
@@ -15,14 +14,17 @@ import {
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const userRoleEnum = pgEnum("user_role", ["player", "dm", "admin"]);
-export const campaignStatusEnum = pgEnum("campaign_status", [
+export const DB_SCHEMA = "runaway";
+export const runawaySchema = pgSchema(DB_SCHEMA);
+
+export const userRoleEnum = runawaySchema.enum("user_role", ["player", "dm", "admin"]);
+export const campaignStatusEnum = runawaySchema.enum("campaign_status", [
   "Active",
   "Paused",
   "Completed",
   "Archived",
 ]);
-export const itemRarityEnum = pgEnum("item_rarity", [
+export const itemRarityEnum = runawaySchema.enum("item_rarity", [
   "Common",
   "Uncommon",
   "Rare",
@@ -30,7 +32,7 @@ export const itemRarityEnum = pgEnum("item_rarity", [
   "Legendary",
   "Artifact",
 ]);
-export const itemTypeEnum = pgEnum("item_type", [
+export const itemTypeEnum = runawaySchema.enum("item_type", [
   "Weapon",
   "Armor",
   "Consumable",
@@ -40,14 +42,14 @@ export const itemTypeEnum = pgEnum("item_type", [
   "Quest",
   "Other",
 ]);
-export const changeTypeEnum = pgEnum("change_type", [
+export const changeTypeEnum = runawaySchema.enum("change_type", [
   "level_up",
   "stat_update",
   "equipment",
   "story",
   "misc",
 ]);
-export const noteCategoryEnum = pgEnum("note_category", [
+export const noteCategoryEnum = runawaySchema.enum("note_category", [
   "Sessions",
   "NPCs",
   "Loot",
@@ -55,7 +57,7 @@ export const noteCategoryEnum = pgEnum("note_category", [
   "World",
   "Misc",
 ]);
-export const tokenTypeEnum = pgEnum("token_type", ["reset", "refresh"]);
+export const tokenTypeEnum = runawaySchema.enum("token_type", ["reset", "refresh"]);
 
 const userColumns = {
   id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
@@ -71,7 +73,7 @@ const userColumns = {
   isPremium: boolean("is_premium").default(false),
 };
 
-export const users = pgTable("users", userColumns, (table) => ({
+export const users = runawaySchema.table("users", userColumns, (table) => ({
   usernameUnique: uniqueIndex("users_username_unique").on(table.username),
   emailUnique: uniqueIndex("users_email_unique").on(table.email),
 }));
@@ -103,7 +105,7 @@ const campaignColumns = {
     .default(sql`now()`),
 };
 
-export const campaigns = pgTable("campaigns", campaignColumns, (table) => ({
+export const campaigns = runawaySchema.table("campaigns", campaignColumns, (table) => ({
   inviteCodeUnique: uniqueIndex("campaigns_invite_code_unique").on(
     table.inviteCode,
   ),
@@ -123,7 +125,7 @@ const campaignMemberColumns = {
     .default(sql`now()`),
 };
 
-export const campaignMembers = pgTable(
+export const campaignMembers = runawaySchema.table(
   "campaign_members",
   campaignMemberColumns,
   (table) => ({
@@ -206,14 +208,14 @@ const characterColumns = {
     .default(sql`now()`),
 };
 
-export const characters = pgTable("characters", characterColumns, (table) => ({
+export const characters = runawaySchema.table("characters", characterColumns, (table) => ({
   uniqueNamePerCampaign: uniqueIndex("characters_campaign_id_name_unique").on(
     table.campaignId,
     table.name,
   ),
 }));
 
-export const characterChangeLogs = pgTable("character_change_logs", {
+export const characterChangeLogs = runawaySchema.table("character_change_logs", {
   id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
   characterId: uuid("character_id")
     .notNull()
@@ -249,7 +251,7 @@ const campaignSessionColumns = {
     .default(sql`now()`),
 };
 
-export const campaignSessions = pgTable(
+export const campaignSessions = runawaySchema.table(
   "campaign_sessions",
   campaignSessionColumns,
   (table) => ({
@@ -261,7 +263,7 @@ export const campaignSessions = pgTable(
 );
 
 // Campaign Chapters - para organizar progresso da campanha
-export const campaignChapters = pgTable("campaign_chapters", {
+export const campaignChapters = runawaySchema.table("campaign_chapters", {
   id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
   campaignId: uuid("campaign_id")
     .notNull()
@@ -335,14 +337,14 @@ const npcColumns = {
     .default(sql`now()`),
 };
 
-export const campaignNpcs = pgTable("campaign_npcs", npcColumns, (table) => ({
+export const campaignNpcs = runawaySchema.table("campaign_npcs", npcColumns, (table) => ({
   uniqueNamePerCampaign: uniqueIndex("campaign_npcs_campaign_id_name_unique").on(
     table.campaignId,
     table.name,
   ),
 }));
 
-export const items = pgTable("items", {
+export const items = runawaySchema.table("items", {
   id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
   campaignId: uuid("campaign_id") // Nullable for standalone character items
     .references(() => campaigns.id, { onDelete: "cascade" }),
@@ -363,7 +365,7 @@ export const items = pgTable("items", {
     .default(sql`now()`),
 });
 
-export const maps = pgTable("maps", {
+export const maps = runawaySchema.table("maps", {
   id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
   campaignId: uuid("campaign_id")
     .notNull()
@@ -384,7 +386,7 @@ export const maps = pgTable("maps", {
     .default(sql`now()`),
 });
 
-export const notes = pgTable("notes", {
+export const notes = runawaySchema.table("notes", {
   id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
   campaignId: uuid("campaign_id")
     .notNull()
@@ -419,11 +421,11 @@ const authTokenColumns = {
     .default(sql`now()`),
 };
 
-export const authTokens = pgTable("auth_tokens", authTokenColumns, (table) => ({
+export const authTokens = runawaySchema.table("auth_tokens", authTokenColumns, (table) => ({
   tokenUnique: uniqueIndex("auth_tokens_token_unique").on(table.token),
 }));
 
-export const homebrewContent = pgTable("homebrew_content", {
+export const homebrewContent = runawaySchema.table("homebrew_content", {
   id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(),
   userId: uuid("user_id")
     .notNull()

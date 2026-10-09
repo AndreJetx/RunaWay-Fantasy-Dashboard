@@ -525,7 +525,7 @@ SELECT
   table_name,
   (SELECT COUNT(*) FROM information_schema.columns WHERE table_name = t.table_name) as column_count
 FROM information_schema.tables t
-WHERE table_schema = 'public' 
+WHERE table_schema = 'runaway' 
   AND table_type = 'BASE TABLE'
   AND table_name IN (
     'users', 'campaigns', 'campaign_members', 'characters', 'character_change_logs',

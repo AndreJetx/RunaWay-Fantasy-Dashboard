@@ -52,6 +52,7 @@ interface SpellSelectionDialogProps {
   characterLevel: number;
   knownSpells?: string[]; // Magias já conhecidas pelo personagem
   allowSwap?: boolean; // Permite trocar magias conhecidas
+  subclass?: string; // Subclasse para regras específicas (Eldritch Knight, Arcane Trickster)
 }
 
 export function SpellSelectionDialog({
@@ -66,6 +67,7 @@ export function SpellSelectionDialog({
   characterLevel,
   knownSpells = [],
   allowSwap = false,
+  subclass,
 }: SpellSelectionDialogProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [spellDetails, setSpellDetails] = useState<Record<string, SpellDetail>>({});
@@ -76,7 +78,7 @@ export function SpellSelectionDialog({
   const [spellsToRemove, setSpellsToRemove] = useState<string[]>([]);
   const [homebrewSpells, setHomebrewSpells] = useState<Spell[]>([]);
 
-  const maxSpellLevel = getSpellcastingLevel(characterClass, characterLevel);
+  const maxSpellLevel = getSpellcastingLevel(characterClass, characterLevel, subclass);
   const { t, translateDnd5e, translateSpell } = useTranslation();
 
   useEffect(() => {
@@ -122,7 +124,7 @@ export function SpellSelectionDialog({
 
   const getLevelName = (level: number) => {
     if (level === 0) return t("spell.cantrips");
-    return `${level}º ${t("spell.level")}`;
+    return `${level}º Nível`;
   };
 
   const allSpells = [...availableSpells, ...homebrewSpells];

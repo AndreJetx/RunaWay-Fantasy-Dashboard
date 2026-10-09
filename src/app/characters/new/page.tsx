@@ -31,6 +31,7 @@ import { Background, BACKGROUNDS } from "@/lib/backgrounds";
 import type { DragonType } from "@/lib/dragon-types";
 import { getFightingStylesForClass, needsFightingStyleSelection, type FightingStyle } from "@/lib/fighting-styles";
 import { FightingStyleSelector } from "@/components/characters/FightingStyleSelector";
+import { STANDARD_LANGUAGES, EXOTIC_LANGUAGES, ALL_LANGUAGES, isExotic } from "@/lib/languages";
 
 
 // Atributos D&D 5e
@@ -103,6 +104,8 @@ interface Race {
   chooseableAttributes?: number; // Número de atributos que o jogador pode escolher para +1
   speed?: number;
   size?: string;
+  languages?: string[]; // Idiomas base (ex: ["Comum", "Élfico"])
+  languageChoices?: number; // Número de idiomas extras para escolher
 }
 
 interface RaceExpansion {
@@ -130,6 +133,7 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
           },
         ],
         advantages: ["Darkvision", "Resiliência a veneno", "Proficiência com armas anãs"],
+        languages: ["Comum", "Anão"],
       },
       {
         name: "Elfo",
@@ -153,6 +157,7 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
           },
         ],
         advantages: ["Darkvision", "Perception", "Fey Ancestry"],
+        languages: ["Comum", "Élfico"],
       },
       {
         name: "Halfling",
@@ -168,17 +173,21 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
           },
         ],
         advantages: ["Lucky", "Brave", "Passar por espaços estreitos"],
+        languages: ["Comum", "Halfling"],
       },
       {
         name: "Humano",
         attributeBonuses: { strength: 1, dexterity: 1, constitution: 1, intelligence: 1, wisdom: 1, charisma: 1 },
         chooseableSkills: 1, // Variante humana
         advantages: ["Variante: +1 em 2 atributos, 1 feat, 1 skill"],
+        languages: ["Comum"],
+        languageChoices: 1,
       },
       {
         name: "Draconato",
         attributeBonuses: { strength: 2, charisma: 1 },
         advantages: ["Sopro + resistência de acordo com o tipo"],
+        languages: ["Comum", "Dracônico"],
       },
       {
         name: "Gnomo",
@@ -194,6 +203,7 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
           },
         ],
         advantages: ["Gnome Cunning", "Darkvision"],
+        languages: ["Comum", "Gnômico"],
       },
       {
         name: "Meio-Elfo",
@@ -201,17 +211,21 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
         chooseableAttributes: 2, // +1 em 2 atributos à escolha
         chooseableSkills: 2,
         advantages: ["+1 em 2 atributos à escolha", "Darkvision", "Fey ancestry", "2 skills extras"],
+        languages: ["Comum", "Élfico"],
+        languageChoices: 1,
       },
       {
         name: "Meio-Orc",
         attributeBonuses: { strength: 2, constitution: 1 },
         guaranteedSkills: ["intimidation"],
         advantages: ["Darkvision", "Savage Attacks", "Relentless Endurance"],
+        languages: ["Comum", "Orc"],
       },
       {
         name: "Tiefling",
         attributeBonuses: { charisma: 2, intelligence: 1 },
         advantages: ["Resistência a fogo", "Feitiços infernais"],
+        languages: ["Comum", "Infernal"],
       },
     ],
   },
@@ -236,64 +250,77 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
           },
         ],
         advantages: ["Resistência radiante/necrótica", "Poderes celestiais"],
+        languages: ["Comum", "Celestial"],
       },
       {
         name: "Firbolg",
         attributeBonuses: { wisdom: 2, strength: 1 },
         advantages: ["Comunicação com animais/plantas", "Magias raciais"],
+        languages: ["Comum", "Élfico", "Gigante"],
       },
       {
         name: "Goliath",
         attributeBonuses: { strength: 2, constitution: 1 },
         advantages: ["Stone's Endurance", "Resistência ao frio", "Atleta natural"],
+        languages: ["Comum", "Gigante"],
       },
       {
         name: "Kenku",
         attributeBonuses: { dexterity: 2, wisdom: 1 },
         guaranteedSkills: ["stealth", "sleightOfHand"],
         advantages: ["Mimicry", "Vantagem em furtividade e perícia manual"],
+        languages: ["Comum", "Auran"],
       },
       {
         name: "Lizardfolk",
         attributeBonuses: { constitution: 2, wisdom: 1 },
         advantages: ["Natural Armor", "Hungry Jaws", "Natação"],
+        languages: ["Comum", "Dracônico"],
       },
       {
         name: "Tabaxi",
         attributeBonuses: { dexterity: 2, charisma: 1 },
         guaranteedSkills: ["perception", "stealth"],
         advantages: ["Velocidade explosiva (Feline Agility)", "Garras", "Perception e Stealth"],
+        languages: ["Comum"],
+        languageChoices: 1,
       },
       {
         name: "Triton",
         attributeBonuses: { strength: 1, constitution: 1, charisma: 1 },
         advantages: ["Magias aquáticas", "Respirar embaixo d'água", "Natação"],
+        languages: ["Comum", "Primordial"],
       },
       {
         name: "Bugbear",
         attributeBonuses: { strength: 2, dexterity: 1 },
         advantages: ["Furtividade surpreendente", "Alcance aumentado"],
+        languages: ["Comum", "Goblin"],
       },
       {
         name: "Goblin",
         attributeBonuses: { dexterity: 2, constitution: 1 },
         advantages: ["Fury of the Small", "Nimble Escape"],
+        languages: ["Comum", "Goblin"],
       },
       {
         name: "Hobgoblin",
         attributeBonuses: { constitution: 2, intelligence: 1 },
         advantages: ["Song of Victory / Saving Face"],
+        languages: ["Comum", "Goblin"],
       },
       {
         name: "Kobold",
         attributeBonuses: { dexterity: 2, strength: -2 },
         advantages: ["Pack Tactics", "Sunlight Sensitivity"],
+        languages: ["Comum", "Dracônico"],
       },
       {
         name: "Orc",
         attributeBonuses: { strength: 2, constitution: 1, intelligence: -2 },
         guaranteedSkills: ["intimidation"],
         advantages: ["Menacing", "Aggressive"],
+        languages: ["Comum", "Orc"],
       },
     ],
   },
@@ -304,11 +331,15 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
         name: "Changeling",
         attributeBonuses: { charisma: 2 },
         advantages: ["+1 à escolha", "Mudar aparência", "Duas personalidades sociais"],
+        languages: ["Comum"],
+        languageChoices: 2,
       },
       {
         name: "Kalashtar",
         attributeBonuses: { wisdom: 2, charisma: 1 },
         advantages: ["Resistência psíquica", "Telepatia"],
+        languages: ["Comum", "Quori"],
+        languageChoices: 1,
       },
       {
         name: "Shifter",
@@ -332,11 +363,14 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
           },
         ],
         advantages: ["Shifting (transformação temporária)"],
+        languages: ["Comum"],
       },
       {
         name: "Warforged",
         attributeBonuses: { constitution: 2 },
         advantages: ["+1 à escolha", "Armadura integrada", "Imunidades parciais", "Não precisa comer/dormir"],
+        languages: ["Comum"],
+        languageChoices: 1,
       },
     ],
   },
@@ -347,26 +381,32 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
         name: "Centaur",
         attributeBonuses: { strength: 2, wisdom: 1 },
         advantages: ["Movimento 40ft", "Ataques de casco"],
+        languages: ["Comum", "Silvestre"],
       },
       {
         name: "Loxodon",
         attributeBonuses: { constitution: 2, wisdom: 1 },
         advantages: ["Tromba", "Natural Armor", "Calma loxodônica"],
+        languages: ["Comum", "Loxodon"],
       },
       {
         name: "Vedalken",
         attributeBonuses: { intelligence: 2, wisdom: 1 },
         advantages: ["Vantagem em todos testes mentais contra efeitos", "Precisão vedalken"],
+        languages: ["Comum", "Vedalken"],
+        languageChoices: 1,
       },
       {
         name: "Simic Hybrid",
         attributeBonuses: { constitution: 2 },
         advantages: ["+1 à escolha", "Adaptações biológicas (nado, garras, salto etc.)"],
+        languages: ["Comum", "Élfico"],
       },
       {
         name: "Minotaur",
         attributeBonuses: { strength: 2, constitution: 1 },
         advantages: ["Chifres", "Ataque de investida"],
+        languages: ["Comum", "Minotaur"],
       },
     ],
   },
@@ -377,12 +417,14 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
         name: "Leonin",
         attributeBonuses: { constitution: 2, strength: 1 },
         advantages: ["Rugido", "Sentidos aguçados"],
+        languages: ["Comum", "Leonin"],
       },
       {
         name: "Satyr",
         attributeBonuses: { charisma: 2, dexterity: 1 },
         guaranteedSkills: ["performance", "persuasion"],
         advantages: ["Resistência a magia", "Chifres", "Salto melhorado"],
+        languages: ["Comum", "Silvestre"],
       },
     ],
   },
@@ -394,11 +436,13 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
         attributeBonuses: { dexterity: 2, wisdom: 1 },
         guaranteedSkills: ["perception", "insight"],
         advantages: ["Insights sobrenaturais", "Magias raciais"],
+        languages: ["Comum", "Élfico"],
       },
       {
         name: "Lotusden Halfling",
         attributeBonuses: { dexterity: 2, wisdom: 1 },
         advantages: ["Magias druídicas"],
+        languages: ["Comum", "Halfling"],
       },
     ],
   },
@@ -665,6 +709,7 @@ function NewCharacterPageContent() {
   const [characterType, setCharacterType] = useState<"campaign" | "standalone">("campaign");
   const [targetLevel, setTargetLevel] = useState(1);
   const [hasExistingCharacter, setHasExistingCharacter] = useState(false);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
 
   // Homebrew Integration State
   const [allRaceExpansions, setAllRaceExpansions] = useState<RaceExpansion[]>(RACE_EXPANSIONS);
@@ -1115,6 +1160,36 @@ function NewCharacterPageContent() {
       fetchSpellsForClass(formData.characterClass, 1, formData.subclass);
     }
   }, [formData.characterClass, formData.subclass]);
+
+  // Efeito principal para sincronizar idiomas no formData
+  useEffect(() => {
+    // 1. Obter idiomas base da raça
+    const raceData = selectedExpansion && selectedRace
+      ? allRaceExpansions.find(e => e.name === selectedExpansion)?.races.find(r => r.name === selectedRace)
+      : null;
+    const baseLanguages = raceData?.languages || ["Comum"];
+
+    // 2. Mesclar com idiomas selecionados (garantindo unicidade)
+    const totalLanguages = [...new Set([...baseLanguages, ...selectedLanguages])];
+
+    // 3. Atualizar formData se houver mudança
+    setFormData(prev => {
+      // Comparar arrays para evitar updates desnecessários
+      const current = prev.languages || [];
+      const changed = current.length !== totalLanguages.length || !current.every((l, i) => l === totalLanguages[i]);
+
+      if (changed) {
+        return { ...prev, languages: totalLanguages };
+      }
+      return prev;
+    });
+  }, [selectedRace, selectedExpansion, selectedLanguages, allRaceExpansions]);
+
+  // Resetar idiomas selecionados quando a raça mudar
+  useEffect(() => {
+    setSelectedLanguages([]);
+  }, [selectedRace]);
+
 
   // Sincronizar experiencePoints com targetLevel
   // Isso garante que o XP seja sempre correto para o nível selecionado
@@ -3650,6 +3725,97 @@ function NewCharacterPageContent() {
                   />
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Idiomas */}
+          <Card className="bg-card/60 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-xl font-cinzel">Idiomas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                // Calcular limites e idiomas garantidos
+                const raceData = selectedExpansion && selectedRace ? allRaceExpansions.find(e => e.name === selectedExpansion)?.races.find(r => r.name === selectedRace) : null;
+                const baseLanguages = raceData?.languages || ["Comum"];
+                const raceChoices = raceData?.languageChoices || 0;
+
+                const backgroundData = BACKGROUNDS.find(b => b.name === formData.background);
+                const backgroundChoices = backgroundData?.languages || 0;
+
+                // Humano variante e Meio-Elfo já têm seus languageChoices definidos na raça
+                // Classes não costumam dar escolha de idiomas, mas dão fixos (Druídico/Gíria)
+
+                const totalChoices = raceChoices + backgroundChoices;
+                const currentChoices = selectedLanguages.length;
+
+                return (
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                      <Label className="w-full mb-1">Idiomas Conhecidos:</Label>
+                      {/* Idiomas Base */}
+                      {baseLanguages.map(lang => (
+                        <Badge key={lang} variant="secondary" className="text-sm cursor-default border-primary/30">
+                          {lang} (Raça)
+                        </Badge>
+                      ))}
+                      {/* Druídico / Gíria de Ladrão se aplicável (Feature de Classe) */}
+                      {formData.characterClass === "Druida" && (
+                        <Badge variant="secondary" className="text-sm cursor-default border-primary/30">Druídico (Classe)</Badge>
+                      )}
+                      {formData.characterClass === "Ladino" && (
+                        <Badge variant="secondary" className="text-sm cursor-default border-primary/30">Gíria de Ladrão (Classe)</Badge>
+                      )}
+                    </div>
+
+                    {totalChoices > 0 && (
+                      <div className="space-y-3 pt-2 border-t border-white/10">
+                        <div className="flex justify-between items-center">
+                          <Label>Escolha {totalChoices} {totalChoices === 1 ? 'idioma adicional' : 'idiomas adicionais'}:</Label>
+                          <span className={`text-xs ${currentChoices === totalChoices ? 'text-green-400 font-bold' : 'text-muted-foreground'}`}>
+                            {currentChoices} de {totalChoices} selecionados
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          {ALL_LANGUAGES.filter(lang => !baseLanguages.includes(lang)).map(lang => {
+                            const isSelected = selectedLanguages.includes(lang);
+                            const isExoticLang = isExotic(lang);
+                            const canSelect = isSelected || currentChoices < totalChoices;
+
+                            return (
+                              <button
+                                key={lang}
+                                type="button"
+                                disabled={!canSelect}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setSelectedLanguages(prev => prev.filter(l => l !== lang));
+                                  } else if (currentChoices < totalChoices) {
+                                    setSelectedLanguages(prev => [...prev, lang]);
+                                  }
+                                }}
+                                className={`p-2 rounded border text-sm text-left transition-all flex items-center gap-2 ${isSelected
+                                  ? "bg-primary/20 border-primary"
+                                  : canSelect
+                                    ? "bg-card/40 hover:bg-card/60 border-border"
+                                    : "bg-card/20 opacity-50 cursor-not-allowed border-border"
+                                  }`}
+                              >
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isSelected ? "bg-primary border-primary" : "border-muted-foreground"
+                                  }`}>
+                                  {isSelected && <span className="text-white text-[10px]">✓</span>}
+                                </div>
+                                <span className={isExoticLang ? "text-purple-300" : ""}>{lang}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
 

@@ -12,7 +12,7 @@ WITH expected_tables AS (
 existing_tables AS (
   SELECT table_name
   FROM information_schema.tables
-  WHERE table_schema = 'public' 
+  WHERE table_schema = 'runaway' 
     AND table_type = 'BASE TABLE'
 )
 SELECT 
@@ -30,7 +30,7 @@ SELECT
   is_nullable,
   column_default
 FROM information_schema.columns
-WHERE table_schema = 'public' 
+WHERE table_schema = 'runaway' 
   AND table_name = 'users'
 ORDER BY ordinal_position;
 

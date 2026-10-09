@@ -154,6 +154,7 @@ export async function POST(request: Request) {
 
     const payload = await request.json();
     const parsed = createCharacterSchema.parse(payload);
+    console.log("[API Create Character] Parsed Languages:", parsed.languages);
 
     // Get DB user
     const dbUser = await getDbUser(user.id, user.email);

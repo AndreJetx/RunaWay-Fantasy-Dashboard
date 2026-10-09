@@ -75,11 +75,21 @@ const SPELLS_KNOWN: Record<string, Record<number, number>> = {
   },
 };
 
+import { getEldritchKnightSpellProgression } from "./spell-slots";
+
+// ... (existing imports and types)
+
 /**
  * Retorna o total de truques conhecidos em um nível específico
  */
-export function getTotalCantripsKnown(className: string, level: number): number {
+export function getTotalCantripsKnown(className: string, level: number, subclass?: string): number {
   const normalizedLevel = Math.max(1, Math.min(20, level));
+
+  // Cavaleiro Arcano
+  if (className === "Guerreiro" && subclass === "Cavaleiro Arcano") {
+    return getEldritchKnightSpellProgression(normalizedLevel).cantrips;
+  }
+
   return CANTRIPS_KNOWN[className]?.[normalizedLevel] || 0;
 }
 
@@ -87,8 +97,13 @@ export function getTotalCantripsKnown(className: string, level: number): number 
  * Retorna o total de magias conhecidas em um nível específico
  * Retorna 0 para classes que usam "prepared spells" (Clérigo, Druida, Mago)
  */
-export function getTotalSpellsKnown(className: string, level: number): number {
+export function getTotalSpellsKnown(className: string, level: number, subclass?: string): number {
   const normalizedLevel = Math.max(1, Math.min(20, level));
+
+  // Cavaleiro Arcano
+  if (className === "Guerreiro" && subclass === "Cavaleiro Arcano") {
+    return getEldritchKnightSpellProgression(normalizedLevel).knownSpells;
+  }
 
   // Clérigo, Druida e Mago usam prepared spells, não spells known
   if (["Clérigo", "Druida", "Mago"].includes(className)) {
@@ -101,29 +116,36 @@ export function getTotalSpellsKnown(className: string, level: number): number {
 /**
  * Calcula quantos truques NOVOS podem ser aprendidos ao subir de nível
  */
-export function getNewCantripsToLearn(className: string, currentLevel: number, previousLevel: number): number {
-  const currentCantrips = getTotalCantripsKnown(className, currentLevel);
-  const previousCantrips = getTotalCantripsKnown(className, previousLevel);
+export function getNewCantripsToLearn(className: string, currentLevel: number, previousLevel: number, subclass?: string): number {
+  const currentCantrips = getTotalCantripsKnown(className, currentLevel, subclass);
+  const previousCantrips = getTotalCantripsKnown(className, previousLevel, subclass);
   return Math.max(0, currentCantrips - previousCantrips);
 }
 
 /**
  * Calcula quantas magias NOVAS podem ser aprendidas ao subir de nível
  */
-export function getNewSpellsToLearn(className: string, currentLevel: number, previousLevel: number): number {
+export function getNewSpellsToLearn(className: string, currentLevel: number, previousLevel: number, subclass?: string): number {
   // No D&D 5e, Magos aprendem 2 novas magias a cada nível para seu grimório (exceto nível 1 que ganham 6)
   if (className === "Mago") {
     if (currentLevel === 1) return 6;
     return 2;
   }
 
-  const currentSpells = getTotalSpellsKnown(className, currentLevel);
-  const previousSpells = getTotalSpellsKnown(className, previousLevel);
+  const currentSpells = getTotalSpellsKnown(className, currentLevel, subclass);
+  const previousSpells = getTotalSpellsKnown(className, previousLevel, subclass);
 
   // Clérigo e Druida conhecem todas as magias de sua classe e apenas preparam
   // Elas não 'aprendem' magias individuais ao subir de nível
   if (["Clérigo", "Druida"].includes(className)) {
     return 0;
+  }
+
+  // Cavaleiro Arcano: se for nível 3, ganha 3 magias iniciais.
+  // Se for maior que 3, calcula a diferença.
+  if (className === "Guerreiro" && subclass === "Cavaleiro Arcano") {
+    if (currentLevel === 3 && previousLevel < 3) return 3;
+    return Math.max(0, currentSpells - previousSpells);
   }
 
   return Math.max(0, currentSpells - previousSpells);
@@ -133,7 +155,10 @@ export function getNewSpellsToLearn(className: string, currentLevel: number, pre
  * Verifica se a classe permite trocar magias ao subir de nível
  * No D&D 5e, algumas classes podem trocar uma magia conhecida por outra ao subir de nível
  */
-export function canSwapSpells(className: string): boolean {
+export function canSwapSpells(className: string, subclass?: string): boolean {
+  // Cavaleiro Arcano pode trocar
+  if (className === "Guerreiro" && subclass === "Cavaleiro Arcano") return true;
+
   // Bardo, Feiticeiro, Bruxo, Paladino e Patrulheiro podem trocar magias
   return ["Bardo", "Feiticeiro", "Bruxo", "Paladino", "Patrulheiro"].includes(className);
 }
@@ -163,14 +188,15 @@ export interface SpellLearningInfo {
 export function getSpellLearningInfo(
   className: string,
   currentLevel: number,
-  previousLevel: number
+  previousLevel: number,
+  subclass?: string
 ): SpellLearningInfo {
   return {
-    newCantrips: getNewCantripsToLearn(className, currentLevel, previousLevel),
-    newSpells: getNewSpellsToLearn(className, currentLevel, previousLevel),
-    totalCantrips: getTotalCantripsKnown(className, currentLevel),
-    totalSpells: getTotalSpellsKnown(className, currentLevel),
-    canSwap: canSwapSpells(className),
+    newCantrips: getNewCantripsToLearn(className, currentLevel, previousLevel, subclass),
+    newSpells: getNewSpellsToLearn(className, currentLevel, previousLevel, subclass),
+    totalCantrips: getTotalCantripsKnown(className, currentLevel, subclass),
+    totalSpells: getTotalSpellsKnown(className, currentLevel, subclass),
+    canSwap: canSwapSpells(className, subclass),
     usesKnown: usesSpellsKnown(className),
   };
 }

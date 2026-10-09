@@ -32,7 +32,7 @@ export function SpellSlotTracker({ character, onUpdate, canEdit }: SpellSlotTrac
         character.createdSpellSlots, character.created_spell_slots
     ]);
 
-    if (!canCastSpells(character.characterClass)) {
+    if (!canCastSpells(character.characterClass, character.subclass, character.level)) {
         return null;
     }
 

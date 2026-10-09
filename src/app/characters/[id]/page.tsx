@@ -1018,11 +1018,55 @@ export default function CharacterPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Idiomas e Proficiências */}
+            <Card className="bg-card/60 border-white/10 mt-6">
+              <CardHeader>
+                <CardTitle className="text-xl font-cinzel">Idiomas e Outras Proficiências</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Idiomas */}
+                <div>
+                  <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" />
+                    Idiomas
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {character.languages && character.languages.length > 0 ? (
+                      character.languages.map((lang: string, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="bg-primary/10 hover:bg-primary/20 text-primary-foreground border-primary/20">
+                          {lang}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">Nenhum idioma registrado.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Proficiências de Ferramentas e Outros */}
+                {character.proficiencies && character.proficiencies.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                      <Package className="w-4 h-4" />
+                      Ferramentas e Outros
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {character.proficiencies.map((prof: string, idx: number) => (
+                        <Badge key={idx} variant="outline" className="border-white/10">
+                          {prof}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Tab: Magias */}
           <TabsContent value="magias">
-            {canCastSpells(character.characterClass) ? (
+            {canCastSpells(character.characterClass, character.subclass, character.level) ? (
               <>
                 {/* Slots de Magia */}
                 {character.spellcasting?.spellSlots && (
