@@ -27,8 +27,11 @@ import { getClassFeatures } from "@/lib/class-features";
 import { getSubclassLevel, needsSubclassSelection } from "@/lib/subclasses";
 import { applySubclassBenefits, applyBackgroundBenefits } from "@/lib/benefit-application";
 import type { Subclass } from "@/lib/subclasses";
-import type { Background } from "@/lib/backgrounds";
+import { Background, BACKGROUNDS } from "@/lib/backgrounds";
 import type { DragonType } from "@/lib/dragon-types";
+import { getFightingStylesForClass, needsFightingStyleSelection, type FightingStyle } from "@/lib/fighting-styles";
+import { FightingStyleSelector } from "@/components/characters/FightingStyleSelector";
+import { STANDARD_LANGUAGES, EXOTIC_LANGUAGES, ALL_LANGUAGES, isExotic } from "@/lib/languages";
 
 
 // Atributos D&D 5e
@@ -101,6 +104,8 @@ interface Race {
   chooseableAttributes?: number; // Número de atributos que o jogador pode escolher para +1
   speed?: number;
   size?: string;
+  languages?: string[]; // Idiomas base (ex: ["Comum", "Élfico"])
+  languageChoices?: number; // Número de idiomas extras para escolher
 }
 
 interface RaceExpansion {
@@ -128,6 +133,7 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
           },
         ],
         advantages: ["Darkvision", "Resiliência a veneno", "Proficiência com armas anãs"],
+        languages: ["Comum", "Anão"],
       },
       {
         name: "Elfo",
@@ -151,6 +157,7 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
           },
         ],
         advantages: ["Darkvision", "Perception", "Fey Ancestry"],
+        languages: ["Comum", "Élfico"],
       },
       {
         name: "Halfling",
@@ -166,17 +173,21 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
           },
         ],
         advantages: ["Lucky", "Brave", "Passar por espaços estreitos"],
+        languages: ["Comum", "Halfling"],
       },
       {
         name: "Humano",
         attributeBonuses: { strength: 1, dexterity: 1, constitution: 1, intelligence: 1, wisdom: 1, charisma: 1 },
         chooseableSkills: 1, // Variante humana
         advantages: ["Variante: +1 em 2 atributos, 1 feat, 1 skill"],
+        languages: ["Comum"],
+        languageChoices: 1,
       },
       {
         name: "Draconato",
         attributeBonuses: { strength: 2, charisma: 1 },
         advantages: ["Sopro + resistência de acordo com o tipo"],
+        languages: ["Comum", "Dracônico"],
       },
       {
         name: "Gnomo",
@@ -192,6 +203,7 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
           },
         ],
         advantages: ["Gnome Cunning", "Darkvision"],
+        languages: ["Comum", "Gnômico"],
       },
       {
         name: "Meio-Elfo",
@@ -199,17 +211,21 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
         chooseableAttributes: 2, // +1 em 2 atributos à escolha
         chooseableSkills: 2,
         advantages: ["+1 em 2 atributos à escolha", "Darkvision", "Fey ancestry", "2 skills extras"],
+        languages: ["Comum", "Élfico"],
+        languageChoices: 1,
       },
       {
         name: "Meio-Orc",
         attributeBonuses: { strength: 2, constitution: 1 },
         guaranteedSkills: ["intimidation"],
         advantages: ["Darkvision", "Savage Attacks", "Relentless Endurance"],
+        languages: ["Comum", "Orc"],
       },
       {
         name: "Tiefling",
         attributeBonuses: { charisma: 2, intelligence: 1 },
         advantages: ["Resistência a fogo", "Feitiços infernais"],
+        languages: ["Comum", "Infernal"],
       },
     ],
   },
@@ -234,64 +250,77 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
           },
         ],
         advantages: ["Resistência radiante/necrótica", "Poderes celestiais"],
+        languages: ["Comum", "Celestial"],
       },
       {
         name: "Firbolg",
         attributeBonuses: { wisdom: 2, strength: 1 },
         advantages: ["Comunicação com animais/plantas", "Magias raciais"],
+        languages: ["Comum", "Élfico", "Gigante"],
       },
       {
         name: "Goliath",
         attributeBonuses: { strength: 2, constitution: 1 },
         advantages: ["Stone's Endurance", "Resistência ao frio", "Atleta natural"],
+        languages: ["Comum", "Gigante"],
       },
       {
         name: "Kenku",
         attributeBonuses: { dexterity: 2, wisdom: 1 },
         guaranteedSkills: ["stealth", "sleightOfHand"],
         advantages: ["Mimicry", "Vantagem em furtividade e perícia manual"],
+        languages: ["Comum", "Auran"],
       },
       {
         name: "Lizardfolk",
         attributeBonuses: { constitution: 2, wisdom: 1 },
         advantages: ["Natural Armor", "Hungry Jaws", "Natação"],
+        languages: ["Comum", "Dracônico"],
       },
       {
         name: "Tabaxi",
         attributeBonuses: { dexterity: 2, charisma: 1 },
         guaranteedSkills: ["perception", "stealth"],
         advantages: ["Velocidade explosiva (Feline Agility)", "Garras", "Perception e Stealth"],
+        languages: ["Comum"],
+        languageChoices: 1,
       },
       {
         name: "Triton",
         attributeBonuses: { strength: 1, constitution: 1, charisma: 1 },
         advantages: ["Magias aquáticas", "Respirar embaixo d'água", "Natação"],
+        languages: ["Comum", "Primordial"],
       },
       {
         name: "Bugbear",
         attributeBonuses: { strength: 2, dexterity: 1 },
         advantages: ["Furtividade surpreendente", "Alcance aumentado"],
+        languages: ["Comum", "Goblin"],
       },
       {
         name: "Goblin",
         attributeBonuses: { dexterity: 2, constitution: 1 },
         advantages: ["Fury of the Small", "Nimble Escape"],
+        languages: ["Comum", "Goblin"],
       },
       {
         name: "Hobgoblin",
         attributeBonuses: { constitution: 2, intelligence: 1 },
         advantages: ["Song of Victory / Saving Face"],
+        languages: ["Comum", "Goblin"],
       },
       {
         name: "Kobold",
         attributeBonuses: { dexterity: 2, strength: -2 },
         advantages: ["Pack Tactics", "Sunlight Sensitivity"],
+        languages: ["Comum", "Dracônico"],
       },
       {
         name: "Orc",
         attributeBonuses: { strength: 2, constitution: 1, intelligence: -2 },
         guaranteedSkills: ["intimidation"],
         advantages: ["Menacing", "Aggressive"],
+        languages: ["Comum", "Orc"],
       },
     ],
   },
@@ -302,11 +331,15 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
         name: "Changeling",
         attributeBonuses: { charisma: 2 },
         advantages: ["+1 à escolha", "Mudar aparência", "Duas personalidades sociais"],
+        languages: ["Comum"],
+        languageChoices: 2,
       },
       {
         name: "Kalashtar",
         attributeBonuses: { wisdom: 2, charisma: 1 },
         advantages: ["Resistência psíquica", "Telepatia"],
+        languages: ["Comum", "Quori"],
+        languageChoices: 1,
       },
       {
         name: "Shifter",
@@ -330,11 +363,14 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
           },
         ],
         advantages: ["Shifting (transformação temporária)"],
+        languages: ["Comum"],
       },
       {
         name: "Warforged",
         attributeBonuses: { constitution: 2 },
         advantages: ["+1 à escolha", "Armadura integrada", "Imunidades parciais", "Não precisa comer/dormir"],
+        languages: ["Comum"],
+        languageChoices: 1,
       },
     ],
   },
@@ -345,26 +381,32 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
         name: "Centaur",
         attributeBonuses: { strength: 2, wisdom: 1 },
         advantages: ["Movimento 40ft", "Ataques de casco"],
+        languages: ["Comum", "Silvestre"],
       },
       {
         name: "Loxodon",
         attributeBonuses: { constitution: 2, wisdom: 1 },
         advantages: ["Tromba", "Natural Armor", "Calma loxodônica"],
+        languages: ["Comum", "Loxodon"],
       },
       {
         name: "Vedalken",
         attributeBonuses: { intelligence: 2, wisdom: 1 },
         advantages: ["Vantagem em todos testes mentais contra efeitos", "Precisão vedalken"],
+        languages: ["Comum", "Vedalken"],
+        languageChoices: 1,
       },
       {
         name: "Simic Hybrid",
         attributeBonuses: { constitution: 2 },
         advantages: ["+1 à escolha", "Adaptações biológicas (nado, garras, salto etc.)"],
+        languages: ["Comum", "Élfico"],
       },
       {
         name: "Minotaur",
         attributeBonuses: { strength: 2, constitution: 1 },
         advantages: ["Chifres", "Ataque de investida"],
+        languages: ["Comum", "Minotaur"],
       },
     ],
   },
@@ -375,12 +417,14 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
         name: "Leonin",
         attributeBonuses: { constitution: 2, strength: 1 },
         advantages: ["Rugido", "Sentidos aguçados"],
+        languages: ["Comum", "Leonin"],
       },
       {
         name: "Satyr",
         attributeBonuses: { charisma: 2, dexterity: 1 },
         guaranteedSkills: ["performance", "persuasion"],
         advantages: ["Resistência a magia", "Chifres", "Salto melhorado"],
+        languages: ["Comum", "Silvestre"],
       },
     ],
   },
@@ -392,11 +436,13 @@ const RACE_EXPANSIONS: RaceExpansion[] = [
         attributeBonuses: { dexterity: 2, wisdom: 1 },
         guaranteedSkills: ["perception", "insight"],
         advantages: ["Insights sobrenaturais", "Magias raciais"],
+        languages: ["Comum", "Élfico"],
       },
       {
         name: "Lotusden Halfling",
         attributeBonuses: { dexterity: 2, wisdom: 1 },
         advantages: ["Magias druídicas"],
+        languages: ["Comum", "Halfling"],
       },
     ],
   },
@@ -658,8 +704,12 @@ function NewCharacterPageContent() {
   const [showSubclassSelector, setShowSubclassSelector] = useState(false);
   const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
   const [showDragonTypeSelector, setShowDragonTypeSelector] = useState(false);
+  const [showFightingStyleSelector, setShowFightingStyleSelector] = useState(false);
+  const [selectedFightingStyle, setSelectedFightingStyle] = useState<FightingStyle | null>(null);
   const [characterType, setCharacterType] = useState<"campaign" | "standalone">("campaign");
+  const [targetLevel, setTargetLevel] = useState(1);
   const [hasExistingCharacter, setHasExistingCharacter] = useState(false);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
 
   // Homebrew Integration State
   const [allRaceExpansions, setAllRaceExpansions] = useState<RaceExpansion[]>(RACE_EXPANSIONS);
@@ -831,6 +881,12 @@ function NewCharacterPageContent() {
           } catch (error) {
             console.error("Error fetching campaigns:", error);
           }
+
+          // Para personagem avulso (sem campanha), definir sistema padrão como "fixed"
+          setCampaignData({
+            attributeSystem: "fixed",
+            initialMoney: "0",
+          });
         }
 
         // Se tiver campaignId, buscar dados da campanha e verificar se já existe personagem
@@ -1097,6 +1153,61 @@ function NewCharacterPageContent() {
       };
     });
   }, [formData.attributes.constitution, formData.attributes.dexterity, formData.attributes.wisdom, formData.characterClass, formData.race, formData.subrace, allCharacterClasses, allRaceExpansions]);
+  // Atualizar magias disponíveis quando a classe ou subclasse mudar
+  useEffect(() => {
+    if (formData.characterClass) {
+      // SEMPRE usar nível 1 para buscar magias na criação de personagem
+      fetchSpellsForClass(formData.characterClass, 1, formData.subclass);
+    }
+  }, [formData.characterClass, formData.subclass]);
+
+  // Efeito principal para sincronizar idiomas no formData
+  useEffect(() => {
+    // 1. Obter idiomas base da raça
+    const raceData = selectedExpansion && selectedRace
+      ? allRaceExpansions.find(e => e.name === selectedExpansion)?.races.find(r => r.name === selectedRace)
+      : null;
+    const baseLanguages = raceData?.languages || ["Comum"];
+
+    // 2. Mesclar com idiomas selecionados (garantindo unicidade)
+    const totalLanguages = [...new Set([...baseLanguages, ...selectedLanguages])];
+
+    // 3. Atualizar formData se houver mudança
+    setFormData(prev => {
+      // Comparar arrays para evitar updates desnecessários
+      const current = prev.languages || [];
+      const changed = current.length !== totalLanguages.length || !current.every((l, i) => l === totalLanguages[i]);
+
+      if (changed) {
+        return { ...prev, languages: totalLanguages };
+      }
+      return prev;
+    });
+  }, [selectedRace, selectedExpansion, selectedLanguages, allRaceExpansions]);
+
+  // Resetar idiomas selecionados quando a raça mudar
+  useEffect(() => {
+    setSelectedLanguages([]);
+  }, [selectedRace]);
+
+
+  // Sincronizar experiencePoints com targetLevel
+  // Isso garante que o XP seja sempre correto para o nível selecionado
+  useEffect(() => {
+    const xp = getXPForLevel(targetLevel);
+    setFormData(prev => ({
+      ...prev,
+      experiencePoints: xp,
+    }));
+  }, [targetLevel]);
+
+  // Automatizar a "rolagem" de atributos quando o sistema for fixo
+  useEffect(() => {
+    if (campaignData?.attributeSystem === "fixed" && !hasRolled && rolledValues.length === 0) {
+      console.log("🎲 Automatizando valores fixos para personagem...");
+      rollAttributes();
+    }
+  }, [campaignData?.attributeSystem, hasRolled, rolledValues.length]);
 
   const calculateModifier = (value: number): number => {
     return Math.floor((value - 10) / 2);
@@ -1189,9 +1300,15 @@ function NewCharacterPageContent() {
       // Remover APENAS perícias anteriores da classe (preservando raça e background)
       const newSkills = { ...prev.skills };
 
-      // Remove apenas as perícias que vieram da classe anterior
+      // Buscar perícias do antecedente para não removê-las
+      const backgroundData = BACKGROUNDS.find(b => b.name === prev.background);
+      const backgroundSkills = backgroundData?.skillProficiencies || [];
+
+      // Remove apenas as perícias que vieram da classe anterior, SE não forem do antecedente
       [...previousClassSkills, ...chosenClassSkills].forEach(skillKey => {
-        delete newSkills[skillKey];
+        if (!backgroundSkills.includes(skillKey)) {
+          delete newSkills[skillKey];
+        }
       });
 
       // Aplicar perícias garantidas da classe (não duplica se já existe)
@@ -1239,46 +1356,73 @@ function NewCharacterPageContent() {
       };
     });
 
-    // Se a classe pode conjurar magias, buscar magias disponíveis
-    if (canCastSpells(className)) {
-      fetchSpellsForClass(className, 1);
-    } else {
+    // Se a classe mudar, as magias disponíveis serão atualizadas pelo useEffect
+    if (!canCastSpells(className)) {
       setAvailableSpells([]);
       setSelectedSpells([]);
     }
   };
 
   // Função para buscar magias disponíveis para uma classe
-  const fetchSpellsForClass = async (className: string, level: number) => {
+  const fetchSpellsForClass = async (className: string, level: number, subclassName?: string) => {
     try {
-      const spellsRes = await fetch(`https://www.dnd5eapi.co/api/2014/spells`);
-      if (!spellsRes.ok) return;
-
-      const spellsData = await spellsRes.json();
-      const allSpells: any[] = spellsData.results || [];
       const maxSpellLevel = getSpellcastingLevel(className, level);
 
-      // Filtrar magias por nível máximo
-      const filteredSpells: any[] = [];
-      const spellPromises = allSpells.slice(0, 200).map(async (spell: any) => {
-        try {
-          const detailRes = await fetch(`https://www.dnd5eapi.co${spell.url}`);
-          if (detailRes.ok) {
-            const detail = await detailRes.json();
-            if (detail.level <= maxSpellLevel) {
-              return { ...spell, level: detail.level };
-            }
+      console.log(`[Spell Fetch] Loading spells for ${className} level ${level}, max spell level: ${maxSpellLevel}`);
+
+      // Mapear nome da classe PT-BR para EN
+      const classNameMap: Record<string, string> = {
+        'Paladino': 'Paladin',
+        'Clérigo': 'Cleric',
+        'Druida': 'Druid',
+        'Mago': 'Wizard',
+        'Ranger': 'Ranger',
+        'Bruxo': 'Warlock',
+        'Bardo': 'Bard',
+        'Feiticeiro': 'Sorcerer',
+      };
+
+      const apiClassName = classNameMap[className];
+      if (!apiClassName) {
+        console.warn(`[Spell Fetch] Class not found: ${className}`);
+        setAvailableSpells([]);
+        setSelectedSpells([]);
+        return;
+      }
+
+      // Importar funções da base de dados local
+      const { getSpellsByClass, getSpellDetails } = await import('@/lib/data/spell-data');
+
+      // Buscar TODAS as magias da classe (incluindo truques)
+      // maxLevel = 9 para pegar todas as magias, filtraremos depois
+      const classSpellIndices = getSpellsByClass(apiClassName, 9, subclassName);
+
+      console.log(`[Spell Fetch] Total spell indices for ${apiClassName}: ${classSpellIndices.length}`);
+
+      // Buscar detalhes de cada magia e filtrar por nível
+      const spellsWithDetails = classSpellIndices
+        .map(index => {
+          const details = getSpellDetails(index);
+          if (!details) return null;
+
+          // Incluir truques (level 0) sempre, ou magias até o nível máximo
+          if (details.level === 0 || details.level <= maxSpellLevel) {
+            return {
+              index: details.index,
+              name: details.name,
+              url: `/api/spells/${details.index}`, // URL fictícia para compatibilidade
+              level: details.level,
+              patron: details.patron,
+            };
           }
-        } catch (error) {
-          console.error(`Error fetching spell ${spell.name}:`, error);
-        }
-        return null;
-      });
+          return null;
+        })
+        .filter((spell): spell is any => spell !== null);
 
-      const results = await Promise.all(spellPromises);
-      const validSpells = results.filter((s): s is any => s !== null && s.level !== undefined);
+      console.log(`[Spell Fetch] Valid spells found: ${spellsWithDetails.length}`);
+      console.log(`[Spell Fetch] Cantrips: ${spellsWithDetails.filter(s => s.level === 0).length}`);
 
-      setAvailableSpells(validSpells);
+      setAvailableSpells(spellsWithDetails);
 
       // Resetar seleção quando mudar de classe
       setSelectedSpells([]);
@@ -1416,10 +1560,17 @@ function NewCharacterPageContent() {
         newNotes += advantagesText;
       }
 
-      // Remover perícias anteriores da raça (garantidas e escolhidas)
+      // Remover perícias anteriores da raça (garantidas e escolhidas), preservando background
       const newSkills = { ...prev.skills };
+
+      // Buscar perícias do antecedente para não removê-las
+      const backgroundData = BACKGROUNDS.find(b => b.name === prev.background);
+      const backgroundSkills = backgroundData?.skillProficiencies || [];
+
       [...previousRaceSkills, ...chosenRaceSkills].forEach(skillKey => {
-        delete newSkills[skillKey];
+        if (!backgroundSkills.includes(skillKey)) {
+          delete newSkills[skillKey];
+        }
       });
 
       // Aplicar perícias garantidas da nova raça
@@ -1908,6 +2059,12 @@ function NewCharacterPageContent() {
       hasErrors = true;
     }
 
+    // Validar seleção de Fighting Style para Guerreiro
+    if (formData.characterClass === "Guerreiro" && !selectedFightingStyle) {
+      errors.fightingStyle = true;
+      hasErrors = true;
+    }
+
     // Validar atributos baseado no sistema escolhido
     const attributeSystem = campaignData?.attributeSystem || "fixed";
 
@@ -1980,8 +2137,8 @@ function NewCharacterPageContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const finalCampaignId = campaignId || selectedCampaignId;
-    if (!finalCampaignId) {
+    const finalCampaignId = characterType === "standalone" ? null : (campaignId || selectedCampaignId);
+    if (characterType !== "standalone" && !finalCampaignId) {
       setValidationErrors(prev => ({ ...prev, campaign: true }));
       toast.error("Por favor, selecione uma campanha");
       return;
@@ -2020,7 +2177,7 @@ function NewCharacterPageContent() {
         system: "dnd5e",
         name: formData.name,
         characterClass: formData.characterClass,
-        level: formData.level,
+        level: targetLevel, // Send target level to backend for XP calculation
         experiencePoints: formData.experiencePoints || 0,
         armorClass: formData.armorClass,
         initiative: formData.initiative || 0,
@@ -2039,6 +2196,13 @@ function NewCharacterPageContent() {
       if (formData.race) payload.race = formData.race;
       if (formData.subrace) payload.subrace = formData.subrace;
       if (formData.subclass) payload.subclass = formData.subclass;
+      if (formData.dragonType) payload.dragonType = formData.dragonType;
+      if (selectedFightingStyle) {
+        payload.fightingStyle = selectedFightingStyle.name;
+        console.log("✅ Fighting Style adicionado ao payload:", selectedFightingStyle.name);
+      } else {
+        console.log("⚠️ selectedFightingStyle está vazio!");
+      }
       if (formData.background) payload.background = formData.background;
       if (formData.alignment) payload.alignment = formData.alignment;
       if (formData.hitDice) payload.hitDice = formData.hitDice;
@@ -2075,7 +2239,9 @@ function NewCharacterPageContent() {
 
       // Adicionar spellcasting se a classe pode conjurar magias
       if (canCastSpells(formData.characterClass) && selectedSpells.length > 0) {
-        const spellSlots = getSpellSlots(formData.characterClass, formData.level);
+        // IMPORTANTE: Sempre usar nível 1 para spell slots na criação
+        // Os slots adicionais serão ganhos durante o level-up
+        const spellSlots = getSpellSlots(formData.characterClass, 1);
         payload.spellcasting = {
           knownSpells: selectedSpells,
           spellSlots: spellSlots,
@@ -2243,8 +2409,17 @@ function NewCharacterPageContent() {
             availableCampaigns={availableCampaigns}
             hasExistingCharacter={hasExistingCharacter}
             userId={userId}
-            startingLevel={formData.level}
-            onLevelChange={(level) => setFormData(prev => ({ ...prev, level }))}
+            startingLevel={targetLevel}
+            onLevelChange={(level) => {
+              setTargetLevel(level);
+              const xp = getXPForLevel(level);
+              setFormData(prev => ({
+                ...prev,
+                level: 1, // Sempre nível 1 na criação
+                experiencePoints: xp,
+                proficiencyBonus: 2, // Bônus de proficiência fixo nível 1
+              }));
+            }}
           />
 
           {/* Informações Básicas */}
@@ -2259,7 +2434,7 @@ function NewCharacterPageContent() {
                   id="name"
                   value={formData.name}
                   onChange={(e) => {
-                    setFormData({ ...formData, name: e.target.value });
+                    setFormData(prev => ({ ...prev, name: e.target.value }));
                     // Limpar erro ao digitar
                     setValidationErrors(prev => {
                       const newErrors = { ...prev };
@@ -2348,7 +2523,7 @@ function NewCharacterPageContent() {
                     setSelectedSubrace("");
                     // Limpar atributos escolhidos quando trocar de raça
                     setChosenRaceAttributes([]);
-                    setFormData({ ...formData, race: e.target.value, subrace: "" });
+                    setFormData(prev => ({ ...prev, race: e.target.value, subrace: "" }));
                     // Limpar erro ao selecionar
                     setValidationErrors(prev => {
                       const newErrors = { ...prev };
@@ -2759,17 +2934,13 @@ function NewCharacterPageContent() {
                 <Input
                   id="level"
                   type="number"
-                  min="1"
-                  max="20"
                   value={formData.level}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      level: parseInt(e.target.value) || 1,
-                      proficiencyBonus: Math.ceil((parseInt(e.target.value) || 1) / 4) + 1,
-                    })
-                  }
+                  readOnly
+                  className="bg-muted cursor-not-allowed"
                 />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Personagens são criados no nível 1. Use o seletor no topo para definir o XP inicial.
+                </p>
               </div>
               <div>
                 <Label htmlFor="alignment">Alinhamento</Label>
@@ -2777,7 +2948,7 @@ function NewCharacterPageContent() {
                   id="alignment"
                   className="w-full h-10 px-3 rounded-md border border-input bg-background"
                   value={formData.alignment}
-                  onChange={(e) => setFormData({ ...formData, alignment: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, alignment: e.target.value }))}
                 >
                   <option value="">Selecione...</option>
                   {ALIGNMENTS.map((align) => (
@@ -2795,7 +2966,7 @@ function NewCharacterPageContent() {
                   min="0"
                   value={formData.experiencePoints}
                   onChange={(e) =>
-                    setFormData({ ...formData, experiencePoints: parseInt(e.target.value) || 0 })
+                    setFormData(prev => ({ ...prev, experiencePoints: parseInt(e.target.value) || 0 }))
                   }
                 />
               </div>
@@ -2805,7 +2976,7 @@ function NewCharacterPageContent() {
                   id="image"
                   type="url"
                   value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
                   placeholder="https://exemplo.com/imagem.jpg"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
@@ -2818,6 +2989,57 @@ function NewCharacterPageContent() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Seleção de Estilo de Luta (Guerreiro) */}
+          {formData.characterClass === "Guerreiro" && (
+            <Card className="bg-card/60 border-white/10 border-l-4 border-l-orange-500">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-orange-400" />
+                  Estilo de Luta
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {selectedFightingStyle ? (
+                  <div className="space-y-3">
+                    <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                      <h3 className="font-bold text-lg text-orange-400">{selectedFightingStyle.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">{selectedFightingStyle.description}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {selectedFightingStyle.benefits.map((benefit, idx) => (
+                          <Badge key={idx} variant="outline" className="bg-orange-500/20">
+                            {benefit}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowFightingStyleSelector(true)}
+                      className="w-full"
+                    >
+                      Alterar Estilo de Luta
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="mb-4 text-muted-foreground">
+                      Como Guerreiro, você deve escolher um Estilo de Luta que define sua abordagem em combate.
+                    </p>
+                    <Button
+                      type="button"
+                      onClick={() => setShowFightingStyleSelector(true)}
+                      className="w-full bg-orange-600 hover:bg-orange-700"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Escolher Estilo de Luta
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Atributos e Modificadores */}
           <Card className="bg-card/60 border-white/10">
@@ -3255,13 +3477,13 @@ function NewCharacterPageContent() {
                             const newValue = parseInt(e.target.value) || 0;
                             const raceBonus = previousRaceBonuses[attr.key as keyof RaceBonus] || 0;
                             const finalValue = newValue + raceBonus;
-                            setFormData({
-                              ...formData,
+                            setFormData(prev => ({
+                              ...prev,
                               attributes: {
-                                ...formData.attributes,
+                                ...prev.attributes,
                                 [attr.key]: finalValue,
                               },
-                            });
+                            }));
                           }}
                           readOnly={!isDM && hasRolled && assignedValue === null}
                         />
@@ -3396,7 +3618,7 @@ function NewCharacterPageContent() {
                     type="number"
                     value={formData.armorClass}
                     onChange={(e) =>
-                      setFormData({ ...formData, armorClass: parseInt(e.target.value) || 10 })
+                      setFormData(prev => ({ ...prev, armorClass: parseInt(e.target.value) || 10 }))
                     }
                   />
                 </div>
@@ -3407,7 +3629,7 @@ function NewCharacterPageContent() {
                     type="number"
                     value={formData.initiative}
                     onChange={(e) =>
-                      setFormData({ ...formData, initiative: parseInt(e.target.value) || 0 })
+                      setFormData(prev => ({ ...prev, initiative: parseInt(e.target.value) || 0 }))
                     }
                     readOnly={!isDM}
                     className={!isDM ? "bg-muted cursor-not-allowed" : ""}
@@ -3425,7 +3647,7 @@ function NewCharacterPageContent() {
                     type="number"
                     value={formData.speed}
                     onChange={(e) =>
-                      setFormData({ ...formData, speed: parseInt(e.target.value) || 30 })
+                      setFormData(prev => ({ ...prev, speed: parseInt(e.target.value) || 30 }))
                     }
                   />
                 </div>
@@ -3434,7 +3656,7 @@ function NewCharacterPageContent() {
                   <Input
                     id="hitDice"
                     value={formData.hitDice}
-                    onChange={(e) => setFormData({ ...formData, hitDice: e.target.value })}
+                    onChange={(e) => setFormData(prev => ({ ...prev, hitDice: e.target.value }))}
                     placeholder="1d8"
                   />
                 </div>
@@ -3468,7 +3690,7 @@ function NewCharacterPageContent() {
                     type="number"
                     value={formData.currentHp}
                     onChange={(e) =>
-                      setFormData({ ...formData, currentHp: parseInt(e.target.value) || 0 })
+                      setFormData(prev => ({ ...prev, currentHp: parseInt(e.target.value) || 0 }))
                     }
                   />
                 </div>
@@ -3480,11 +3702,11 @@ function NewCharacterPageContent() {
                     value={formData.maxHp}
                     onChange={(e) => {
                       const newMaxHp = parseInt(e.target.value) || 10;
-                      setFormData({
-                        ...formData,
+                      setFormData(prev => ({
+                        ...prev,
                         maxHp: newMaxHp,
                         currentHp: Math.max(1, newMaxHp) // Atualizar currentHp para igual ao maxHp ao criar personagem
-                      });
+                      }));
                     }}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
@@ -3498,11 +3720,102 @@ function NewCharacterPageContent() {
                     type="number"
                     value={formData.tempHp}
                     onChange={(e) =>
-                      setFormData({ ...formData, tempHp: parseInt(e.target.value) || 0 })
+                      setFormData(prev => ({ ...prev, tempHp: parseInt(e.target.value) || 0 }))
                     }
                   />
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Idiomas */}
+          <Card className="bg-card/60 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-xl font-cinzel">Idiomas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                // Calcular limites e idiomas garantidos
+                const raceData = selectedExpansion && selectedRace ? allRaceExpansions.find(e => e.name === selectedExpansion)?.races.find(r => r.name === selectedRace) : null;
+                const baseLanguages = raceData?.languages || ["Comum"];
+                const raceChoices = raceData?.languageChoices || 0;
+
+                const backgroundData = BACKGROUNDS.find(b => b.name === formData.background);
+                const backgroundChoices = backgroundData?.languages || 0;
+
+                // Humano variante e Meio-Elfo já têm seus languageChoices definidos na raça
+                // Classes não costumam dar escolha de idiomas, mas dão fixos (Druídico/Gíria)
+
+                const totalChoices = raceChoices + backgroundChoices;
+                const currentChoices = selectedLanguages.length;
+
+                return (
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                      <Label className="w-full mb-1">Idiomas Conhecidos:</Label>
+                      {/* Idiomas Base */}
+                      {baseLanguages.map(lang => (
+                        <Badge key={lang} variant="secondary" className="text-sm cursor-default border-primary/30">
+                          {lang} (Raça)
+                        </Badge>
+                      ))}
+                      {/* Druídico / Gíria de Ladrão se aplicável (Feature de Classe) */}
+                      {formData.characterClass === "Druida" && (
+                        <Badge variant="secondary" className="text-sm cursor-default border-primary/30">Druídico (Classe)</Badge>
+                      )}
+                      {formData.characterClass === "Ladino" && (
+                        <Badge variant="secondary" className="text-sm cursor-default border-primary/30">Gíria de Ladrão (Classe)</Badge>
+                      )}
+                    </div>
+
+                    {totalChoices > 0 && (
+                      <div className="space-y-3 pt-2 border-t border-white/10">
+                        <div className="flex justify-between items-center">
+                          <Label>Escolha {totalChoices} {totalChoices === 1 ? 'idioma adicional' : 'idiomas adicionais'}:</Label>
+                          <span className={`text-xs ${currentChoices === totalChoices ? 'text-green-400 font-bold' : 'text-muted-foreground'}`}>
+                            {currentChoices} de {totalChoices} selecionados
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          {ALL_LANGUAGES.filter(lang => !baseLanguages.includes(lang)).map(lang => {
+                            const isSelected = selectedLanguages.includes(lang);
+                            const isExoticLang = isExotic(lang);
+                            const canSelect = isSelected || currentChoices < totalChoices;
+
+                            return (
+                              <button
+                                key={lang}
+                                type="button"
+                                disabled={!canSelect}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setSelectedLanguages(prev => prev.filter(l => l !== lang));
+                                  } else if (currentChoices < totalChoices) {
+                                    setSelectedLanguages(prev => [...prev, lang]);
+                                  }
+                                }}
+                                className={`p-2 rounded border text-sm text-left transition-all flex items-center gap-2 ${isSelected
+                                  ? "bg-primary/20 border-primary"
+                                  : canSelect
+                                    ? "bg-card/40 hover:bg-card/60 border-border"
+                                    : "bg-card/20 opacity-50 cursor-not-allowed border-border"
+                                  }`}
+                              >
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isSelected ? "bg-primary border-primary" : "border-muted-foreground"
+                                  }`}>
+                                  {isSelected && <span className="text-white text-[10px]">✓</span>}
+                                </div>
+                                <span className={isExoticLang ? "text-purple-300" : ""}>{lang}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
 
@@ -3517,7 +3830,7 @@ function NewCharacterPageContent() {
                 <Textarea
                   id="personalityTraits"
                   value={formData.personalityTraits}
-                  onChange={(e) => setFormData({ ...formData, personalityTraits: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, personalityTraits: e.target.value }))}
                   rows={3}
                 />
               </div>
@@ -3526,7 +3839,7 @@ function NewCharacterPageContent() {
                 <Textarea
                   id="ideals"
                   value={formData.ideals}
-                  onChange={(e) => setFormData({ ...formData, ideals: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, ideals: e.target.value }))}
                   rows={3}
                 />
               </div>
@@ -3535,7 +3848,7 @@ function NewCharacterPageContent() {
                 <Textarea
                   id="bonds"
                   value={formData.bonds}
-                  onChange={(e) => setFormData({ ...formData, bonds: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, bonds: e.target.value }))}
                   rows={3}
                 />
               </div>
@@ -3544,7 +3857,7 @@ function NewCharacterPageContent() {
                 <Textarea
                   id="flaws"
                   value={formData.flaws}
-                  onChange={(e) => setFormData({ ...formData, flaws: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, flaws: e.target.value }))}
                   rows={3}
                 />
               </div>
@@ -3582,7 +3895,7 @@ function NewCharacterPageContent() {
                             size="sm"
                             onClick={() => {
                               const newInventory = formData.inventory.filter((_, i) => i !== index);
-                              setFormData({ ...formData, inventory: newInventory });
+                              setFormData(prev => ({ ...prev, inventory: newInventory }));
                             }}
                             className="text-red-400 hover:text-red-300"
                           >
@@ -3602,7 +3915,7 @@ function NewCharacterPageContent() {
                   <Textarea
                     id="equipment-notes"
                     value={formData.equipment}
-                    onChange={(e) => setFormData({ ...formData, equipment: e.target.value })}
+                    onChange={(e) => setFormData(prev => ({ ...prev, equipment: e.target.value }))}
                     rows={4}
                     placeholder="Anotações adicionais sobre equipamentos..."
                     className="mt-2"
@@ -3636,10 +3949,10 @@ function NewCharacterPageContent() {
                     step="1"
                     value={Math.floor(formData.currency.pp || 0)}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        currency: { ...formData.currency, pp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
-                      })
+                      setFormData(prev => ({
+                        ...prev,
+                        currency: { ...prev.currency, pp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
+                      }))
                     }
                     disabled={!isDM}
                     className={!isDM ? "bg-muted cursor-not-allowed" : ""}
@@ -3658,10 +3971,10 @@ function NewCharacterPageContent() {
                     step="1"
                     value={Math.floor(formData.currency.gp || 0)}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        currency: { ...formData.currency, gp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
-                      })
+                      setFormData(prev => ({
+                        ...prev,
+                        currency: { ...prev.currency, gp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
+                      }))
                     }
                     disabled={!isDM}
                     className={!isDM ? "bg-muted cursor-not-allowed" : ""}
@@ -3680,10 +3993,10 @@ function NewCharacterPageContent() {
                     step="1"
                     value={Math.floor(formData.currency.ep || 0)}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        currency: { ...formData.currency, ep: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
-                      })
+                      setFormData(prev => ({
+                        ...prev,
+                        currency: { ...prev.currency, ep: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
+                      }))
                     }
                     disabled={!isDM}
                     className={!isDM ? "bg-muted cursor-not-allowed" : ""}
@@ -3702,10 +4015,10 @@ function NewCharacterPageContent() {
                     step="1"
                     value={Math.floor(formData.currency.sp || 0)}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        currency: { ...formData.currency, sp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
-                      })
+                      setFormData(prev => ({
+                        ...prev,
+                        currency: { ...prev.currency, sp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
+                      }))
                     }
                     disabled={!isDM}
                     className={!isDM ? "bg-muted cursor-not-allowed" : ""}
@@ -3724,10 +4037,10 @@ function NewCharacterPageContent() {
                     step="1"
                     value={Math.floor(formData.currency.cp || 0)}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        currency: { ...formData.currency, cp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
-                      })
+                      setFormData(prev => ({
+                        ...prev,
+                        currency: { ...prev.currency, cp: Math.max(0, Math.floor(parseFloat(e.target.value) || 0)) },
+                      }))
                     }
                     disabled={!isDM}
                     className={!isDM ? "bg-muted cursor-not-allowed" : ""}
@@ -3914,7 +4227,7 @@ function NewCharacterPageContent() {
               <CardContent>
                 <Textarea
                   value={formData.backstory}
-                  onChange={(e) => setFormData({ ...formData, backstory: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, backstory: e.target.value }))}
                   rows={8}
                   placeholder="Conte a história do seu personagem..."
                 />
@@ -3928,7 +4241,7 @@ function NewCharacterPageContent() {
               <CardContent>
                 <Textarea
                   value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                   rows={8}
                   placeholder="Anotações adicionais..."
                 />
@@ -3990,13 +4303,13 @@ function NewCharacterPageContent() {
               const updatedCharacter = applySubclassBenefits(characterData as any, subclass);
 
               // Atualizar formData com os benefícios aplicados
-              setFormData({
-                ...formData,
+              setFormData(prev => ({
+                ...prev,
                 subclass: subclass.name,
-                skills: updatedCharacter.skills || formData.skills,
-                proficiencies: updatedCharacter.proficiencies || formData.proficiencies,
-                languages: updatedCharacter.languages || formData.languages,
-              });
+                skills: updatedCharacter.skills || prev.skills,
+                proficiencies: updatedCharacter.proficiencies || prev.proficiencies,
+                languages: updatedCharacter.languages || prev.languages,
+              }));
 
               toast.success(`Subclasse "${subclass.name}" selecionada! Benefícios aplicados.`);
             }}
@@ -4017,14 +4330,14 @@ function NewCharacterPageContent() {
             const updatedCharacter = applyBackgroundBenefits(characterData as any, background);
 
             // Atualizar formData com os benefícios aplicados
-            setFormData({
-              ...formData,
+            setFormData(prev => ({
+              ...prev,
               background: background.name,
-              skills: updatedCharacter.skills || formData.skills,
-              proficiencies: updatedCharacter.proficiencies || formData.proficiencies,
-              languages: updatedCharacter.languages || formData.languages,
-              inventory: (updatedCharacter as any).inventory || formData.inventory,
-            });
+              skills: updatedCharacter.skills || prev.skills,
+              proficiencies: updatedCharacter.proficiencies || prev.proficiencies,
+              languages: updatedCharacter.languages || prev.languages,
+              inventory: (updatedCharacter as any).inventory || prev.inventory,
+            }));
 
             toast.success(`Antecedente "${background.name}" selecionado! Benefícios e equipamentos aplicados.`);
           }}
@@ -4036,14 +4349,27 @@ function NewCharacterPageContent() {
           onOpenChange={setShowDragonTypeSelector}
           onSelect={(dragonType: DragonType) => {
             // Atualizar formData com o tipo de dragão selecionado
-            setFormData({
-              ...formData,
+            setFormData(prev => ({
+              ...prev,
               dragonType: dragonType.name,
-            });
+            }));
 
             toast.success(`Dragão Ancestral "${dragonType.name}" selecionado! Você ganhará resistência a ${dragonType.damageType} no nível 6.`);
           }}
         />
+
+        {/* Dialog de Seleção de Estilo de Luta */}
+        {showFightingStyleSelector && (
+          <FightingStyleSelector
+            availableStyles={getFightingStylesForClass(formData.characterClass)}
+            selectedStyle={selectedFightingStyle}
+            onSelect={(style) => {
+              setSelectedFightingStyle(style);
+              toast.success(`Estilo de Combate "${style.name}" selecionado!`);
+            }}
+            onClose={() => setShowFightingStyleSelector(false)}
+          />
+        )}
 
         {/* Dialog de Loja */}
         <ShopDialog
@@ -4087,11 +4413,11 @@ function NewCharacterPageContent() {
               cp: Math.floor(formData.currency.cp || 0),
             };
 
-            setFormData({
-              ...formData,
+            setFormData(prev => ({
+              ...prev,
               inventory: newInventory,
               currency: newCurrency,
-            });
+            }));
 
             toast.success(`Compra realizada! ${items.length} item(ns) adicionado(s) ao inventário.`);
           }}

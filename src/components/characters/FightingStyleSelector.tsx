@@ -30,7 +30,7 @@ export function FightingStyleSelector({
     onClose,
 }: FightingStyleSelectorProps) {
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
             <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-card/95 border-primary/20">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-2xl">
@@ -57,8 +57,8 @@ export function FightingStyleSelector({
                                 <div
                                     key={style.id}
                                     className={`relative rounded-lg border-2 p-4 cursor-pointer transition-all ${isSelected
-                                            ? "border-primary bg-primary/10"
-                                            : "border-border hover:border-primary/50 hover:bg-primary/5"
+                                        ? "border-primary bg-primary/10"
+                                        : "border-border hover:border-primary/50 hover:bg-primary/5"
                                         }`}
                                     onClick={() => onSelect(style)}
                                 >

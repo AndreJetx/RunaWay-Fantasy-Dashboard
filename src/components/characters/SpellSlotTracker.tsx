@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,8 +19,20 @@ export function SpellSlotTracker({ character, onUpdate, canEdit }: SpellSlotTrac
     const [usedSlots, setUsedSlots] = useState<Record<string, number>>(
         character.usedSpellSlots || character.used_spell_slots || {}
     );
+    const [createdSlots, setCreatedSlots] = useState<Record<string, number>>(
+        character.createdSpellSlots || character.created_spell_slots || {}
+    );
 
-    if (!canCastSpells(character.characterClass)) {
+    // Sincronizar com os dados do personagem quando eles mudarem
+    useEffect(() => {
+        setUsedSlots(character.usedSpellSlots || character.used_spell_slots || {});
+        setCreatedSlots(character.createdSpellSlots || character.created_spell_slots || {});
+    }, [
+        character.usedSpellSlots, character.used_spell_slots,
+        character.createdSpellSlots, character.created_spell_slots
+    ]);
+
+    if (!canCastSpells(character.characterClass, character.subclass, character.level)) {
         return null;
     }
 
@@ -31,7 +43,6 @@ export function SpellSlotTracker({ character, onUpdate, canEdit }: SpellSlotTrac
 
         const key = `level${level}`;
         const currentUsed = usedSlots[key] || 0;
-        const totalSlots = spellSlots[key] || 0;
 
         setUsedSlots((prev) => {
             const newUsed = { ...prev };
@@ -142,7 +153,10 @@ export function SpellSlotTracker({ character, onUpdate, canEdit }: SpellSlotTrac
                 <div className="space-y-4">
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((level) => {
                         const key = `level${level}`;
-                        const total = spellSlots[key] || 0;
+                        const baseTotal = spellSlots[key] || 0;
+                        const createdTotal = createdSlots[key] || 0;
+                        const total = baseTotal + createdTotal;
+
                         if (total === 0) return null;
 
                         const used = usedSlots[key] || 0;
@@ -155,25 +169,32 @@ export function SpellSlotTracker({ character, onUpdate, canEdit }: SpellSlotTrac
                                         Nível {level}
                                     </span>
                                     <Badge
-                                        variant={available === 0 ? "destructive" : "secondary"}
+                                        variant={available === 0 ? "destructive" : createdTotal > 0 ? "default" : "secondary"}
                                         className="text-xs"
                                     >
-                                        {available} / {total} disponíveis
+                                        {Math.max(0, available)} / {total} disponíveis
+                                        {createdTotal > 0 && " (bônus)"}
                                     </Badge>
                                 </div>
                                 <div className="flex gap-2 flex-wrap">
                                     {Array.from({ length: total }).map((_, index) => {
                                         const isUsed = index < used;
+                                        // Os últimos slots são os bônus
+                                        const isBonus = index >= baseTotal;
                                         return (
                                             <button
                                                 key={index}
                                                 onClick={() => handleToggleSlot(level, index)}
                                                 disabled={!canEdit}
-                                                className={`w-10 h-10 rounded-full border-2 transition-all ${isUsed
-                                                    ? "bg-primary/20 border-primary text-primary"
-                                                    : "bg-card/40 border-white/20 text-white/40 hover:border-primary/50"
+                                                className={`w-10 h-10 rounded-full border-2 transition-all ${isBonus
+                                                    ? isUsed
+                                                        ? "bg-purple-500/40 border-purple-600 text-purple-400"
+                                                        : "bg-purple-500/20 border-purple-500 text-purple-400 hover:border-purple-400"
+                                                    : isUsed
+                                                        ? "bg-primary/20 border-primary text-primary"
+                                                        : "bg-card/40 border-white/20 text-white/40 hover:border-primary/50"
                                                     } ${canEdit ? "cursor-pointer hover:scale-110" : "cursor-not-allowed opacity-50"}`}
-                                                title={`Slot ${index + 1} - ${isUsed ? "Usado" : "Disponível"}`}
+                                                title={`Slot ${index + 1} - ${isBonus ? "Criado com PF" : "Natural"} - ${isUsed ? "Usado" : "Disponível"}`}
                                             >
                                                 {isUsed ? (
                                                     <CircleDot className="w-6 h-6 mx-auto" />

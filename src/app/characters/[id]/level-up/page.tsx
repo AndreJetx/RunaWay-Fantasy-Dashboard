@@ -1,4 +1,6 @@
 "use client";
+// Force rebuild
+
 
 import { useState, useEffect, useCallback } from "react";
 import { getSpellsByClassPTBR, getSpellDetails, getSpellsFromAllClasses } from "@/lib/data/spell-data";
@@ -12,24 +14,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Dice1, Sparkles, CheckCircle2, Loader2, Settings, TrendingUp, Award } from "lucide-react";
 import { toast } from "sonner";
-import { getSpellSlots, canCastSpells, getSpellcastingLevel } from "@/lib/spell-slots";
+import { getSpellSlots, canCastSpells, getSpellcastingLevel, getEldritchKnightSpellProgression } from "@/lib/spell-slots";
 import { getFeaturesAtLevel } from "@/lib/class-features";
 import { calculateLevel } from "@/lib/xp-levels";
 import { getSpellLearningInfo } from "@/lib/spell-learning-rules";
 import { SpellSelectionDialog } from "@/components/characters/SpellSelectionDialog";
 import { SubclassSelector } from "@/components/characters/SubclassSelector";
-import { DragonTypeSelector } from "@/components/characters/DragonTypeSelector";
 import { FeatSelector } from "@/components/characters/FeatSelector";
 import { getSubclassLevel, needsSubclassSelection, getSubclassFeaturesAtLevel } from "@/lib/subclasses";
 import { applySubclassBenefits } from "@/lib/benefit-application";
 import type { Feat } from "@/lib/feats";
 import type { Subclass } from "@/lib/subclasses";
-import type { DragonType } from "@/lib/dragon-types";
 import type { FightingStyle } from "@/lib/fighting-styles";
 import { getFightingStylesForClass, needsFightingStyleSelection } from "@/lib/fighting-styles";
 import { FightingStyleSelector } from "@/components/characters/FightingStyleSelector";
+import { EldritchInvocationSelector } from "@/components/characters/EldritchInvocationSelector";
 import { useTranslation } from "@/lib/i18n/context";
 import { applyAutoFeatures } from "@/lib/auto-features";
+import { getInvocationsCount, getNewInvocationsCount, ELDRITCH_INVOCATIONS } from "@/lib/eldritch-invocations";
+import { applyPactBoonBenefits, hasPactBoonItems } from "@/lib/pact-boon-helper";
+import { BookOfShadowsSelector } from "@/components/characters/BookOfShadowsSelector";
+import { calculateInitiativeBonus } from "@/lib/initiative-helper";
+import { getMysticArcanumLevel, getNewMysticArcanumLevel } from "@/lib/mystic-arcanum-helper";
+import { MysticArcanumSelector } from "@/components/characters/MysticArcanumSelector";
+import { MetamagicSelector } from "@/components/characters/MetamagicSelector";
+import { getMetamagicCount, getNewMetamagicCount } from "@/lib/metamagic";
 
 const DND_API_BASE = "https://www.dnd5eapi.co";
 
@@ -63,13 +72,12 @@ export default function LevelUpPage() {
   const [selectedSpells, setSelectedSpells] = useState<string[]>([]);
   const [selectedCantrips, setSelectedCantrips] = useState<string[]>([]);
   const [spellsToSelect, setSpellsToSelect] = useState(0);
+  const [canSwapSpells, setCanSwapSpells] = useState(false);
   const [isMagicalSecrets, setIsMagicalSecrets] = useState(false);
   const [cantripsToSelect, setCantripsToSelect] = useState(0);
   const [showSpellDialog, setShowSpellDialog] = useState(false);
   const [showSubclassSelector, setShowSubclassSelector] = useState(false);
-  const [showDragonTypeSelector, setShowDragonTypeSelector] = useState(false);
   const [pendingSubclass, setPendingSubclass] = useState<Subclass | null>(null);
-  const [pendingDragonType, setPendingDragonType] = useState<DragonType | null>(null);
   const [showPactSelector, setShowPactSelector] = useState(false);
   const [pendingPact, setPendingPact] = useState<Subclass | null>(null);
   const [saving, setSaving] = useState(false);
@@ -80,6 +88,17 @@ export default function LevelUpPage() {
   const [selectedFeatAttribute, setSelectedFeatAttribute] = useState<string | null>(null); // Atributo escolhido para feat com "any"
   const [showFightingStyleSelector, setShowFightingStyleSelector] = useState(false);
   const [selectedFightingStyle, setSelectedFightingStyle] = useState<FightingStyle | null>(null);
+  const [showInvocationSelector, setShowInvocationSelector] = useState(false);
+  const [selectedInvocations, setSelectedInvocations] = useState<string[]>([]);
+  const [invocationsToSelect, setInvocationsToSelect] = useState(0);
+  const [showBookOfShadowsSelector, setShowBookOfShadowsSelector] = useState(false);
+  const [selectedBookCantrips, setSelectedBookCantrips] = useState<string[]>([]);
+  const [showMysticArcanumSelector, setShowMysticArcanumSelector] = useState(false);
+  const [mysticArcanumLevel, setMysticArcanumLevel] = useState<number | null>(null);
+  const [selectedMysticArcanum, setSelectedMysticArcanum] = useState<string>("");
+  const [showMetamagicSelector, setShowMetamagicSelector] = useState(false);
+  const [selectedMetamagics, setSelectedMetamagics] = useState<string[]>([]);
+  const [metamagicsToSelect, setMetamagicsToSelect] = useState(0);
   const { translateSpell } = useTranslation();
 
   const fetchCharacterData = useCallback(async () => {
@@ -145,14 +164,15 @@ export default function LevelUpPage() {
       const targetLevel = currentLevel + 1;
 
       // Verificar se precisa selecionar magias
-      if (canCastSpells(characterData.characterClass)) {
+      if (canCastSpells(characterData.characterClass, characterData.subclass, targetLevel)) {
         const previousLevel = currentLevel;
 
         // Usar a nova biblioteca de regras de aprendizado
         const learningInfo = getSpellLearningInfo(
           characterData.characterClass,
           targetLevel,
-          previousLevel
+          previousLevel,
+          characterData.subclass
         );
 
         // Detectar "Magia Mística" ou "Segredos Mágicos Adicionais"
@@ -172,10 +192,41 @@ export default function LevelUpPage() {
 
         setCantripsToSelect(learningInfo.newCantrips);
         setSpellsToSelect(adjustedSpellsToSelect);
+        setCanSwapSpells(learningInfo.canSwap);
 
         if (adjustedSpellsToSelect > 0 || learningInfo.newCantrips > 0) {
           // Buscar magias disponíveis para a classe (ou todas se for Magia Mística)
-          await fetchAvailableSpells(characterData.characterClass, targetLevel, hasMagicalSecrets);
+          let spellClass = characterData.characterClass;
+          if (characterData.characterClass === "Guerreiro" && characterData.subclass === "Cavaleiro Arcano") {
+            spellClass = "Mago";
+          } else if (characterData.characterClass === "Ladino" && characterData.subclass === "Trapaceiro Arcano") {
+            spellClass = "Mago";
+          }
+          await fetchAvailableSpells(spellClass, targetLevel, hasMagicalSecrets, characterData.subclass);
+        }
+      }
+
+      // Verificar se é Bruxo e precisa selecionar Invocações Arcanas
+      if (characterData.characterClass === "Bruxo") {
+        const currentInvocations = characterData.eldritchInvocations || [];
+        setSelectedInvocations(currentInvocations);
+
+        const currentInvocationsCount = getInvocationsCount(currentLevel);
+        const targetInvocationsCount = getInvocationsCount(targetLevel);
+        const newInvocations = targetInvocationsCount - currentInvocationsCount;
+
+        setInvocationsToSelect(newInvocations);
+
+        console.log(`[Invocations] Level ${currentLevel} -> ${targetLevel}: Need ${newInvocations} new invocations (total: ${targetInvocationsCount})`);
+
+        // Verificar se precisa selecionar Mystic Arcanum
+        const newArcanumLevel = getNewMysticArcanumLevel(currentLevel, targetLevel);
+        if (newArcanumLevel) {
+          const currentArcanum = characterData.mysticArcanum || {};
+          if (!currentArcanum[newArcanumLevel.toString()]) {
+            setMysticArcanumLevel(newArcanumLevel);
+            setSelectedMysticArcanum("");
+          }
         }
       }
     } catch (error: any) {
@@ -190,12 +241,38 @@ export default function LevelUpPage() {
     fetchCharacterData();
   }, [fetchCharacterData]);
 
-  const fetchAvailableSpells = async (className: string, level: number, isMagiaMistica: boolean = false) => {
+  // Detectar seleção de Cavaleiro Arcano e abrir seleção de magias
+  useEffect(() => {
+    if (!character || !pendingSubclass) return;
+
+    const targetLevel = character.level + 1;
+
+    // Se é Guerreiro nível 3 escolhendo Cavaleiro Arcano
+    if (
+      character.characterClass === "Guerreiro" &&
+      pendingSubclass.name === "Cavaleiro Arcano" &&
+      targetLevel === 3
+    ) {
+      const progression = getEldritchKnightSpellProgression(3);
+      setCantripsToSelect(progression.cantrips);
+      setSpellsToSelect(progression.knownSpells);
+      setCanSwapSpells(false);
+      setShowSpellDialog(true);
+
+      // Buscar magias do Mago até o nível máximo que Cavaleiro Arcano pode aprender no nível 3
+      // Cavaleiro Arcano nível 3 pode aprender magias de nível 1
+      fetchAvailableSpells("Mago", 3, false);
+
+      toast.info("Cavaleiro Arcano: Selecione 2 truques e 3 magias de nível 1. Use o filtro 'Todos os Níveis' para ver truques e magias juntos.");
+    }
+  }, [pendingSubclass, character]);
+
+  const fetchAvailableSpells = async (className: string, level: number, isMagiaMistica: boolean = false, subclass?: string) => {
     try {
       // Usar a base de dados local
 
       // Nível máximo de magia que pode aprender
-      const maxSpellLevel = getSpellcastingLevel(className, level);
+      const maxSpellLevel = getSpellcastingLevel(className, level, subclass);
 
       // Buscar lista de magias para a classe (ou todas se for Magia Mística)
       let spellIndices: string[];
@@ -256,7 +333,10 @@ export default function LevelUpPage() {
     }
 
     // Validar seleção de magias e truques
-    if (canCastSpells(character.characterClass)) {
+    const targetLevel = character.level + 1;
+    const effectiveSubclass = pendingSubclass?.name || character.subclass;
+
+    if (canCastSpells(character.characterClass, effectiveSubclass, targetLevel)) {
       if (cantripsToSelect > 0 && selectedCantrips.length < cantripsToSelect) {
         toast.error(`Selecione ${cantripsToSelect} truque(s)`);
         return;
@@ -266,9 +346,6 @@ export default function LevelUpPage() {
         return;
       }
     }
-
-    // Definir targetLevel primeiro
-    const targetLevel = character.level + 1;
 
     // Validar ASI ou Feat
     const features = getFeaturesAtLevel(character.characterClass, targetLevel);
@@ -306,12 +383,6 @@ export default function LevelUpPage() {
       return;
     }
 
-    // Validar seleção de dragão
-    const isDraconic = (character.subclass === "Linhagem Dracônica" || pendingSubclass?.name === "Linhagem Dracônica");
-    if (isDraconic && !character.dragonType && !pendingDragonType) {
-      toast.error("Selecione seu Dragão Ancestral");
-      return;
-    }
 
     // Validar seleção de pacto
     const needsPact = character.characterClass === 'Bruxo' && targetLevel >= 3 && !character.pact && !pendingPact;
@@ -343,7 +414,7 @@ export default function LevelUpPage() {
       const newKnownSpells = [...knownSpells, ...selectedSpells, ...selectedCantrips];
 
       // Calcular slots de magia
-      const spellSlots = getSpellSlots(character.characterClass, targetLevel);
+      const spellSlots = getSpellSlots(character.characterClass, targetLevel, pendingSubclass?.name || character.subclass);
 
       // Obter features do novo nível
       const features = getFeaturesAtLevel(character.characterClass, targetLevel);
@@ -446,11 +517,19 @@ export default function LevelUpPage() {
         finalCurrentHp = newCurrentHp;
       }
 
+      const newProficiencyBonus = Math.ceil(targetLevel / 4) + 1;
+
+      // RECALCULAR INICIATIVA baseado em DEX e feats
+      const dexMod = Math.floor(((updatedAttributes.dexterity || 10) - 10) / 2);
+      const newInitiative = calculateInitiativeBonus(dexMod, updatedFeats);
+
       // Preparar objeto base para atualização
       let updateBody: any = {
         level: targetLevel, // Atualizar para o novo nível
         maxHp: finalMaxHp,
         currentHp: finalCurrentHp,
+        proficiencyBonus: newProficiencyBonus,
+        initiative: newInitiative, // Atualizar iniciativa com bônus de feats
         needsLevelUp: stillNeedsLevelUp, // Manter true se ainda tiver níveis a subir
         pendingHitDiceRoll: stillNeedsLevelUp ? null : null, // Limpar dado pendente quando level up completo
         attributes: updatedAttributes,
@@ -502,10 +581,6 @@ export default function LevelUpPage() {
         });
       }
 
-      // Aplicar Dragão
-      if (pendingDragonType) {
-        updateBody.dragonType = pendingDragonType.name;
-      }
 
       // Aplicar Pacto
       if (pendingPact) {
@@ -539,11 +614,84 @@ export default function LevelUpPage() {
             });
           }
         });
+
+        // Aplicar itens e benefícios automáticos do Pacto
+        const pactBenefits = applyPactBoonBenefits(character.characterClass, pendingPact, targetLevel);
+
+        // Adicionar itens do pacto ao inventário (se não existirem)
+        if (pactBenefits.inventory && pactBenefits.inventory.length > 0) {
+          const currentInventory = character.inventory || [];
+          const hasItems = hasPactBoonItems(currentInventory, pendingPact.name);
+
+          if (!hasItems) {
+            const updatedInventory = [...currentInventory, ...pactBenefits.inventory];
+            updateBody.inventory = updatedInventory;
+          }
+        }
+
+        // Adicionar features do pacto
+        if (pactBenefits.features) {
+          Object.entries(pactBenefits.features).forEach(([level, features]) => {
+            const lvl = parseInt(level);
+            if (!newFeatures[lvl]) {
+              newFeatures[lvl] = [];
+            }
+            features.forEach((feature: any) => {
+              const exists = newFeatures[lvl].some((f: any) => f.name === feature.name);
+              if (!exists) {
+                newFeatures[lvl].push(feature);
+              }
+            });
+          });
+        }
+
+        // Adicionar magias do pacto (ex: Find Familiar para Pacto da Corrente)
+        if (pactBenefits.spellcasting?.knownSpells) {
+          pactBenefits.spellcasting.knownSpells.forEach(spell => {
+            if (!newKnownSpells.includes(spell)) {
+              newKnownSpells.push(spell);
+            }
+          });
+        }
+      }
+
+      // Aplicar Invocações Arcanas (Bruxo)
+      if (character.characterClass === "Bruxo" && selectedInvocations.length > 0) {
+        updateBody.eldritchInvocations = selectedInvocations;
+      }
+
+      // Aplicar Truques do Livro das Sombras (Pacto do Tomo)
+      if (pendingPact?.name === "Pacto do Tomo" && selectedBookCantrips.length > 0) {
+        updateBody.bookOfShadowsCantrips = selectedBookCantrips;
+        // Adicionar os truques às magias conhecidas também
+        selectedBookCantrips.forEach(cantrip => {
+          if (!newKnownSpells.includes(cantrip)) {
+            newKnownSpells.push(cantrip);
+          }
+        });
+      }
+
+      // Aplicar Mystic Arcanum (Bruxo)
+      if (mysticArcanumLevel && selectedMysticArcanum) {
+        const currentArcanum = character.mysticArcanum || {};
+        updateBody.mysticArcanum = {
+          ...currentArcanum,
+          [mysticArcanumLevel.toString()]: selectedMysticArcanum
+        };
+        // Adicionar Mystic Arcanum às magias conhecidas
+        if (!newKnownSpells.includes(selectedMysticArcanum)) {
+          newKnownSpells.push(selectedMysticArcanum);
+        }
       }
 
       // Aplicar Fighting Style
       if (selectedFightingStyle) {
         updateBody.fightingStyle = selectedFightingStyle.name;
+      }
+
+      // Aplicar Metamágicas (Feiticeiro)
+      if (character.characterClass === "Feiticeiro" && selectedMetamagics.length > 0) {
+        updateBody.metamagics = selectedMetamagics;
       }
 
       const res = await fetch(`/api/characters/${characterId}`, {
@@ -621,7 +769,6 @@ export default function LevelUpPage() {
   }
 
   const isDraconic = character && (character.subclass === "Linhagem Dracônica" || pendingSubclass?.name === "Linhagem Dracônica");
-  const needsDragonType = isDraconic && !character.dragonType && !pendingDragonType;
   const needsPact = character && character.characterClass === 'Bruxo' && targetLevel >= 3 && !character.pact && !pendingPact;
 
   // Verificar se tem ASI neste nível
@@ -629,6 +776,17 @@ export default function LevelUpPage() {
   const totalASIPoints = hasASI ? 2 : 0;
   const usedASIPoints = Object.values(attributeIncreases).reduce((sum, val) => sum + val, 0);
   const remainingASIPoints = totalASIPoints - usedASIPoints;
+
+  // Verificar se Feiticeiro ganha metamágicas neste nível
+  const newMetamagicsCount = character?.characterClass === "Feiticeiro"
+    ? getNewMetamagicCount(character.level, targetLevel)
+    : 0;
+
+  // Inicializar metamagics com as já conhecidas
+  if (newMetamagicsCount > 0 && metamagicsToSelect === 0) {
+    setMetamagicsToSelect(newMetamagicsCount);
+    setSelectedMetamagics(character.metamagics || []);
+  }
 
   return (
     <FantasyLayout>
@@ -752,43 +910,49 @@ export default function LevelUpPage() {
                 </div>
               ))}
 
-              {/* Escolha de atributo para Feat com "any" */}
-              {asiChoice === "feat" && selectedFeat && selectedFeat.attributeBonus?.attribute === "any" && (
-                <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg space-y-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-4 h-4 text-primary" />
-                    <h3 className="font-semibold text-primary">Escolha o Atributo para {selectedFeat.name}</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Este talento concede +{selectedFeat.attributeBonus.bonus} em um atributo à sua escolha:
-                  </p>
-                  <Select
-                    value={selectedFeatAttribute || ""}
-                    onValueChange={(value) => setSelectedFeatAttribute(value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um atributo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="strength">Força</SelectItem>
-                      <SelectItem value="dexterity">Destreza</SelectItem>
-                      <SelectItem value="constitution">Constituição</SelectItem>
-                      <SelectItem value="intelligence">Inteligência</SelectItem>
-                      <SelectItem value="wisdom">Sabedoria</SelectItem>
-                      <SelectItem value="charisma">Carisma</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {selectedFeatAttribute && (
-                    <p className="text-sm text-green-400 mt-2">
-                      ✓ {selectedFeatAttribute === "strength" ? "Força" :
-                        selectedFeatAttribute === "dexterity" ? "Destreza" :
-                          selectedFeatAttribute === "constitution" ? "Constituição" :
-                            selectedFeatAttribute === "intelligence" ? "Inteligência" :
-                              selectedFeatAttribute === "wisdom" ? "Sabedoria" : "Carisma"} receberá +{selectedFeat.attributeBonus.bonus}
-                    </p>
-                  )}
-                </div>
-              )}
+              {/* Features da Subclasse (se aplicável) */}
+              {(() => {
+                // Se tem subclasse pendente OU subclasse já escolhida
+                const currentSubclass = pendingSubclass || (character.subclass ? character.subclass : null);
+
+                if (!currentSubclass) return null;
+
+                // Buscar subclasse completa se for apenas uma string
+                let subclassData = currentSubclass;
+                if (typeof currentSubclass === 'string') {
+                  const { ALL_SUBCLASSES } = require('@/lib/subclasses');
+                  subclassData = ALL_SUBCLASSES.find((s: any) => s.name === currentSubclass);
+                }
+
+                if (!subclassData || !subclassData.features) return null;
+
+                // Pegar features da subclasse que são do novo nível
+                const newLevel = character.level + 1;
+                const subclassFeatures = subclassData.features.filter((f: any) => f.level === newLevel);
+
+                if (subclassFeatures.length === 0) return null;
+
+                return (
+                  <>
+                    <div className="border-t border-border my-3"></div>
+                    <div className="mb-2">
+                      <h4 className="text-sm font-semibold text-primary flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" />
+                        Habilidades de {subclassData.name}
+                      </h4>
+                    </div>
+                    {subclassFeatures.map((feature: any, idx: number) => (
+                      <div key={`subclass-${idx}`} className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-primary">{feature.name}</h3>
+                          <Badge variant="outline" className="bg-primary/20">Nível {feature.level}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{feature.description}</p>
+                      </div>
+                    ))}
+                  </>
+                );
+              })()}
             </div>
           </CardContent>
         </Card>
@@ -839,44 +1003,6 @@ export default function LevelUpPage() {
           </Card>
         )}
 
-        {/* Seleção de Dragão (Se necessário) */}
-        {isDraconic && !character.dragonType && (
-          <Card className={`bg-card/60 border-white/10 border-l-4 ${pendingDragonType ? 'border-l-green-500' : 'border-l-red-500'}`}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-red-400" />
-                {pendingDragonType ? 'Dragão Ancestral Selecionado' : 'Escolha seu Dragão Ancestral'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {pendingDragonType ? (
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-xl font-bold text-red-400">{pendingDragonType.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Dano: {pendingDragonType.damageType} | Sopro: {pendingDragonType.breathWeapon}
-                    </p>
-                  </div>
-                  <Button variant="outline" onClick={() => setShowDragonTypeSelector(true)}>
-                    Alterar
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <p className="mb-4 text-muted-foreground">
-                    Como um Feiticeiro de Linhagem Dracônica, você deve escolher a cor do seu ancestral dragão.
-                  </p>
-                  <Button
-                    onClick={() => setShowDragonTypeSelector(true)}
-                    className="w-full bg-red-600 hover:bg-red-700"
-                  >
-                    Escolher Dragão Ancestral
-                  </Button>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
 
         {/* Seleção de Pacto (Bruxo Nível 3+) */}
         {needsPact && (
@@ -924,6 +1050,91 @@ export default function LevelUpPage() {
           </Card>
         )}
 
+        {/* Seleção de Truques do Livro das Sombras (Pacto do Tomo) */}
+        {pendingPact?.name === "Pacto do Tomo" && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedBookCantrips.length === 3 ? 'border-l-green-500' : 'border-l-purple-500'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-400" />
+                {selectedBookCantrips.length === 3 ? 'Truques do Livro das Sombras Selecionados' : 'Escolha Truques para o Livro das Sombras'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedBookCantrips.length === 3 ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Você selecionou 3 truques:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedBookCantrips.map((cantrip) => (
+                      <Badge key={cantrip} variant="secondary" className="text-sm">
+                        {cantrip}
+                      </Badge>
+                    ))}
+                  </div>
+                  <Button variant="outline" onClick={() => setShowBookOfShadowsSelector(true)} className="w-full">
+                    Alterar Truques
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-4 text-muted-foreground">
+                    O Livro das Sombras permite que você aprenda 3 truques de qualquer classe. Estes truques não contam contra seu número de truques conhecidos!
+                  </p>
+                  <Button
+                    onClick={() => setShowBookOfShadowsSelector(true)}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Escolher 3 Truques
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Seleção de Mystic Arcanum (Bruxo Níveis 11, 13, 15, 17) */}
+        {mysticArcanumLevel && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedMysticArcanum ? 'border-l-green-500' : 'border-l-purple-500'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-400" />
+                {selectedMysticArcanum ? 'Mystic Arcanum Selecionado' : 'Escolha Mystic Arcanum'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedMysticArcanum ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Você selecionou uma magia de {mysticArcanumLevel}º nível:
+                  </p>
+                  <Badge variant="secondary" className="text-sm">
+                    {selectedMysticArcanum}
+                  </Badge>
+                  <Button variant="outline" onClick={() => setShowMysticArcanumSelector(true)} className="w-full">
+                    Alterar Magia
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-4 text-muted-foreground">
+                    Mystic Arcanum permite que você aprenda 1 magia de {mysticArcanumLevel}º nível. Esta magia pode ser conjurada 1x por descanso longo sem gastar espaço de magia!
+                  </p>
+                  <Button
+                    onClick={() => setShowMysticArcanumSelector(true)}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Escolher Magia de {mysticArcanumLevel}º Nível
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+
         {/* Seleção de Fighting Style */}
         {needsFightingStyleSelection(character?.characterClass || "", targetLevel) && !character?.fightingStyle && (
           <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedFightingStyle ? 'border-l-green-500' : 'border-l-orange-500'}`}>
@@ -954,6 +1165,106 @@ export default function LevelUpPage() {
                     className="w-full bg-orange-600 hover:bg-orange-700"
                   >
                     Escolher Estilo de Combate
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Seleção de Invocações Arcanas (Bruxo) */}
+        {character?.characterClass === "Bruxo" && invocationsToSelect > 0 && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedInvocations.length >= getInvocationsCount(targetLevel) ? 'border-l-green-500' : 'border-l-purple-500'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-400" />
+                {selectedInvocations.length >= getInvocationsCount(targetLevel) ? 'Invocações Arcanas Selecionadas' : 'Escolha Invocações Arcanas'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedInvocations.length >= getInvocationsCount(targetLevel) ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Você selecionou {selectedInvocations.length} invocação(ões):
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedInvocations.map((invId) => {
+                      const inv = ELDRITCH_INVOCATIONS.find(i => i.id === invId);
+                      return inv && (
+                        <Badge key={invId} variant="secondary" className="text-sm">
+                          {inv.name}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                  <Button variant="outline" onClick={() => setShowInvocationSelector(true)} className="w-full">
+                    Alterar Invocações
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-4 text-muted-foreground">
+                    Você alcançou o nível {character.level + 1} e pode escolher {invocationsToSelect} nova(s) invocação(ões) arcana(s)!
+                    {character.eldritchInvocations && character.eldritchInvocations.length > 0 && (
+                      <> Você já possui {character.eldritchInvocations.length} invocação(ões).</>
+                    )}
+                  </p>
+                  <Button
+                    onClick={() => setShowInvocationSelector(true)}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Escolher Invocações Arcanas
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Seleção de Metamágicas (Feiticeiro) */}
+        {character?.characterClass === "Feiticeiro" && metamagicsToSelect > 0 && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedMetamagics.length >= getMetamagicCount(targetLevel) ? 'border-l-green-500' : 'border-l-purple-500'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-400" />
+                {selectedMetamagics.length >= getMetamagicCount(targetLevel) ? 'Metamágicas Selecionadas' : 'Escolha Metamágicas'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedMetamagics.length >= getMetamagicCount(targetLevel) ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Você selecionou {selectedMetamagics.length} metamágica(s):
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedMetamagics.map((metamagicId) => {
+                      const { METAMAGICS } = require('@/lib/metamagic');
+                      const metamagic = METAMAGICS[metamagicId];
+                      return metamagic && (
+                        <Badge key={metamagicId} variant="secondary" className="text-sm">
+                          {metamagic.name}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                  <Button variant="outline" onClick={() => setShowMetamagicSelector(true)} className="w-full">
+                    Alterar Metamágicas
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-4 text-muted-foreground">
+                    Metamágicas permitem que você modifique suas magias gastando Pontos de Feitiçaria. Selecione {
+                      getNewMetamagicCount(character.level, targetLevel)
+                    } nova(s) metamágica(s).
+                  </p>
+                  <Button
+                    onClick={() => setShowMetamagicSelector(true)}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Escolher Metamágicas
                   </Button>
                 </>
               )}
@@ -1184,6 +1495,48 @@ export default function LevelUpPage() {
           </Card>
         )}
 
+        {/* Card dedicado para escolha de atributo do Feat - DEPOIS de Aumento de Poder */}
+        {asiChoice === "feat" && selectedFeat && selectedFeat.attributeBonus?.attribute === "any" && (
+          <Card className={`bg-card/60 border-white/10 border-l-4 ${selectedFeatAttribute ? 'border-l-green-500' : 'border-l-primary'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                {selectedFeatAttribute ? 'Atributo Selecionado' : 'Escolha o Atributo para ' + selectedFeat.name}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-3">
+                Este talento concede +{selectedFeat.attributeBonus.bonus} em um atributo à sua escolha:
+              </p>
+              <Select
+                value={selectedFeatAttribute || ""}
+                onValueChange={(value) => setSelectedFeatAttribute(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um atributo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="strength">Força</SelectItem>
+                  <SelectItem value="dexterity">Destreza</SelectItem>
+                  <SelectItem value="constitution">Constituição</SelectItem>
+                  <SelectItem value="intelligence">Inteligência</SelectItem>
+                  <SelectItem value="wisdom">Sabedoria</SelectItem>
+                  <SelectItem value="charisma">Carisma</SelectItem>
+                </SelectContent>
+              </Select>
+              {selectedFeatAttribute && (
+                <p className="text-sm text-green-400 mt-3">
+                  ✓ {selectedFeatAttribute === "strength" ? "Força" :
+                    selectedFeatAttribute === "dexterity" ? "Destreza" :
+                      selectedFeatAttribute === "constitution" ? "Constituição" :
+                        selectedFeatAttribute === "intelligence" ? "Inteligência" :
+                          selectedFeatAttribute === "wisdom" ? "Sabedoria" : "Carisma"} receberá +{selectedFeat.attributeBonus.bonus}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
 
         {/* Slots de Magia */}
         {
@@ -1215,7 +1568,7 @@ export default function LevelUpPage() {
 
         {/* Seleção de Magias */}
         {
-          canCastSpells(character.characterClass) && (spellsToSelect > 0 || cantripsToSelect > 0) && (
+          canCastSpells(character.characterClass, character.subclass || pendingSubclass?.name, targetLevel) && (spellsToSelect > 0 || cantripsToSelect > 0) && (
             <Card className="bg-card/60 border-white/10">
               <CardHeader>
                 <CardTitle>Selecionar Magias</CardTitle>
@@ -1286,10 +1639,12 @@ export default function LevelUpPage() {
               disabled={
                 !hitDiceRoll ||
                 saving ||
-                (canCastSpells(character.characterClass) && (selectedSpells.length < spellsToSelect || selectedCantrips.length < cantripsToSelect)) ||
+                (canCastSpells(character.characterClass, character.subclass || pendingSubclass?.name, targetLevel) && (selectedSpells.length < spellsToSelect || selectedCantrips.length < cantripsToSelect)) ||
                 (needsSubclass && !pendingSubclass) ||
-                (needsDragonType && !pendingDragonType) ||
-                (needsPact && !pendingPact)
+                (needsPact && !pendingPact) ||
+                (character.characterClass === "Bruxo" && invocationsToSelect > 0 && selectedInvocations.length < getInvocationsCount(targetLevel)) ||
+                (pendingPact?.name === "Pacto do Tomo" && selectedBookCantrips.length < 3) ||
+                (mysticArcanumLevel && !selectedMysticArcanum)
               }
               className="w-full"
               size="lg"
@@ -1333,9 +1688,10 @@ export default function LevelUpPage() {
               maxSpells={spellsToSelect}
               maxCantrips={cantripsToSelect}
               characterClass={character.characterClass}
-              characterLevel={character.level}
+              characterLevel={targetLevel}
               knownSpells={character.spellcasting?.knownSpells || []}
-              allowSwap={false}
+              allowSwap={canSwapSpells}
+              subclass={character.subclass || pendingSubclass?.name}
             />
           )
         }
@@ -1354,20 +1710,12 @@ export default function LevelUpPage() {
           }}
         />
 
-        {/* Dialog de Seleção de Dragão */}
-        <DragonTypeSelector
-          open={showDragonTypeSelector}
-          onOpenChange={setShowDragonTypeSelector}
-          onSelect={(dragonType) => {
-            setPendingDragonType(dragonType);
-            toast.success(`Dragão Ancestral "${dragonType.name}" selecionado!`);
-          }}
-        />
 
         {/* Dialog de Seleção de Feat */}
         <FeatSelector
           open={showFeatSelector}
           onOpenChange={setShowFeatSelector}
+          currentFeats={character?.feats || []}
           onSelect={(feat) => {
             setSelectedFeat(feat);
             setSelectedFeatAttribute(null); // Resetar atributo ao trocar de feat
@@ -1400,6 +1748,73 @@ export default function LevelUpPage() {
                 toast.success(`Estilo de Combate "${style.name}" selecionado!`);
               }}
               onClose={() => setShowFightingStyleSelector(false)}
+            />
+          )
+        }
+
+        {/* Dialog de Seleção de Invocações Arcanas */}
+        {
+          showInvocationSelector && character && (
+            <EldritchInvocationSelector
+              open={showInvocationSelector}
+              onOpenChange={setShowInvocationSelector}
+              onSelect={(invocations) => {
+                setSelectedInvocations(invocations);
+                toast.success(`${invocations.length} invocação(ões) selecionada(s)!`);
+              }}
+              currentInvocations={character.eldritchInvocations || []}
+              maxInvocations={getInvocationsCount(targetLevel)}
+              characterLevel={targetLevel}
+              pactBoon={character.pact}
+              knownSpells={character.spellcasting?.knownSpells || []}
+            />
+          )
+        }
+
+        {/* Dialog de Seleção de Truques do Livro das Sombras */}
+        {
+          showBookOfShadowsSelector && character && (
+            <BookOfShadowsSelector
+              open={showBookOfShadowsSelector}
+              onOpenChange={setShowBookOfShadowsSelector}
+              onSelect={(cantrips) => {
+                setSelectedBookCantrips(cantrips);
+                toast.success(`3 truques selecionados para o Livro das Sombras!`);
+              }}
+              currentCantrips={character.bookOfShadowsCantrips || []}
+              characterLevel={targetLevel}
+            />
+          )
+        }
+
+        {/* Dialog de Seleção de Mystic Arcanum */}
+        {
+          showMysticArcanumSelector && character && mysticArcanumLevel && (
+            <MysticArcanumSelector
+              open={showMysticArcanumSelector}
+              onOpenChange={setShowMysticArcanumSelector}
+              onSelect={(spellIndex) => {
+                setSelectedMysticArcanum(spellIndex);
+                toast.success(`Mystic Arcanum de ${mysticArcanumLevel}º nível selecionado!`);
+              }}
+              spellLevel={mysticArcanumLevel}
+              currentSelection={selectedMysticArcanum}
+            />
+          )
+        }
+
+        {/* Dialog de Seleção de Metamágicas */}
+        {
+          showMetamagicSelector && character && (
+            <MetamagicSelector
+              open={showMetamagicSelector}
+              onOpenChange={setShowMetamagicSelector}
+              onSelect={(metamagics) => {
+                setSelectedMetamagics(metamagics);
+                toast.success(`${metamagics.length} metamágica(s) selecionada(s)!`);
+              }}
+              currentMetamagics={character.metamagics || []}
+              maxMetamagics={getMetamagicCount(targetLevel)}
             />
           )
         }

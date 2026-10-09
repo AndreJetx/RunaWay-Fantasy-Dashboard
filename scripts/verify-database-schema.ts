@@ -159,9 +159,9 @@ async function verifyTables() {
   const result = await db.execute<TableInfo>(sql`
     SELECT 
       table_name,
-      (SELECT COUNT(*) FROM information_schema.columns WHERE table_name = t.table_name) as column_count
+      (SELECT COUNT(*) FROM information_schema.columns c WHERE c.table_schema = 'runaway' AND c.table_name = t.table_name) as column_count
     FROM information_schema.tables t
-    WHERE table_schema = 'public' 
+    WHERE table_schema = 'runaway' 
       AND table_type = 'BASE TABLE'
       AND table_name = ANY(${EXPECTED_TABLES})
     ORDER BY table_name
@@ -198,7 +198,7 @@ async function verifyColumns(tableName: string) {
       is_nullable,
       column_default
     FROM information_schema.columns
-    WHERE table_schema = 'public' 
+    WHERE table_schema = 'runaway' 
       AND table_name = ${tableName}
     ORDER BY ordinal_position
   `);

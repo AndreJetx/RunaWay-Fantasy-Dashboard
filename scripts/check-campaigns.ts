@@ -49,7 +49,7 @@ async function checkCampaigns() {
         title,
         status,
         created_at
-      FROM campaigns
+      FROM runaway.campaigns
       ORDER BY created_at DESC
       LIMIT 10
     `;
@@ -71,7 +71,7 @@ async function checkCampaigns() {
         // Verificar se o usuário DM existe
         const dmUser = await client`
           SELECT id, username, email
-          FROM users
+          FROM runaway.users
           WHERE id = ${campaign.dm_id}
           LIMIT 1
         `;
@@ -93,7 +93,7 @@ async function checkCampaigns() {
         email,
         role,
         created_at
-      FROM users
+      FROM runaway.users
       ORDER BY created_at DESC
       LIMIT 10
     `;
@@ -113,7 +113,7 @@ async function checkCampaigns() {
         // Verificar campanhas deste usuário como DM
         const userCampaigns = await client`
           SELECT id, title
-          FROM campaigns
+          FROM runaway.campaigns
           WHERE dm_id = ${user.id}
         `;
 

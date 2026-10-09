@@ -5,6 +5,7 @@
 
 import allSpellsData from '@/data/spells/all-spells.json';
 import spellsByClassData from '@/data/spells/spells-by-class.json';
+import patronSpellsData from '@/data/spells/patron-spells.json';
 
 export interface SpellData {
     index: string;
@@ -12,6 +13,7 @@ export interface SpellData {
     level: number;
     school: string;
     classes: string[];
+    patron?: string[];
     description: string;
     descriptionPT?: string;
     namePT?: string;
@@ -53,7 +55,10 @@ export function getTranslatedDescription(spellName: string, locale: 'pt-BR' | 'e
  * Retorna todas as magias
  */
 export function getAllSpells(): Record<string, SpellData> {
-    return allSpellsData as Record<string, SpellData>;
+    return {
+        ...(allSpellsData as Record<string, SpellData>),
+        ...(patronSpellsData as Record<string, SpellData>)
+    };
 }
 
 /**
@@ -68,8 +73,9 @@ export function getSpellDetails(spellIndex: string): SpellData | null {
  * Retorna todas as magias de uma classe específica
  * @param className Nome da classe em inglês (Paladin, Cleric, etc.)
  * @param maxLevel Nível máximo de magia para filtrar
+ * @param subclassName Nome da subclasse (opcional, para filtrar magias de patrono)
  */
-export function getSpellsByClass(className: string, maxLevel?: number): string[] {
+export function getSpellsByClass(className: string, maxLevel?: number, subclassName?: string): string[] {
     const spellsByClass = spellsByClassData as Record<string, Record<string, string[]>>;
     const classSpells = spellsByClass[className];
 
@@ -84,6 +90,30 @@ export function getSpellsByClass(className: string, maxLevel?: number): string[]
         if (classSpells[levelKey]) {
             allClassSpells.push(...classSpells[levelKey]);
         }
+    }
+
+    // Se for Warlock, adicionar magias de patronos
+    if (className === 'Warlock') {
+        const allSpells = getAllSpells();
+        Object.keys(allSpells).forEach(spellIndex => {
+            const spell = allSpells[spellIndex];
+            // Se a magia for de patrono
+            if (spell.patron) {
+                // Se o jogador já escolheu uma subclasse, mostrar apenas a do patrono dele
+                if (subclassName) {
+                    if (spell.patron.includes(subclassName) && !allClassSpells.includes(spellIndex)) {
+                        if (!maxLevel || spell.level <= maxLevel) {
+                            allClassSpells.push(spellIndex);
+                        }
+                    }
+                } else {
+                    // Se ainda não escolheu, mostrar todas (ou nenhuma, mas por enquanto mostramos todas para ele ver as opções)
+                    // Na verdade, a regra é não mostrar de outros. Se subclassName é undefined, talvez mostramos apenas as base.
+                    // Vamos seguir o pedido do user: "jogador nao pode escolher magias de outro patrono"
+                    // Se subclassName for undefined, não adicionamos nenhuma de patrono.
+                }
+            }
+        });
     }
 
     return allClassSpells;

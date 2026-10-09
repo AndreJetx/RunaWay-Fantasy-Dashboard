@@ -10596,5 +10596,2423 @@
     },
     "namePT": "Zona da Verdade",
     "descriptionPT": "Você cria uma zona mágica que impede a mentira. Criaturas na área que falharem num teste de Carisma não podem falar mentiras deliberadas."
+  },
+  "booming-blade": {
+    "index": "booming-blade",
+    "name": "Booming Blade",
+    "level": 0,
+    "school": "Evocation",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You brandish the weapon used in the spell's casting and make a melee attack with it against one creature within 5 feet of you. On a hit, the target suffers the weapon attack's normal effects and then becomes sheathed in booming energy until the start of your next turn. If the target willingly moves 5 feet or more before then, the target takes 1d8 thunder damage, and the spell ends.",
+    "higherLevel": "",
+    "range": "Self (5-foot radius)",
+    "components": [
+      "S",
+      "M"
+    ],
+    "material": "A melee weapon worth at least 1 sp.",
+    "ritual": false,
+    "duration": "1 round",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "thunder",
+        "name": "Thunder",
+        "url": "/api/2014/damage-types/thunder"
+      },
+      "damage_at_character_level": {
+        "1": "1d8",
+        "5": "2d8",
+        "11": "3d8",
+        "17": "4d8"
+      }
+    },
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Lâmina Trovejante",
+    "descriptionPT": "Você brande a arma e faz um ataque corpo a corpo. No acerto, o alvo fica envolto em energia trovejante. Se se mover 5 pés ou mais, sofre 1d8 de dano trovejante.",
+    "source": "Sword Coast Adventurer's Guide"
+  },
+  "green-flame-blade": {
+    "index": "green-flame-blade",
+    "name": "Green-Flame Blade",
+    "level": 0,
+    "school": "Evocation",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You brandish the weapon used in the spell's casting and make a melee attack with it against one creature within 5 feet of you. On a hit, the target suffers the weapon attack's normal effects, and you can cause green fire to leap from the target to a different creature of your choice that you can see within 5 feet of it.",
+    "higherLevel": "",
+    "range": "Self (5-foot radius)",
+    "components": [
+      "S",
+      "M"
+    ],
+    "material": "A melee weapon worth at least 1 sp.",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "fire",
+        "name": "Fire",
+        "url": "/api/2014/damage-types/fire"
+      },
+      "damage_at_character_level": {
+        "1": "0",
+        "5": "1d8",
+        "11": "2d8",
+        "17": "3d8"
+      }
+    },
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Lâmina de Chama Verde",
+    "descriptionPT": "Você brande a arma e faz um ataque corpo a corpo. No acerto, chamas verdes saltam para outra criatura a até 5 pés.",
+    "source": "Sword Coast Adventurer's Guide"
+  },
+  "mind-sliver": {
+    "index": "mind-sliver",
+    "name": "Mind Sliver",
+    "level": 0,
+    "school": "Enchantment",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You drive a disorienting spike of psychic energy into the mind of one creature you can see within range. The target must succeed on an Intelligence saving throw or take 1d6 psychic damage and subtract 1d4 from the next saving throw it makes before the end of your next turn.",
+    "higherLevel": "",
+    "range": "60 feet",
+    "components": [
+      "V"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "1 round",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "psychic",
+        "name": "Psychic",
+        "url": "/api/2014/damage-types/psychic"
+      },
+      "damage_at_character_level": {
+        "1": "1d6",
+        "5": "2d6",
+        "11": "3d6",
+        "17": "4d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "int",
+        "name": "INT",
+        "url": "/api/2014/ability-scores/int"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": null,
+    "namePT": "Fragmento Mental",
+    "descriptionPT": "Você crava um fragmento desorientador de energia psíquica na mente de uma criatura. O alvo sofre 1d6 de dano psíquico e subtrai 1d4 do próximo teste de resistência.",
+    "source": "Tasha's Cauldron of Everything"
+  },
+  "sword-burst": {
+    "index": "sword-burst",
+    "name": "Sword Burst",
+    "level": 0,
+    "school": "Conjuration",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You create a momentary circle of spectral blades that sweep around you. All other creatures within 5 feet of you must succeed on a Dexterity saving throw or take 1d6 force damage.",
+    "higherLevel": "",
+    "range": "Self (5-foot radius)",
+    "components": [
+      "V"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "force",
+        "name": "Force",
+        "url": "/api/2014/damage-types/force"
+      },
+      "damage_at_character_level": {
+        "1": "1d6",
+        "5": "2d6",
+        "11": "3d6",
+        "17": "4d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "sphere",
+      "size": 5
+    },
+    "namePT": "Explosão de Espadas",
+    "descriptionPT": "Você cria um círculo momentâneo de lâminas espectrais ao seu redor. Criaturas a 5 pés devem fazer teste de Destreza ou sofrer 1d6 de dano de força.",
+    "source": "Sword Coast Adventurer's Guide"
+  },
+  "toll-the-dead": {
+    "index": "toll-the-dead",
+    "name": "Toll the Dead",
+    "level": 0,
+    "school": "Necromancy",
+    "classes": [
+      "Cleric",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You point at one creature you can see within range, and the sound of a dolorous bell fills the air around it for a moment. The target must succeed on a Wisdom saving throw or take 1d8 necrotic damage. If the target is missing any of its hit points, it instead takes 1d12 necrotic damage.",
+    "higherLevel": "",
+    "range": "60 feet",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "necrotic",
+        "name": "Necrotic",
+        "url": "/api/2014/damage-types/necrotic"
+      },
+      "damage_at_character_level": {
+        "1": "1d8",
+        "5": "2d8",
+        "11": "3d8",
+        "17": "4d8"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "wis",
+        "name": "WIS",
+        "url": "/api/2014/ability-scores/wis"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": null,
+    "namePT": "Dobre os Sinos",
+    "descriptionPT": "O som de um sino fúnebre preenche o ar ao redor do alvo. Ele sofre 1d8 de dano necrótico, ou 1d12 se estiver ferido.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "create-bonfire": {
+    "index": "create-bonfire",
+    "name": "Create Bonfire",
+    "level": 0,
+    "school": "Conjuration",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You create a bonfire on ground that you can see within range. Until the spell ends, the magic bonfire fills a 5-foot cube. Any creature in the bonfire's space when you cast the spell must succeed on a Dexterity saving throw or take 1d8 fire damage.",
+    "higherLevel": "",
+    "range": "60 feet",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "fire",
+        "name": "Fire",
+        "url": "/api/2014/damage-types/fire"
+      },
+      "damage_at_character_level": {
+        "1": "1d8",
+        "5": "2d8",
+        "11": "3d8",
+        "17": "4d8"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "cube",
+      "size": 5
+    },
+    "namePT": "Criar Fogueira",
+    "descriptionPT": "Você cria uma fogueira mágica em um cubo de 5 pés. Criaturas no espaço sofrem 1d8 de dano de fogo.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "frostbite": {
+    "index": "frostbite",
+    "name": "Frostbite",
+    "level": 0,
+    "school": "Evocation",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You cause numbing frost to form on one creature that you can see within range. The target must make a Constitution saving throw. On a failed save, the target takes 1d6 cold damage, and it has disadvantage on the next weapon attack roll it makes before the end of its next turn.",
+    "higherLevel": "",
+    "range": "60 feet",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "cold",
+        "name": "Cold",
+        "url": "/api/2014/damage-types/cold"
+      },
+      "damage_at_character_level": {
+        "1": "1d6",
+        "5": "2d6",
+        "11": "3d6",
+        "17": "4d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "con",
+        "name": "CON",
+        "url": "/api/2014/ability-scores/con"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": null,
+    "namePT": "Congelamento",
+    "descriptionPT": "Você causa a formação de gelo entorpecente em uma criatura. O alvo sofre 1d6 de dano de frio e tem desvantagem no próximo ataque com arma.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "infestation": {
+    "index": "infestation",
+    "name": "Infestation",
+    "level": 0,
+    "school": "Conjuration",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You cause a cloud of mites, fleas, and other parasites to appear momentarily on one creature you can see within range. The target must succeed on a Constitution saving throw, or it takes 1d6 poison damage and moves 5 feet in a random direction.",
+    "higherLevel": "",
+    "range": "30 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "A living flea.",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "poison",
+        "name": "Poison",
+        "url": "/api/2014/damage-types/poison"
+      },
+      "damage_at_character_level": {
+        "1": "1d6",
+        "5": "2d6",
+        "11": "3d6",
+        "17": "4d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "con",
+        "name": "CON",
+        "url": "/api/2014/ability-scores/con"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": null,
+    "namePT": "Infestação",
+    "descriptionPT": "Uma nuvem de ácaros e pulgas aparece sobre uma criatura. O alvo sofre 1d6 de dano venenoso e se move 5 pés em direção aleatória.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "lightning-lure": {
+    "index": "lightning-lure",
+    "name": "Lightning Lure",
+    "level": 0,
+    "school": "Evocation",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You create a lash of lightning energy that strikes at one creature of your choice that you can see within 15 feet of you. The target must succeed on a Strength saving throw or be pulled up to 10 feet in a straight line toward you and then take 1d8 lightning damage if it is within 5 feet of you.",
+    "higherLevel": "",
+    "range": "Self (15-foot radius)",
+    "components": [
+      "V"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "lightning",
+        "name": "Lightning",
+        "url": "/api/2014/damage-types/lightning"
+      },
+      "damage_at_character_level": {
+        "1": "1d8",
+        "5": "2d8",
+        "11": "3d8",
+        "17": "4d8"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "str",
+        "name": "STR",
+        "url": "/api/2014/ability-scores/str"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": null,
+    "namePT": "Chicote de Relâmpago",
+    "descriptionPT": "Você cria um chicote de energia elétrica que puxa uma criatura até 10 pés em sua direção e causa 1d8 de dano elétrico se estiver a 5 pés.",
+    "source": "Sword Coast Adventurer's Guide"
+  },
+  "thunderclap": {
+    "index": "thunderclap",
+    "name": "Thunderclap",
+    "level": 0,
+    "school": "Evocation",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You create a burst of thunderous sound that can be heard up to 100 feet away. Each creature within 5 feet of you other than you must succeed on a Constitution saving throw or take 1d6 thunder damage.",
+    "higherLevel": "",
+    "range": "Self (5-foot radius)",
+    "components": [
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "thunder",
+        "name": "Thunder",
+        "url": "/api/2014/damage-types/thunder"
+      },
+      "damage_at_character_level": {
+        "1": "1d6",
+        "5": "2d6",
+        "11": "3d6",
+        "17": "4d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "con",
+        "name": "CON",
+        "url": "/api/2014/ability-scores/con"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "sphere",
+      "size": 5
+    },
+    "namePT": "Trovão",
+    "descriptionPT": "Você cria uma explosão de som trovejante. Criaturas a 5 pés devem fazer teste de Constituição ou sofrer 1d6 de dano trovejante.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "chaos-bolt": {
+    "index": "chaos-bolt",
+    "name": "Chaos Bolt",
+    "level": 1,
+    "school": "Evocation",
+    "classes": [
+      "Sorcerer"
+    ],
+    "description": "You hurl an undulating, warbling mass of chaotic energy at one creature in range. Make a ranged spell attack against the target. On a hit, the target takes 2d8 + 1d6 damage. Choose one of the d8s. The number rolled on that die determines the attack's damage type. If you roll the same number on both d8s, the chaotic energy leaps from the target to a different creature of your choice within 30 feet of it.",
+    "higherLevel": "When you cast this spell using a spell slot of 2nd level or higher, each target takes 1d6 extra damage of the type rolled for each slot level above 1st.",
+    "range": "120 feet",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "varies",
+        "name": "Varies",
+        "url": ""
+      },
+      "damage_at_slot_level": {
+        "1": "2d8+1d6",
+        "2": "2d8+2d6",
+        "3": "2d8+3d6",
+        "4": "2d8+4d6",
+        "5": "2d8+5d6"
+      }
+    },
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Raio do Caos",
+    "descriptionPT": "Você arremessa uma massa ondulante de energia caótica. O dano varia aleatoriamente entre 8 tipos. Se rolar o mesmo número em ambos os d8, a energia salta para outro alvo.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "absorb-elements": {
+    "index": "absorb-elements",
+    "name": "Absorb Elements",
+    "level": 1,
+    "school": "Abjuration",
+    "classes": [
+      "Druid",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You have resistance to the triggering damage type until the start of your next turn. Also, the first time you hit with a melee attack on your next turn, the target takes an extra 1d6 damage of the triggering type, and the spell ends.",
+    "higherLevel": "When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by 1d6 for each slot level above 1st.",
+    "range": "Self",
+    "components": [
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "1 round",
+    "concentration": false,
+    "castingTime": "1 reaction",
+    "damage": {
+      "damage_type": {
+        "index": "varies",
+        "name": "Varies",
+        "url": ""
+      },
+      "damage_at_slot_level": {
+        "1": "1d6",
+        "2": "2d6",
+        "3": "3d6",
+        "4": "4d6",
+        "5": "5d6"
+      }
+    },
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Absorver Elementos",
+    "descriptionPT": "Você captura energia de um ataque elemental, ganhando resistência ao tipo de dano e armazenando-a para seu próximo ataque corpo a corpo causar 1d6 de dano extra.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "ice-knife": {
+    "index": "ice-knife",
+    "name": "Ice Knife",
+    "level": 1,
+    "school": "Conjuration",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 cold damage.",
+    "higherLevel": "When you cast this spell using a spell slot of 2nd level or higher, the cold damage increases by 1d6 for each slot level above 1st.",
+    "range": "60 feet",
+    "components": [
+      "S",
+      "M"
+    ],
+    "material": "A drop of water or piece of ice.",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "cold",
+        "name": "Cold",
+        "url": "/api/2014/damage-types/cold"
+      },
+      "damage_at_slot_level": {
+        "1": "1d10+2d6",
+        "2": "1d10+3d6",
+        "3": "1d10+4d6",
+        "4": "1d10+5d6",
+        "5": "1d10+6d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": {
+      "type": "sphere",
+      "size": 5
+    },
+    "namePT": "Adaga de Gelo",
+    "descriptionPT": "Você cria um fragmento de gelo e o arremessa. Causa 1d10 de dano perfurante no alvo e explode, causando 2d6 de dano de frio em área.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "earth-tremor": {
+    "index": "earth-tremor",
+    "name": "Earth Tremor",
+    "level": 1,
+    "school": "Evocation",
+    "classes": [
+      "Bard",
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "You cause a tremor in the ground within range. Each creature other than you in that area must make a Dexterity saving throw. On a failed save, a creature takes 1d6 bludgeoning damage and is knocked prone. If the ground in that area is loose earth or stone, it becomes difficult terrain until cleared.",
+    "higherLevel": "When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st.",
+    "range": "Self (10-foot radius)",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Bludgeoning",
+        "url": "/api/2014/damage-types/bludgeoning"
+      },
+      "damage_at_slot_level": {
+        "1": "1d6",
+        "2": "2d6",
+        "3": "3d6",
+        "4": "4d6",
+        "5": "5d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "sphere",
+      "size": 10
+    },
+    "namePT": "Tremor de Terra",
+    "descriptionPT": "Você causa um tremor no chão. Criaturas na área sofrem 1d6 de dano de concussão e caem no chão. O terreno se torna difícil.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "catapult": {
+    "index": "catapult",
+    "name": "Catapult",
+    "level": 1,
+    "school": "Transmutation",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "Choose one object weighing 1 to 5 pounds within range that isn't being worn or carried. The object flies in a straight line up to 90 feet in a direction you choose before falling to the ground, stopping early if it impacts against a solid surface. If the object would strike a creature, that creature must make a Dexterity saving throw. On a failed save, the object strikes the target and stops moving. When the object strikes something, the object and what it strikes each take 3d8 bludgeoning damage.",
+    "higherLevel": "When you cast this spell using a spell slot of 2nd level or higher, the maximum weight of objects that you can target with this spell increases by 5 pounds, and the damage increases by 1d8, for each slot level above 1st.",
+    "range": "60 feet",
+    "components": [
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Bludgeoning",
+        "url": "/api/2014/damage-types/bludgeoning"
+      },
+      "damage_at_slot_level": {
+        "1": "3d8",
+        "2": "4d8",
+        "3": "5d8",
+        "4": "6d8",
+        "5": "7d8"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": null,
+    "namePT": "Catapulta",
+    "descriptionPT": "Você escolhe um objeto de 1-5 libras e o arremessa em linha reta por até 90 pés. Causa 3d8 de dano de concussão ao atingir algo.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "ceremony": {
+    "index": "ceremony",
+    "name": "Ceremony",
+    "level": 1,
+    "school": "Abjuration",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ],
+    "description": "You perform a special religious ceremony that is infused with magic. When you cast the spell, choose one of the following rites: Atonement, Bless Water, Coming of Age, Dedication, Funeral Rite, Wedding.",
+    "higherLevel": "",
+    "range": "Touch",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "25 gp worth of powdered silver, which the spell consumes.",
+    "ritual": true,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 hour",
+    "damage": null,
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Cerimônia",
+    "descriptionPT": "Você realiza uma cerimônia religiosa especial infundida com magia. Escolha entre Expiação, Benção da Água, Maioridade, Dedicação, Rito Fúnebre ou Casamento.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "snare": {
+    "index": "snare",
+    "name": "Snare",
+    "level": 1,
+    "school": "Abjuration",
+    "classes": [
+      "Druid",
+      "Ranger",
+      "Wizard"
+    ],
+    "description": "As you cast this spell, you use the rope to create a circle with a 5-foot radius on the ground or the floor. When you finish casting, the rope disappears and the circle becomes a magic trap. The trap triggers when a Small, Medium, or Large creature moves into the area protected by the spell. That creature must succeed on a Dexterity saving throw or be magically hoisted into the air, leaving it hanging upside down 3 feet above the ground or the floor. The creature is restrained there until the spell ends.",
+    "higherLevel": "",
+    "range": "Touch",
+    "components": [
+      "S",
+      "M"
+    ],
+    "material": "25 feet of rope, which the spell consumes.",
+    "ritual": false,
+    "duration": "8 hours",
+    "concentration": false,
+    "castingTime": "1 minute",
+    "damage": null,
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "sphere",
+      "size": 5
+    },
+    "namePT": "Armadilha",
+    "descriptionPT": "Você cria um círculo mágico de 5 pés de raio. Quando uma criatura entra, deve fazer teste de Destreza ou ser içada de cabeça para baixo, ficando contida.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "tashas-caustic-brew": {
+    "index": "tashas-caustic-brew",
+    "name": "Tasha's Caustic Brew",
+    "level": 1,
+    "school": "Evocation",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "A stream of acid emanates from you in a line 30 feet long and 5 feet wide in a direction you choose. Each creature in the line must succeed on a Dexterity saving throw or be covered in acid for the spell's duration or until a creature uses its action to scrape or wash the acid off itself or another creature. A creature covered in the acid takes 2d4 acid damage at start of each of its turns.",
+    "higherLevel": "When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 2d4 for each slot level above 1st.",
+    "range": "Self (30-foot line)",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "A bit of rotten food.",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "acid",
+        "name": "Acid",
+        "url": "/api/2014/damage-types/acid"
+      },
+      "damage_at_slot_level": {
+        "1": "2d4",
+        "2": "4d4",
+        "3": "6d4",
+        "4": "8d4",
+        "5": "10d4"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "line",
+      "size": 30
+    },
+    "namePT": "Cerveja Cáustica de Tasha",
+    "descriptionPT": "Um jato de ácido emana de você em linha de 30 pés. Criaturas atingidas ficam cobertas de ácido e sofrem 2d4 de dano no início de cada turno.",
+    "source": "Tasha's Cauldron of Everything"
+  },
+  "shadow-blade": {
+    "index": "shadow-blade",
+    "name": "Shadow Blade",
+    "level": 2,
+    "school": "Illusion",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You weave together threads of shadow to create a sword of solidified gloom in your hand. This magic sword lasts until the spell ends. It counts as a simple melee weapon with which you are proficient. It deals 2d8 psychic damage on a hit and has the finesse, light, and thrown properties (range 20/60). In addition, when you use the sword to attack a target that is in dim light or darkness, you make the attack roll with advantage. If you drop the weapon or throw it, it dissipates at the end of the turn. Thereafter, while the spell persists, you can use a bonus action to cause the sword to reappear in your hand.",
+    "higherLevel": "When you cast this spell using a 3rd- or 4th-level spell slot, the damage increases to 3d8. When you cast it using a 5th- or 6th-level spell slot, the damage increases to 4d8. When you cast it using a spell slot of 7th level or higher, the damage increases to 5d8.",
+    "range": "Self",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 bonus action",
+    "damage": {
+      "damage_type": {
+        "index": "psychic",
+        "name": "Psychic",
+        "url": "/api/2014/damage-types/psychic"
+      },
+      "damage_at_slot_level": {
+        "2": "2d8",
+        "3": "3d8",
+        "4": "3d8",
+        "5": "4d8",
+        "6": "4d8",
+        "7": "5d8",
+        "8": "5d8",
+        "9": "5d8"
+      }
+    },
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Lâmina Sombria",
+    "descriptionPT": "Você cria uma espada de penumbra solidificada. Causa 2d8 de dano psíquico e tem vantagem em ataques contra alvos em penumbra ou escuridão.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "dragons-breath": {
+    "index": "dragons-breath",
+    "name": "Dragon's Breath",
+    "level": 2,
+    "school": "Transmutation",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "You touch one willing creature and imbue it with the power to spew magical energy from its mouth, provided it has one. Choose acid, cold, fire, lightning, or poison. Until the spell ends, the creature can use an action to exhale energy of the chosen type in a 15-foot cone. Each creature in that area must make a Dexterity saving throw, taking 3d6 damage of the chosen type on a failed save, or half as much damage on a successful one.",
+    "higherLevel": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d6 for each slot level above 2nd.",
+    "range": "Touch",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "A hot pepper.",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 bonus action",
+    "damage": {
+      "damage_type": {
+        "index": "varies",
+        "name": "Varies",
+        "url": ""
+      },
+      "damage_at_slot_level": {
+        "2": "3d6",
+        "3": "4d6",
+        "4": "5d6",
+        "5": "6d6",
+        "6": "7d6",
+        "7": "8d6",
+        "8": "9d6",
+        "9": "10d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": {
+      "type": "cone",
+      "size": 15
+    },
+    "namePT": "Sopro do Dragão",
+    "descriptionPT": "Você toca uma criatura e a imbui com o poder de cuspir energia mágica. Escolha ácido, frio, fogo, elétrico ou veneno. A criatura pode exalar energia em cone de 15 pés causando 3d6 de dano.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "dust-devil": {
+    "index": "dust-devil",
+    "name": "Dust Devil",
+    "level": 2,
+    "school": "Conjuration",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "Choose an unoccupied 5-foot cube of air that you can see within range. An elemental force that resembles a dust devil appears in the cube and lasts for the spell's duration. Any creature that ends its turn within 5 feet of the dust devil must make a Strength saving throw. On a failed save, the creature takes 1d8 bludgeoning damage and is pushed 10 feet away from the dust devil. On a successful save, the creature takes half as much damage and isn't pushed. As a bonus action, you can move the dust devil up to 30 feet in any direction. If the dust devil moves over sand, dust, loose dirt, or light gravel, it sucks up the material and forms a 10-foot-radius cloud of debris around itself that lasts until the start of your next turn. The cloud heavily obscures its area.",
+    "higherLevel": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd.",
+    "range": "60 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "A pinch of dust.",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Bludgeoning",
+        "url": "/api/2014/damage-types/bludgeoning"
+      },
+      "damage_at_slot_level": {
+        "2": "1d8",
+        "3": "2d8",
+        "4": "3d8",
+        "5": "4d8",
+        "6": "5d8",
+        "7": "6d8",
+        "8": "7d8",
+        "9": "8d8"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "str",
+        "name": "STR",
+        "url": "/api/2014/ability-scores/str"
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": {
+      "type": "cube",
+      "size": 5
+    },
+    "namePT": "Diabo de Poeira",
+    "descriptionPT": "Uma força elemental que se assemelha a um redemoinho aparece. Criaturas próximas sofrem 1d8 de dano de concussão e são empurradas 10 pés.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "earthbind": {
+    "index": "earthbind",
+    "name": "Earthbind",
+    "level": 2,
+    "school": "Transmutation",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "Choose one creature you can see within range. Yellow strips of magical energy loop around the creature. The target must succeed on a Strength saving throw, or its flying speed (if any) is reduced to 0 feet for the spell's duration. An airborne creature affected by this spell safely descends at 60 feet per round until it reaches the ground or the spell ends.",
+    "higherLevel": "",
+    "range": "300 feet",
+    "components": [
+      "V"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": {
+      "dc_type": {
+        "index": "str",
+        "name": "STR",
+        "url": "/api/2014/ability-scores/str"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": null,
+    "namePT": "Prender à Terra",
+    "descriptionPT": "Faixas amarelas de energia mágica envolvem uma criatura. Sua velocidade de voo é reduzida a 0 pés. Criaturas no ar descem com segurança.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "maximilians-earthen-grasp": {
+    "index": "maximilians-earthen-grasp",
+    "name": "Maximilian's Earthen Grasp",
+    "level": 2,
+    "school": "Transmutation",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "You choose a 5-foot-square unoccupied space on the ground that you can see within range. A Medium hand made from compacted soil rises there and reaches for one creature you can see within 5 feet of it. The target must make a Strength saving throw. On a failed save, the target takes 2d6 bludgeoning damage and is restrained for the spell's duration. As an action, you can cause the hand to crush the restrained target, which must make a Strength saving throw. The target takes 2d6 bludgeoning damage on a failed save, or half as much damage on a successful one. To break out, the restrained target can use its action to make a Strength check against your spell save DC. On a success, the target escapes and is no longer restrained by the hand.",
+    "higherLevel": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 2d6 for each slot level above 2nd.",
+    "range": "30 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "A miniature hand sculpted from clay.",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Bludgeoning",
+        "url": "/api/2014/damage-types/bludgeoning"
+      },
+      "damage_at_slot_level": {
+        "2": "2d6",
+        "3": "4d6",
+        "4": "6d6",
+        "5": "8d6",
+        "6": "10d6",
+        "7": "12d6",
+        "8": "14d6",
+        "9": "16d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "str",
+        "name": "STR",
+        "url": "/api/2014/ability-scores/str"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "square",
+      "size": 5
+    },
+    "namePT": "Garra Terrestre de Maximilian",
+    "descriptionPT": "Uma mão Média feita de solo compactado surge e agarra uma criatura. O alvo sofre 2d6 de dano de concussão e fica contido.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "mind-spike": {
+    "index": "mind-spike",
+    "name": "Mind Spike",
+    "level": 2,
+    "school": "Divination",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You reach into the mind of one creature you can see within range. The target must make a Wisdom saving throw, taking 3d8 psychic damage on a failed save, or half as much damage on a successful one. On a failed save, you also always know the target's location until the spell ends, but only while the two of you are on the same plane of existence. While you have this knowledge, the target can't become hidden from you, and if it's invisible, it gains no benefit from that condition against you.",
+    "higherLevel": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd.",
+    "range": "60 feet",
+    "components": [
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 hour",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "psychic",
+        "name": "Psychic",
+        "url": "/api/2014/damage-types/psychic"
+      },
+      "damage_at_slot_level": {
+        "2": "3d8",
+        "3": "4d8",
+        "4": "5d8",
+        "5": "6d8",
+        "6": "7d8",
+        "7": "8d8",
+        "8": "9d8",
+        "9": "10d8"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "wis",
+        "name": "WIS",
+        "url": "/api/2014/ability-scores/wis"
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": null,
+    "namePT": "Espinho Mental",
+    "descriptionPT": "Você alcança a mente de uma criatura. O alvo sofre 3d8 de dano psíquico e você sempre sabe sua localização pela duração.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "tashas-mind-whip": {
+    "index": "tashas-mind-whip",
+    "name": "Tasha's Mind Whip",
+    "level": 2,
+    "school": "Enchantment",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "You psychically lash out at one creature you can see within range. The target must make an Intelligence saving throw. On a failed save, the target takes 3d6 psychic damage, and it can't take a reaction until the end of its next turn. Moreover, on its next turn, it must choose whether it gets a move, an action, or a bonus action; it gets only one of the three. On a successful save, the target takes half as much damage and suffers none of the spell's other effects.",
+    "higherLevel": "When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd. The creatures must be within 30 feet of each other when you target them.",
+    "range": "90 feet",
+    "components": [
+      "V"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "1 round",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "psychic",
+        "name": "Psychic",
+        "url": "/api/2014/damage-types/psychic"
+      },
+      "damage_at_slot_level": {
+        "2": "3d6",
+        "3": "3d6",
+        "4": "3d6",
+        "5": "3d6",
+        "6": "3d6",
+        "7": "3d6",
+        "8": "3d6",
+        "9": "3d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "int",
+        "name": "INT",
+        "url": "/api/2014/ability-scores/int"
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": null,
+    "namePT": "Chicote Mental de Tasha",
+    "descriptionPT": "Você ataca psiquicamente uma criatura. O alvo sofre 3d6 de dano psíquico e no próximo turno só pode usar movimento, ação OU ação bônus.",
+    "source": "Tasha's Cauldron of Everything"
+  },
+  "catnap": {
+    "index": "catnap",
+    "name": "Catnap",
+    "level": 3,
+    "school": "Enchantment",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "You make a calming gesture, and up to three willing creatures of your choice that you can see within range fall unconscious for the spell's duration. The spell ends on a target early if it takes damage or someone uses an action to shake or slap it awake. If a target remains unconscious for the full duration, that target gains the benefit of a short rest, and it can't be affected by this spell again until it finishes a long rest.",
+    "higherLevel": "When you cast this spell using a spell slot of 4th level or higher, you can target one additional willing creature for each slot level above 3rd.",
+    "range": "30 feet",
+    "components": [
+      "S",
+      "M"
+    ],
+    "material": "A pinch of sand.",
+    "ritual": false,
+    "duration": "10 minutes",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Cochilo",
+    "descriptionPT": "Até três criaturas voluntárias caem inconscientes por 10 minutos. Se permanecerem inconscientes pela duração completa, ganham os benefícios de um descanso curto.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "enemies-abound": {
+    "index": "enemies-abound",
+    "name": "Enemies Abound",
+    "level": 3,
+    "school": "Enchantment",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You reach into the mind of one creature you can see and force it to make an Intelligence saving throw. A creature automatically succeeds if it is immune to being frightened. On a failed save, the target loses the ability to distinguish friend from foe, regarding all creatures it can see as enemies until the spell ends. Each time the target takes damage, it can repeat the saving throw, ending the effect on itself on a success. Whenever the affected creature chooses another creature as a target, it must choose the target at random from among the creatures it can see within range of the attack, spell, or other ability it's using. If an enemy provokes an opportunity attack from the affected creature, the creature must make that attack if it is able to.",
+    "higherLevel": "",
+    "range": "120 feet",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": {
+      "dc_type": {
+        "index": "int",
+        "name": "INT",
+        "url": "/api/2014/ability-scores/int"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": null,
+    "namePT": "Inimigos por Toda Parte",
+    "descriptionPT": "Você força uma criatura a perder a capacidade de distinguir amigo de inimigo, considerando todas as criaturas como inimigas.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "erupting-earth": {
+    "index": "erupting-earth",
+    "name": "Erupting Earth",
+    "level": 3,
+    "school": "Transmutation",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "Choose a point you can see on the ground within range. A fountain of churned earth and stone erupts in a 20-foot cube centered on that point. Each creature in that area must make a Dexterity saving throw. A creature takes 3d12 bludgeoning damage on a failed save, or half as much damage on a successful one. Additionally, the ground in that area becomes difficult terrain until cleared. Each 5-foot-square portion of the area requires at least 1 minute to clear by hand.",
+    "higherLevel": "When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d12 for each slot level above 3rd.",
+    "range": "120 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "A piece of obsidian.",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Bludgeoning",
+        "url": "/api/2014/damage-types/bludgeoning"
+      },
+      "damage_at_slot_level": {
+        "3": "3d12",
+        "4": "4d12",
+        "5": "5d12",
+        "6": "6d12",
+        "7": "7d12",
+        "8": "8d12",
+        "9": "9d12"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": {
+      "type": "cube",
+      "size": 20
+    },
+    "namePT": "Terra em Erupção",
+    "descriptionPT": "Uma fonte de terra e pedra irrompe em um cubo de 20 pés. Criaturas na área sofrem 3d12 de dano de concussão e o terreno se torna difícil.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "flame-arrows": {
+    "index": "flame-arrows",
+    "name": "Flame Arrows",
+    "level": 3,
+    "school": "Transmutation",
+    "classes": [
+      "Druid",
+      "Ranger",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "You touch a quiver containing arrows or bolts. When a target is hit by a ranged weapon attack using a piece of ammunition drawn from the quiver, the target takes an extra 1d6 fire damage. The spell's magic ends on a piece of ammunition when it hits or misses, and the spell ends when twelve pieces of ammunition have been drawn from the quiver.",
+    "higherLevel": "When you cast this spell using a spell slot of 4th level or higher, the number of pieces of ammunition you can affect with this spell increases by two for each slot level above 3rd.",
+    "range": "Touch",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 hour",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "fire",
+        "name": "Fire",
+        "url": "/api/2014/damage-types/fire"
+      },
+      "damage_at_slot_level": {
+        "3": "1d6",
+        "4": "1d6",
+        "5": "1d6",
+        "6": "1d6",
+        "7": "1d6",
+        "8": "1d6",
+        "9": "1d6"
+      }
+    },
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Flechas Flamejantes",
+    "descriptionPT": "Você toca uma aljava contendo flechas ou virotes. Quando um alvo é atingido, sofre 1d6 de dano de fogo extra. A magia afeta até 12 munições.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "thunder-step": {
+    "index": "thunder-step",
+    "name": "Thunder Step",
+    "level": 3,
+    "school": "Conjuration",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You teleport yourself to an unoccupied space you can see within range. Immediately after you disappear, a thunderous boom sounds, and each creature within 10 feet of the space you left must make a Constitution saving throw, taking 3d10 thunder damage on a failed save, or half as much damage on a successful one. The thunder can be heard from up to 300 feet away. You can bring along objects as long as their weight doesn't exceed what you can carry. You can also teleport one willing creature of your size or smaller who is carrying gear up to its carrying capacity. The creature must be within 5 feet of you when you cast this spell, and there must be an unoccupied space within 5 feet of your destination space for the creature to appear in; otherwise, the creature is left behind.",
+    "higherLevel": "When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d10 for each slot level above 3rd.",
+    "range": "90 feet",
+    "components": [
+      "V"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "thunder",
+        "name": "Thunder",
+        "url": "/api/2014/damage-types/thunder"
+      },
+      "damage_at_slot_level": {
+        "3": "3d10",
+        "4": "4d10",
+        "5": "5d10",
+        "6": "6d10",
+        "7": "7d10",
+        "8": "8d10",
+        "9": "9d10"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "con",
+        "name": "CON",
+        "url": "/api/2014/ability-scores/con"
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": {
+      "type": "sphere",
+      "size": 10
+    },
+    "namePT": "Passo Trovejante",
+    "descriptionPT": "Você se teleporta para um espaço desocupado. Um estrondo trovejante soa e criaturas a 10 pés do espaço que você deixou sofrem 3d10 de dano trovejante.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "tidal-wave": {
+    "index": "tidal-wave",
+    "name": "Tidal Wave",
+    "level": 3,
+    "school": "Conjuration",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "You conjure up a wave of water that crashes down on an area within range. The area can be up to 30 feet long, up to 10 feet wide, and up to 10 feet tall. Each creature in that area must make a Dexterity saving throw. On a failed save, a creature takes 4d8 bludgeoning damage and is knocked prone. On a successful save, a creature takes half as much damage and isn't knocked prone. The water then spreads out across the ground in all directions, extinguishing unprotected flames in its area and within 30 feet of it, and then it vanishes.",
+    "higherLevel": "",
+    "range": "120 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "A drop of water.",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Bludgeoning",
+        "url": "/api/2014/damage-types/bludgeoning"
+      },
+      "damage_at_slot_level": {
+        "3": "4d8",
+        "4": "4d8",
+        "5": "4d8",
+        "6": "4d8",
+        "7": "4d8",
+        "8": "4d8",
+        "9": "4d8"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": {
+      "type": "rectangle",
+      "size": 30
+    },
+    "namePT": "Onda de Maré",
+    "descriptionPT": "Você conjura uma onda de água que cai sobre uma área. Criaturas sofrem 4d8 de dano de concussão e caem no chão.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "wall-of-water": {
+    "index": "wall-of-water",
+    "name": "Wall of Water",
+    "level": 3,
+    "school": "Evocation",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "You create a wall of water on the ground at a point you can see within range. You can make the wall up to 30 feet long, 10 feet high, and 1 foot thick, or you can make a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall vanishes when the spell ends. The wall's space is difficult terrain. Any ranged weapon attack that enters the wall's space has disadvantage on the attack roll, and fire damage is halved if the fire effect passes through the wall to reach its target. Spells that deal cold damage that pass through the wall cause the area of the wall they pass through to freeze solid (at least a 5-foot-square section is frozen). Each 5-foot-square frozen section has AC 5 and 15 hit points. Reducing a frozen section to 0 hit points destroys it. When a section is destroyed, the wall's water doesn't fill it.",
+    "higherLevel": "",
+    "range": "60 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "A drop of water.",
+    "ritual": false,
+    "duration": "Up to 10 minutes",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": null,
+    "area_of_effect": {
+      "type": "wall",
+      "size": 30
+    },
+    "namePT": "Parede de Água",
+    "descriptionPT": "Você cria uma parede de água. A área da parede é terreno difícil. Ataques à distância têm desvantagem e dano de fogo é reduzido pela metade.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "elemental-bane": {
+    "index": "elemental-bane",
+    "name": "Elemental Bane",
+    "level": 4,
+    "school": "Transmutation",
+    "classes": [
+      "Druid",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "Choose one creature you can see within range, and choose one of the following damage types: acid, cold, fire, lightning, or thunder. The target must succeed on a Constitution saving throw or be affected by the spell for its duration. The first time each turn the affected target takes damage of the chosen type, the target takes an extra 2d6 damage of that type. Moreover, the target loses any resistance to that damage type until the spell ends.",
+    "higherLevel": "When you cast this spell using a spell slot of 5th level or higher, you can target one additional creature for each slot level above 4th. The creatures must be within 30 feet of each other when you target them.",
+    "range": "90 feet",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "varies",
+        "name": "Varies",
+        "url": ""
+      },
+      "damage_at_slot_level": {
+        "4": "2d6",
+        "5": "2d6",
+        "6": "2d6",
+        "7": "2d6",
+        "8": "2d6",
+        "9": "2d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "con",
+        "name": "CON",
+        "url": "/api/2014/ability-scores/con"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": null,
+    "namePT": "Ruína Elemental",
+    "descriptionPT": "O alvo sofre 2d6 de dano extra do tipo escolhido (ácido, frio, fogo, elétrico ou trovejante) na primeira vez que sofrer esse dano a cada turno. Perde resistência a esse tipo.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "storm-sphere": {
+    "index": "storm-sphere",
+    "name": "Storm Sphere",
+    "level": 4,
+    "school": "Evocation",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "A 20-foot-radius sphere of whirling air springs into existence centered on a point you choose within range. The sphere remains for the spell's duration. Each creature in the sphere when it appears or that ends its turn there must succeed on a Strength saving throw or take 2d6 bludgeoning damage. The sphere's space is difficult terrain. Until the spell ends, you can use a bonus action on each of your turns to cause a bolt of lightning to leap from the center of the sphere toward one creature you choose within 60 feet of the center. Make a ranged spell attack. You have advantage on the attack roll if the target is in the sphere. On a hit, the target takes 4d6 lightning damage. Creatures within 30 feet of the sphere have disadvantage on Wisdom (Perception) checks made to listen.",
+    "higherLevel": "When you cast this spell using a spell slot of 5th level or higher, the damage for each of its effects increases by 1d6 for each slot level above 4th.",
+    "range": "150 feet",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "lightning",
+        "name": "Lightning",
+        "url": "/api/2014/damage-types/lightning"
+      },
+      "damage_at_slot_level": {
+        "4": "4d6",
+        "5": "5d6",
+        "6": "6d6",
+        "7": "7d6",
+        "8": "8d6",
+        "9": "9d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "str",
+        "name": "STR",
+        "url": "/api/2014/ability-scores/str"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "sphere",
+      "size": 20
+    },
+    "namePT": "Esfera da Tempestade",
+    "descriptionPT": "Uma esfera de 20 pés de ar rodopiante surge. Criaturas dentro sofrem 2d6 de dano de concussão. Você pode usar ação bônus para disparar raios de 4d6 de dano elétrico.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "watery-sphere": {
+    "index": "watery-sphere",
+    "name": "Watery Sphere",
+    "level": 4,
+    "school": "Conjuration",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "You conjure up a sphere of water with a 5-foot radius at a point you can see within range. The sphere can hover but no more than 10 feet off the ground. The sphere remains for the spell's duration. Any creature in the sphere's space must make a Strength saving throw. On a successful save, a creature is ejected from that space to the nearest unoccupied space of the creature's choice outside the sphere. A Huge or larger creature succeeds on the saving throw automatically, and a Large or smaller creature can choose to fail it. On a failed save, a creature is restrained by the sphere and is engulfed by the water. At the end of each of its turns, a restrained target can repeat the saving throw, ending the effect on itself on a success. The sphere can restrain as many as four Medium or smaller creatures or one Large creature. If the sphere restrains a creature that causes it to exceed this capacity, a random creature that was already restrained by the sphere falls out of it and lands prone in a space within 5 feet of it.",
+    "higherLevel": "",
+    "range": "90 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "A droplet of water.",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": {
+      "dc_type": {
+        "index": "str",
+        "name": "STR",
+        "url": "/api/2014/ability-scores/str"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "sphere",
+      "size": 5
+    },
+    "namePT": "Esfera Aquática",
+    "descriptionPT": "Você conjura uma esfera de água de 5 pés de raio. Criaturas dentro ficam contidas e engolfadas pela água. Pode conter até 4 criaturas Médias ou 1 Grande.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "summon-aberration": {
+    "index": "summon-aberration",
+    "name": "Summon Aberration",
+    "level": 4,
+    "school": "Conjuration",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You call forth an aberrant spirit. It manifests in an unoccupied space that you can see within range. This corporeal form uses the Aberrant Spirit stat block. When you cast the spell, choose Beholderkin, Slaad, or Star Spawn. The creature resembles an aberration of that kind, which determines certain traits in its stat block. The creature disappears when it drops to 0 hit points or when the spell ends. The creature is an ally to you and your companions. In combat, the creature shares your initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its move to avoid danger.",
+    "higherLevel": "When you cast this spell using a spell slot of 5th level or higher, use the higher level wherever the spell's level appears in the stat block.",
+    "range": "90 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "A pickled tentacle and an eyeball in a platinum-inlaid vial worth at least 400 gp.",
+    "ritual": false,
+    "duration": "Up to 1 hour",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Invocar Aberração",
+    "descriptionPT": "Você invoca um espírito aberrante. Escolha Beholderkin, Slaad ou Star Spawn. A criatura é sua aliada e obedece seus comandos verbais.",
+    "source": "Tasha's Cauldron of Everything"
+  },
+  "summon-construct": {
+    "index": "summon-construct",
+    "name": "Summon Construct",
+    "level": 4,
+    "school": "Conjuration",
+    "classes": [
+      "Wizard"
+    ],
+    "description": "You call forth the spirit of a construct. It manifests in an unoccupied space that you can see within range. This corporeal form uses the Construct Spirit stat block. When you cast the spell, choose a material: Clay, Metal, or Stone. The creature resembles a golem or a modron (your choice) made of the chosen material, which determines certain traits in its stat block. The creature disappears when it drops to 0 hit points or when the spell ends. The creature is an ally to you and your companions. In combat, the creature shares your initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its move to avoid danger.",
+    "higherLevel": "When you cast this spell using a spell slot of 5th level or higher, use the higher level wherever the spell's level appears in the stat block.",
+    "range": "90 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "An ornate stone and metal lockbox worth at least 400 gp.",
+    "ritual": false,
+    "duration": "Up to 1 hour",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Invocar Constructo",
+    "descriptionPT": "Você invoca o espírito de um constructo. Escolha Argila, Metal ou Pedra. A criatura é sua aliada e obedece seus comandos verbais.",
+    "source": "Tasha's Cauldron of Everything"
+  },
+  "summon-elemental": {
+    "index": "summon-elemental",
+    "name": "Summon Elemental",
+    "level": 4,
+    "school": "Conjuration",
+    "classes": [
+      "Druid",
+      "Ranger",
+      "Wizard"
+    ],
+    "description": "You call forth an elemental spirit. It manifests in an unoccupied space that you can see within range. This corporeal form uses the Elemental Spirit stat block. When you cast the spell, choose an element: Air, Earth, Fire, or Water. The creature resembles a bipedal form wreathed in the chosen element, which determines certain traits in its stat block. The creature disappears when it drops to 0 hit points or when the spell ends. The creature is an ally to you and your companions. In combat, the creature shares your initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its move to avoid danger.",
+    "higherLevel": "When you cast this spell using a spell slot of 5th level or higher, use the higher level wherever the spell's level appears in the stat block.",
+    "range": "90 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "Air, a pebble, ash, and water inside a gold-inlaid vial worth at least 400 gp.",
+    "ritual": false,
+    "duration": "Up to 1 hour",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Invocar Elemental",
+    "descriptionPT": "Você invoca um espírito elemental. Escolha Ar, Terra, Fogo ou Água. A criatura é sua aliada e obedece seus comandos verbais.",
+    "source": "Tasha's Cauldron of Everything"
+  },
+  "control-winds": {
+    "index": "control-winds",
+    "name": "Control Winds",
+    "level": 5,
+    "school": "Transmutation",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "You take control of the air in a 100-foot cube that you can see within range. Choose one of the following effects when you cast the spell. The effect lasts for the spell's duration, unless you use your action on a later turn to switch to a different effect. You can also use your action to temporarily halt the effect or to restart one you've halted. Gusts, Downdraft, or Updraft.",
+    "higherLevel": "",
+    "range": "300 feet",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 hour",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": {
+      "dc_type": {
+        "index": "str",
+        "name": "STR",
+        "url": "/api/2014/ability-scores/str"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "cube",
+      "size": 100
+    },
+    "namePT": "Controlar Ventos",
+    "descriptionPT": "Você controla o ar em um cubo de 100 pés. Escolha entre Rajadas, Corrente Descendente ou Corrente Ascendente. Pode mudar o efeito usando sua ação.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "immolation": {
+    "index": "immolation",
+    "name": "Immolation",
+    "level": 5,
+    "school": "Evocation",
+    "classes": [
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "Flames wreathe one creature you can see within range. The target must make a Dexterity saving throw. It takes 8d6 fire damage on a failed save, or half as much damage on a successful one. On a failed save, the target also burns for the spell's duration. The burning target sheds bright light in a 30-foot radius and dim light for an additional 30 feet. At the end of each of its turns, the target repeats the saving throw. It takes 4d6 fire damage on a failed save, and the spell ends on a successful one. These magical flames can't be extinguished by nonmagical means. If damage from this spell kills a target, the target is turned to ash.",
+    "higherLevel": "",
+    "range": "90 feet",
+    "components": [
+      "V"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "fire",
+        "name": "Fire",
+        "url": "/api/2014/damage-types/fire"
+      },
+      "damage_at_slot_level": {
+        "5": "8d6",
+        "6": "8d6",
+        "7": "8d6",
+        "8": "8d6",
+        "9": "8d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": null,
+    "namePT": "Imolação",
+    "descriptionPT": "Chamas envolvem uma criatura. O alvo sofre 8d6 de dano de fogo e continua queimando, sofrendo 4d6 no final de cada turno. Se morrer, vira cinzas.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "maelstrom": {
+    "index": "maelstrom",
+    "name": "Maelstrom",
+    "level": 5,
+    "school": "Evocation",
+    "classes": [
+      "Druid"
+    ],
+    "description": "A mass of 5-foot-deep water appears and swirls in a 30-foot radius centered on a point you can see within range. The point must be on the ground or in a body of water. Until the spell ends, that area is difficult terrain, and any creature that starts its turn there must succeed on a Strength saving throw or take 6d6 bludgeoning damage and be pulled 10 feet toward the center.",
+    "higherLevel": "",
+    "range": "120 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "Paper or leaf in the shape of a funnel.",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Bludgeoning",
+        "url": "/api/2014/damage-types/bludgeoning"
+      },
+      "damage_at_slot_level": {
+        "5": "6d6",
+        "6": "6d6",
+        "7": "6d6",
+        "8": "6d6",
+        "9": "6d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "str",
+        "name": "STR",
+        "url": "/api/2014/ability-scores/str"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "sphere",
+      "size": 30
+    },
+    "namePT": "Maelstrom",
+    "descriptionPT": "Uma massa de água de 5 pés de profundidade aparece e rodopianum raio de 30 pés. Criaturas sofrem 6d6 de dano de concussão e são puxadas 10 pés em direção ao centro.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "transmute-rock": {
+    "index": "transmute-rock",
+    "name": "Transmute Rock",
+    "level": 5,
+    "school": "Transmutation",
+    "classes": [
+      "Druid",
+      "Wizard"
+    ],
+    "description": "You choose an area of stone or mud that you can see that fits within a 40-foot cube and is within range, and choose one of the following effects. Rock to Mud: Nonmagical rock of any sort in the area becomes an equal volume of thick, flowing mud that remains for the spell's duration. Mud to Rock: Nonmagical mud or quicksand in the area no more than 10 feet deep transforms into soft stone for the spell's duration. Any creature in the mud when it transforms must make a Dexterity saving throw. On a successful save, a creature is shunted safely to the surface in an unoccupied space. On a failed save, a creature becomes restrained by the rock. A restrained creature, or another creature within reach, can use an action to try to break the rock by succeeding on a DC 20 Strength check or by dealing damage to it. The rock has AC 15 and 25 hit points, and it is immune to poison and psychic damage.",
+    "higherLevel": "",
+    "range": "120 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "Clay and water.",
+    "ritual": false,
+    "duration": "Until dispelled",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "cube",
+      "size": 40
+    },
+    "namePT": "Transmutar Rocha",
+    "descriptionPT": "Você escolhe uma área de pedra ou lama em um cubo de 40 pés. Pode transformar rocha em lama ou lama em rocha.",
+    "source": "Elemental Evil Player's Companion"
+  },
+  "wrath-of-nature": {
+    "index": "wrath-of-nature",
+    "name": "Wrath of Nature",
+    "level": 5,
+    "school": "Evocation",
+    "classes": [
+      "Druid",
+      "Ranger"
+    ],
+    "description": "You call out to the spirits of nature to rouse them against your enemies. Choose a point you can see within range. The spirits cause trees, rocks, and grasses in a 60-foot cube centered on that point to become animated until the spell ends. Grasses and Undergrowth, Rocks, Trees.",
+    "higherLevel": "",
+    "range": "120 feet",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "slashing",
+        "name": "Slashing",
+        "url": "/api/2014/damage-types/slashing"
+      },
+      "damage_at_slot_level": {
+        "5": "4d6",
+        "6": "4d6",
+        "7": "4d6",
+        "8": "4d6",
+        "9": "4d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": "/api/2014/ability-scores/dex"
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": {
+      "type": "cube",
+      "size": 60
+    },
+    "namePT": "Ira da Natureza",
+    "descriptionPT": "Você invoca os espíritos da natureza para animar árvores, rochas e grama em um cubo de 60 pés. Eles atacam seus inimigos.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "summon-celestial": {
+    "index": "summon-celestial",
+    "name": "Summon Celestial",
+    "level": 5,
+    "school": "Conjuration",
+    "classes": [
+      "Cleric",
+      "Paladin"
+    ],
+    "description": "You call forth a celestial spirit. It manifests in an angelic form in an unoccupied space that you can see within range. This corporeal form uses the Celestial Spirit stat block. When you cast the spell, choose Avenger or Defender. Your choice determines the creature's attack in its stat block. The creature disappears when it drops to 0 hit points or when the spell ends. The creature is an ally to you and your companions. In combat, the creature shares your initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its move to avoid danger.",
+    "higherLevel": "When you cast this spell using a spell slot of 6th level or higher, use the higher level wherever the spell's level appears in the stat block.",
+    "range": "90 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "A golden reliquary worth at least 500 gp.",
+    "ritual": false,
+    "duration": "Up to 1 hour",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Invocar Celestial",
+    "descriptionPT": "Você invoca um espírito celestial em forma angelical. Escolha Vingador ou Defensor. A criatura é sua aliada e obedece seus comandos verbais.",
+    "source": "Tasha's Cauldron of Everything"
+  },
+  "summon-draconic-spirit": {
+    "index": "summon-draconic-spirit",
+    "name": "Summon Draconic Spirit",
+    "level": 5,
+    "school": "Conjuration",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "You call forth a draconic spirit. It manifests in an unoccupied space that you can see within range. This corporeal form uses the Draconic Spirit stat block. When you cast this spell, choose a family of dragon: chromatic, gem, or metallic. The creature resembles a dragon of the chosen family, which determines certain traits in its stat block. The creature disappears when it drops to 0 hit points or when the spell ends. The creature is an ally to you and your companions. In combat, the creature shares your initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its move to avoid danger.",
+    "higherLevel": "When you cast this spell using a spell slot of 6th level or higher, use the higher level wherever the spell's level appears in the stat block.",
+    "range": "60 feet",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "An object with the image of a dragon engraved on it, worth at least 500 gp.",
+    "ritual": false,
+    "duration": "Up to 1 hour",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Invocar Espírito Dracônico",
+    "descriptionPT": "Você invoca um espírito dracônico. Escolha uma família de dragão: cromático, gema ou metálico. A criatura é sua aliada e obedece seus comandos verbais.",
+    "source": "Fizban's Treasury of Dragons"
+  },
+  "bones-of-the-earth": {
+    "index": "bones-of-the-earth",
+    "name": "Bones of the Earth",
+    "level": 6,
+    "school": "Transmutation",
+    "classes": [
+      "Druid"
+    ],
+    "description": "You cause up to six pillars of stone to burst from places on the ground that you can see within range. Each pillar is a cylinder that has a diameter of 5 feet and a height of up to 30 feet. The ground where a pillar appears must be wide enough for its diameter, and you can target ground under a creature if that creature is Medium or smaller. Each pillar has AC 5 and 30 hit points. When reduced to 0 hit points, a pillar crumbles into rubble, which creates an area of difficult terrain with a 10-foot radius that lasts until the rubble is cleared.",
+    "higherLevel": "When you cast this spell using a spell slot of 7th level or higher, you can create two additional pillars for each slot level above 6th.",
+    "range": "120 feet",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "bludgeoning",
+        "name": "Bludgeoning",
+        "url": ""
+      },
+      "damage_at_slot_level": {
+        "6": "6d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": ""
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": {
+      "type": "cylinder",
+      "size": 5
+    },
+    "namePT": "Ossos da Terra",
+    "descriptionPT": "Você faz surgir até seis pilares de pedra do chão. Se um pilar surgir sob uma criatura, ela deve fazer um teste de Destreza ou ser levantada pelo pilar e possivelmente esmagada contra o teto, sofrendo 6d6 de dano.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "mental-prison": {
+    "index": "mental-prison",
+    "name": "Mental Prison",
+    "level": 6,
+    "school": "Illusion",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You attempt to bind a creature within an illusory cell that only it perceives. One creature you can see within range must make an Intelligence saving throw. On a failed save, it takes 5d10 psychic damage and is restrained for the duration. The target can't see or hear anything outside the illusory cell. If the target is moved out of the cell, takes damage, or makes a successful Intelligence saving throw, the spell ends.",
+    "higherLevel": "",
+    "range": "60 feet",
+    "components": [
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "psychic",
+        "name": "Psychic",
+        "url": ""
+      },
+      "damage_at_slot_level": {
+        "6": "5d10"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "int",
+        "name": "INT",
+        "url": ""
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": null,
+    "namePT": "Prisão Mental",
+    "descriptionPT": "Você prende uma criatura em uma cela ilusória que só ela percebe. O alvo sofre 5d10 de dano psíquico e fica contido e cego/surdo para o exterior.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "scatter": {
+    "index": "scatter",
+    "name": "Scatter",
+    "level": 6,
+    "school": "Conjuration",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "The air quiggles around up to five creatures of your choice that you can see within range. An unwilling creature must succeed on a Wisdom saving throw to resist this spell. You teleport each affected target to an unoccupied space you can see within 120 feet of you. The space must be on the ground or on a floor.",
+    "higherLevel": "",
+    "range": "30 feet",
+    "components": [
+      "V"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": null,
+    "dc": {
+      "dc_type": {
+        "index": "wis",
+        "name": "WIS",
+        "url": ""
+      },
+      "dc_success": "none"
+    },
+    "area_of_effect": null,
+    "namePT": "Dispersar",
+    "descriptionPT": "Você teleporta até cinco criaturas que possa ver para espaços desocupados a até 120 pés de você. Alvos involuntários podem resistir com um teste de Sabedoria.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "tashas-otherworldly-guise": {
+    "index": "tashas-otherworldly-guise",
+    "name": "Tasha's Otherworldly Guise",
+    "level": 6,
+    "school": "Transmutation",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "Uttering an incantation, you draw on the magic of the Lower Planes or Upper Planes (your choice) to transform yourself. You gain several benefits: immunity to fire and poison (Lower) or radiant and necrotic (Upper), immunity to the poisoned condition (Lower) or charmed condition (Upper), spectral wings (40ft fly speed), +2 bonus to AC, and you can make two attacks instead of one.",
+    "higherLevel": "",
+    "range": "Self",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "An object engraved with a symbol of the Outer Planes worth at least 500 gp.",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 bonus action",
+    "damage": null,
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Disfarce Transplanar de Tasha",
+    "descriptionPT": "Você assume uma forma heróica dos Planos Superiores ou Inferiores, ganhando resistências, voo, bônus na CA e ataque extra.",
+    "source": "Tasha's Cauldron of Everything"
+  },
+  "crown-of-stars": {
+    "index": "crown-of-stars",
+    "name": "Crown of Stars",
+    "level": 7,
+    "school": "Evocation",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "Seven star-like motes of light appear and orbit your head. Until the spell ends, you can use a bonus action to send one of the motes streaking toward a creature or object within 120 feet of you. Make a ranged spell attack. On a hit, the target takes 4d12 radiant damage. Whether you hit or miss, the mote is expended. The spell ends early if you expend the last mote.",
+    "higherLevel": "When you cast this spell using a spell slot of 8th level or higher, the number of motes created increases by two for each slot level above 7th.",
+    "range": "Self",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "1 hour",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "radiant",
+        "name": "Radiant",
+        "url": ""
+      },
+      "damage_at_slot_level": {
+        "7": "4d12"
+      }
+    },
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Coroa de Estrelas",
+    "descriptionPT": "Sete pontos de luz orbitam sua cabeça. Você pode usar uma ação bônus para disparar um deles, causando 4d12 de dano radiante.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "draconic-transformation": {
+    "index": "draconic-transformation",
+    "name": "Draconic Transformation",
+    "level": 7,
+    "school": "Transmutation",
+    "classes": [
+      "Druid",
+      "Sorcerer",
+      "Wizard"
+    ],
+    "description": "With a roar, you draw on the essence of dragons to transform yourself. You gain 60ft blindsight, 60ft fly speed, and a breath weapon you can use as a bonus action (6d8 force damage in a 60ft cone).",
+    "higherLevel": "",
+    "range": "Self",
+    "components": [
+      "V",
+      "S",
+      "M"
+    ],
+    "material": "A statuette of a dragon worth at least 500 gp.",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 bonus action",
+    "damage": {
+      "damage_type": {
+        "index": "force",
+        "name": "Force",
+        "url": ""
+      },
+      "damage_at_slot_level": {
+        "7": "6d8"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "dex",
+        "name": "DEX",
+        "url": ""
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": {
+      "type": "cone",
+      "size": 60
+    },
+    "namePT": "Transformação Dracônica",
+    "descriptionPT": "Você assume aspectos de um dragão, ganhando visão às cegas, voo e um sopro de força de 6d8 como ação bônus.",
+    "source": "Fizban's Treasury of Dragons"
+  },
+  "maddening-darkness": {
+    "index": "maddening-darkness",
+    "name": "Maddening Darkness",
+    "level": 8,
+    "school": "Evocation",
+    "classes": [
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "Magical darkness spreads from a point you choose within range to fill a 60-foot-radius sphere. The darkness spreads around corners. A creature with darkvision can't see through this darkness, and nonmagical light can't illuminate it. Any creature that starts its turn in the area must succeed on a Wisdom saving throw or take 8d8 psychic damage.",
+    "higherLevel": "",
+    "range": "150 feet",
+    "components": [
+      "V",
+      "M"
+    ],
+    "material": "A drop of pitch mixed with a drop of mercury.",
+    "ritual": false,
+    "duration": "Up to 10 minutes",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "psychic",
+        "name": "Psychic",
+        "url": ""
+      },
+      "damage_at_slot_level": {
+        "8": "8d8"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "wis",
+        "name": "WIS",
+        "url": ""
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": {
+      "type": "sphere",
+      "size": 60
+    },
+    "namePT": "Escuridão Enlouquecedora",
+    "descriptionPT": "Uma escuridão mágica preenche uma esfera de 60 pés. Criaturas que começam o turno lá sofrem 8d8 de dano psíquico.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "illusory-dragon": {
+    "index": "illusory-dragon",
+    "name": "Illusory Dragon",
+    "level": 8,
+    "school": "Illusion",
+    "classes": [
+      "Wizard"
+    ],
+    "description": "By gathering threads of shadow material from the Shadowfell, you create a Huge shadowy dragon in an unoccupied space that you can see within range. The dragon lasts for the duration. When you cast the spell and as a bonus action on subsequent turns, you can move the dragon 60 feet and cause it to exhale a blast of energy (7d6 damage).",
+    "higherLevel": "",
+    "range": "120 feet",
+    "components": [
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "varies",
+        "name": "Varies",
+        "url": ""
+      },
+      "damage_at_slot_level": {
+        "8": "7d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "int",
+        "name": "INT",
+        "url": ""
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": {
+      "type": "cone",
+      "size": 60
+    },
+    "namePT": "Dragão Ilusório",
+    "descriptionPT": "Você cria um dragão de sombras Enorme. Ele pode causar medo e usar um sopro de dano elemental (7d6) como ação bônus.",
+    "source": "Xanathar's Guide to Everything"
+  },
+  "blade-of-disaster": {
+    "index": "blade-of-disaster",
+    "name": "Blade of Disaster",
+    "level": 9,
+    "school": "Conjuration",
+    "classes": [
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You create a planar rift in the shape of a blade. You can make two melee spell attacks with the blade, each dealing 4d12 force damage. On a critical hit, it deals an extra 8d12 force damage.",
+    "higherLevel": "",
+    "range": "60 feet",
+    "components": [
+      "V",
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Up to 1 minute",
+    "concentration": true,
+    "castingTime": "1 bonus action",
+    "damage": {
+      "damage_type": {
+        "index": "force",
+        "name": "Force",
+        "url": ""
+      },
+      "damage_at_slot_level": {
+        "9": "4d12"
+      }
+    },
+    "dc": null,
+    "area_of_effect": null,
+    "namePT": "Lâmina do Desastre",
+    "descriptionPT": "Você cria uma fenda planar em forma de lâmina. Pode fazer dois ataques de 4d12 de dano de força. Críticos causam dano massivo.",
+    "source": "Tasha's Cauldron of Everything"
+  },
+  "psychic-scream": {
+    "index": "psychic-scream",
+    "name": "Psychic Scream",
+    "level": 9,
+    "school": "Enchantment",
+    "classes": [
+      "Bard",
+      "Sorcerer",
+      "Warlock",
+      "Wizard"
+    ],
+    "description": "You unleash a power psychic blast. Up to ten creatures of your choice within range must make an Intelligence saving throw. On a failed save, a target takes 14d6 psychic damage and is stunned. If this damage kills a creature, its head explodes.",
+    "higherLevel": "",
+    "range": "90 feet",
+    "components": [
+      "S"
+    ],
+    "material": "",
+    "ritual": false,
+    "duration": "Instantaneous",
+    "concentration": false,
+    "castingTime": "1 action",
+    "damage": {
+      "damage_type": {
+        "index": "psychic",
+        "name": "Psychic",
+        "url": ""
+      },
+      "damage_at_slot_level": {
+        "9": "14d6"
+      }
+    },
+    "dc": {
+      "dc_type": {
+        "index": "int",
+        "name": "INT",
+        "url": ""
+      },
+      "dc_success": "half"
+    },
+    "area_of_effect": null,
+    "namePT": "Grito Psíquico",
+    "descriptionPT": "Você solta uma explosão mental em até dez criaturas. Elas sofrem 14d6 de dano psíquico e ficam atordoadas. Se morrerem, a cabeça explode.",
+    "source": "Xanathar's Guide to Everything"
   }
 }

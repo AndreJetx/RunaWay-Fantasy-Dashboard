@@ -2,12 +2,16 @@
 
 import { PreparedSpellsManager } from "@/components/characters/PreparedSpellsManager";
 import { SpellSlotTracker } from "@/components/characters/SpellSlotTracker";
+import { SorceryPointManager } from "@/components/characters/SorceryPointManager";
+import { MetamagicManager } from "@/components/characters/MetamagicManager";
 import { FeatureDetailDialog } from "@/components/character/FeatureDetailDialog";
 import { SpellDetailDialog } from "@/components/character/SpellDetailDialog";
 import { useState, useEffect, useCallback } from "react";
 import { getSpellDetails } from "@/lib/data/spell-data";
 import { useParams, useRouter } from "next/navigation";
 import { FantasyLayout } from "@/components/layout/FantasyLayout";
+import { PactDetailsDialog } from "@/components/characters/PactDetailsDialog";
+import { FeatDetailsDialog } from "@/components/characters/FeatDetailsDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,8 +42,16 @@ import {
   Coins,
   BookOpen,
   User,
-  Scroll
+  Scroll,
+  Camera
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import Image from "next/image";
 import avatarPlaceholder from "@assets/generated_images/fantasy_character_silhouette_avatar.png";
@@ -109,9 +121,14 @@ export default function CharacterPage() {
     type?: 'feature' | 'ability_score_improvement' | 'spellcasting' | 'subclass';
   } | null>(null);
   const [selectedFeatureType, setSelectedFeatureType] = useState<'class' | 'subclass'>('class');
+  const [showPactDialog, setShowPactDialog] = useState(false);
+  const [showFeatDialog, setShowFeatDialog] = useState(false);
+  const [selectedFeatName, setSelectedFeatName] = useState<string>("");
   const [selectedSubclassName, setSelectedSubclassName] = useState<string | undefined>(undefined);
   const [spellDialogOpen, setSpellDialogOpen] = useState(false);
   const [selectedSpellDetailData, setSelectedSpellDetailData] = useState<any>(null);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [imageUrlInput, setImageUrlInput] = useState("");
 
   // Carregar detalhes das magias quando o personagem for carregado
   useEffect(() => {
@@ -251,6 +268,31 @@ export default function CharacterPage() {
     }
   };
 
+  const handleUpdateImage = async () => {
+    if (!character) return;
+
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/characters/${characterId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imageUrlInput }),
+      });
+
+      if (!res.ok) throw new Error("Erro ao atualizar imagem");
+
+      const data = await res.json();
+      setCharacter(data.character);
+      setIsImageDialogOpen(false);
+      toast.success("Imagem atualizada com sucesso!");
+    } catch (error: any) {
+      console.error("Error updating image:", error);
+      toast.error(error.message || "Erro ao atualizar imagem");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const updateField = (field: string, value: any) => {
     setCharacter((prev: any) => ({
       ...prev,
@@ -364,16 +406,28 @@ export default function CharacterPage() {
           </Button>
 
           {/* Profile Picture */}
-          {character.image && (
-            <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary/30 shadow-lg shrink-0">
+          <div className="relative group shrink-0">
+            <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary/30 shadow-lg bg-card/40">
               <Image
-                src={character.image}
+                src={character.image || avatarPlaceholder}
                 alt={character.name}
                 fill
                 className="object-cover"
               />
             </div>
-          )}
+            {canEdit && (
+              <button
+                onClick={() => {
+                  setImageUrlInput(character.image || "");
+                  setIsImageDialogOpen(true);
+                }}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer"
+                title="Editar foto de perfil"
+              >
+                <Camera className="w-8 h-8 text-white" />
+              </button>
+            )}
+          </div>
 
           <div className="flex-1">
             <h1 className="text-4xl font-bold font-cinzel text-primary">
@@ -582,9 +636,19 @@ export default function CharacterPage() {
                     )}
 
                     {character.characterClass === 'Bruxo' && character.pact && (
-                      <div className="bg-background/50 rounded-lg p-4 border-2 border-primary/30">
+                      <div
+                        onClick={() => setShowPactDialog(true)}
+                        className="bg-background/50 rounded-lg p-4 border-2 border-primary/30 cursor-pointer hover:border-primary/50 hover:bg-background/70 transition-all"
+                      >
                         <p className="text-sm text-muted-foreground mb-1">Pacto (Nível 3)</p>
                         <p className="text-lg font-bold text-primary">{character.pact}</p>
+                      </div>
+                    )}
+
+                    {character.fightingStyle && (
+                      <div className="bg-background/50 rounded-lg p-4 border-2 border-orange-500/30">
+                        <p className="text-sm text-muted-foreground mb-1">Estilo de Luta</p>
+                        <p className="text-lg font-bold text-orange-400">{character.fightingStyle}</p>
                       </div>
                     )}
 
@@ -628,7 +692,14 @@ export default function CharacterPage() {
                   <CardContent>
                     <div className="grid md:grid-cols-2 gap-4">
                       {character.feats.map((feat: any, idx: number) => (
-                        <div key={idx} className="bg-background/50 rounded-lg p-4 border border-amber-500/20">
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setSelectedFeatName(feat.name);
+                            setShowFeatDialog(true);
+                          }}
+                          className="bg-background/50 rounded-lg p-4 border border-amber-500/20 cursor-pointer hover:border-amber-500/40 hover:bg-background/70 transition-all"
+                        >
                           <div className="flex items-start justify-between mb-2">
                             <h3 className="font-bold text-lg text-amber-400">{feat.name}</h3>
                             <Badge variant="secondary" className="text-xs">
@@ -818,6 +889,56 @@ export default function CharacterPage() {
                       className="bg-muted cursor-not-allowed"
                     />
                   </div>
+
+                  {/* CD de Magia e Modificador de Ataque de Magia (para classes conjuradoras) */}
+                  {(() => {
+                    // Mapa de classes para seus atributos de conjuração
+                    const spellcastingAttributes: Record<string, keyof typeof attributes> = {
+                      'Bardo': 'charisma',
+                      'Bruxo': 'charisma',
+                      'Clérigo': 'wisdom',
+                      'Druida': 'wisdom',
+                      'Feiticeiro': 'charisma',
+                      'Paladino': 'charisma',
+                      'Ranger': 'wisdom',
+                      'Mago': 'intelligence',
+                    };
+
+                    const spellcastingAttr = spellcastingAttributes[character.characterClass];
+
+                    if (!spellcastingAttr) return null;
+
+                    const spellcastingModifier = calculateModifier(attributes[spellcastingAttr] || 10);
+                    const proficiencyBonus = character.proficiencyBonus || 2;
+                    const spellSaveDC = 8 + proficiencyBonus + spellcastingModifier;
+                    const spellAttackBonus = proficiencyBonus + spellcastingModifier;
+
+                    return (
+                      <>
+                        <div>
+                          <Label htmlFor="spellSaveDC">CD de Magia</Label>
+                          <Input
+                            id="spellSaveDC"
+                            type="number"
+                            value={spellSaveDC}
+                            readOnly
+                            className="bg-primary/10 cursor-not-allowed font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="spellAttack">Ataque de Magia</Label>
+                          <Input
+                            id="spellAttack"
+                            type="text"
+                            value={`+${spellAttackBonus}`}
+                            readOnly
+                            className="bg-primary/10 cursor-not-allowed font-semibold"
+                          />
+                        </div>
+                      </>
+                    );
+                  })()}
+
                   {/* Testes de Resistência (apenas os da classe) */}
                   {getClassSavingThrows().map((attrKey) => {
                     const attr = ATTRIBUTES.find(a => a.key === attrKey);
@@ -897,11 +1018,55 @@ export default function CharacterPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Idiomas e Proficiências */}
+            <Card className="bg-card/60 border-white/10 mt-6">
+              <CardHeader>
+                <CardTitle className="text-xl font-cinzel">Idiomas e Outras Proficiências</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Idiomas */}
+                <div>
+                  <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" />
+                    Idiomas
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {character.languages && character.languages.length > 0 ? (
+                      character.languages.map((lang: string, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="bg-primary/10 hover:bg-primary/20 text-primary-foreground border-primary/20">
+                          {lang}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">Nenhum idioma registrado.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Proficiências de Ferramentas e Outros */}
+                {character.proficiencies && character.proficiencies.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                      <Package className="w-4 h-4" />
+                      Ferramentas e Outros
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {character.proficiencies.map((prof: string, idx: number) => (
+                        <Badge key={idx} variant="outline" className="border-white/10">
+                          {prof}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Tab: Magias */}
           <TabsContent value="magias">
-            {canCastSpells(character.characterClass) ? (
+            {canCastSpells(character.characterClass, character.subclass, character.level) ? (
               <>
                 {/* Slots de Magia */}
                 {character.spellcasting?.spellSlots && (
@@ -931,6 +1096,20 @@ export default function CharacterPage() {
 
                 {/* Rastreador de Slots de Magia */}
                 <SpellSlotTracker
+                  character={character}
+                  onUpdate={fetchCharacter}
+                  canEdit={canEdit}
+                />
+
+                {/* Pontos de Feitiçaria (Feiticeiro only) */}
+                <SorceryPointManager
+                  character={character}
+                  onUpdate={fetchCharacter}
+                  canEdit={canEdit}
+                />
+
+                {/* Metamágicas (Feiticeiro only) */}
+                <MetamagicManager
                   character={character}
                   onUpdate={fetchCharacter}
                   canEdit={canEdit}
@@ -1655,6 +1834,75 @@ export default function CharacterPage() {
         onClose={() => setSpellDialogOpen(false)}
         spell={selectedSpellDetailData}
       />
+
+      {/* Diálogo para Editar Imagem */}
+      <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+        <DialogContent className="bg-card border-white/10">
+          <DialogHeader>
+            <DialogTitle className="font-cinzel text-xl text-primary flex items-center gap-2">
+              <Camera className="w-5 h-5" />
+              Editar Foto do Personagem
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="image-url">URL da Imagem</Label>
+              <Input
+                id="image-url"
+                value={imageUrlInput}
+                onChange={(e) => setImageUrlInput(e.target.value)}
+                placeholder="https://exemplo.com/imagem.png"
+                className="bg-card/40"
+              />
+              <p className="text-xs text-muted-foreground italic">
+                Dica: Use URLs diretas de imagens (.png, .jpg, .webp) para melhor resultado.
+              </p>
+            </div>
+            {imageUrlInput && (
+              <div className="flex flex-col items-center gap-2">
+                <Label className="self-start">Prévia:</Label>
+                <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-primary/30 shadow-lg bg-card/40">
+                  <img
+                    src={imageUrlInput}
+                    alt="Prévia"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as any).src = avatarPlaceholder.src || avatarPlaceholder;
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsImageDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateImage} disabled={saving}>
+              {saving ? "Salvando..." : "Salvar Foto"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Detalhes do Pacto */}
+      {character?.pact && (
+        <PactDetailsDialog
+          open={showPactDialog}
+          onOpenChange={setShowPactDialog}
+          pactName={character.pact}
+          bookOfShadowsCantrips={character.bookOfShadowsCantrips || []}
+        />
+      )}
+
+      {/* Dialog de Detalhes do Feat */}
+      {selectedFeatName && (
+        <FeatDetailsDialog
+          open={showFeatDialog}
+          onOpenChange={setShowFeatDialog}
+          featName={selectedFeatName}
+        />
+      )}
     </FantasyLayout>
   );
 }

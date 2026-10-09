@@ -45,7 +45,7 @@ async function checkTables() {
     const tableExists = await client`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
+        WHERE table_schema = 'runaway' 
         AND table_name = 'campaign_members'
       )
     `;
@@ -57,7 +57,7 @@ async function checkTables() {
       const columns = await client`
         SELECT column_name, data_type, is_nullable
         FROM information_schema.columns 
-        WHERE table_name = 'campaign_members'
+        WHERE table_schema = 'runaway' AND table_name = 'campaign_members'
         ORDER BY ordinal_position
       `;
       
@@ -71,11 +71,11 @@ async function checkTables() {
       
       // Criar tabela
       await client`
-        CREATE TABLE campaign_members (
+        CREATE TABLE runaway.campaign_members (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          campaign_id UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
-          user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-          role user_role NOT NULL DEFAULT 'player',
+          campaign_id UUID NOT NULL REFERENCES runaway.campaigns(id) ON DELETE CASCADE,
+          user_id UUID NOT NULL REFERENCES runaway.users(id) ON DELETE CASCADE,
+          role runaway.user_role NOT NULL DEFAULT 'player',
           joined_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
           UNIQUE(campaign_id, user_id)
         )
@@ -94,7 +94,7 @@ async function checkTables() {
       console.log("\n💡 O enum 'user_role' não existe. Criando...");
       const client = postgres(connectionString);
       try {
-        await client`CREATE TYPE user_role AS ENUM ('player', 'dm', 'admin')`;
+        await client`CREATE TYPE runaway.user_role AS ENUM ('player', 'dm', 'admin')`;
         console.log("✅ Enum 'user_role' criado!");
         await client.end();
         // Tentar novamente

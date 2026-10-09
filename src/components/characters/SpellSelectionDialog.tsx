@@ -24,6 +24,7 @@ interface Spell {
   name: string;
   url: string;
   level?: number;
+  patron?: string[];
 }
 
 interface SpellDetail {
@@ -51,6 +52,7 @@ interface SpellSelectionDialogProps {
   characterLevel: number;
   knownSpells?: string[]; // Magias já conhecidas pelo personagem
   allowSwap?: boolean; // Permite trocar magias conhecidas
+  subclass?: string; // Subclasse para regras específicas (Eldritch Knight, Arcane Trickster)
 }
 
 export function SpellSelectionDialog({
@@ -65,6 +67,7 @@ export function SpellSelectionDialog({
   characterLevel,
   knownSpells = [],
   allowSwap = false,
+  subclass,
 }: SpellSelectionDialogProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [spellDetails, setSpellDetails] = useState<Record<string, SpellDetail>>({});
@@ -75,7 +78,7 @@ export function SpellSelectionDialog({
   const [spellsToRemove, setSpellsToRemove] = useState<string[]>([]);
   const [homebrewSpells, setHomebrewSpells] = useState<Spell[]>([]);
 
-  const maxSpellLevel = getSpellcastingLevel(characterClass, characterLevel);
+  const maxSpellLevel = getSpellcastingLevel(characterClass, characterLevel, subclass);
   const { t, translateDnd5e, translateSpell } = useTranslation();
 
   useEffect(() => {
@@ -121,7 +124,7 @@ export function SpellSelectionDialog({
 
   const getLevelName = (level: number) => {
     if (level === 0) return t("spell.cantrips");
-    return `${level}º ${t("spell.level")}`;
+    return `${level}º Nível`;
   };
 
   const allSpells = [...availableSpells, ...homebrewSpells];
@@ -331,6 +334,11 @@ export function SpellSelectionDialog({
                                 {getLevelName(spell.level)}
                               </Badge>
                             )}
+                            {spell.patron && spell.patron.map((p: string) => (
+                              <Badge key={p} variant="secondary" className="bg-orange-500/20 text-orange-300 border-orange-500/50">
+                                {p}
+                              </Badge>
+                            ))}
                             {detail?.school && (
                               <Badge variant="outline" className="text-xs">
                                 {translateDnd5e(detail.school.name)}

@@ -134,6 +134,27 @@ export const warlockPatrons: Subclass[] = [
             { type: 'spell', value: ['bane', 'false-life'], level: 1, description: 'Magias expandidas de 1º nível' },
         ],
     },
+    {
+        name: "O Profundo",
+        className: "Bruxo",
+        level: 1,
+        type: 'patron',
+        source: "TCoE",
+        description: "Seu patrono é uma entidade das profundezas do oceano, de um lago profundo ou do Plano Elemental da Água.",
+        features: [
+            { level: 1, name: "Lista de Magias Expandida", description: "O Profundo permite que você escolha de uma lista expandida de magias" },
+            { level: 1, name: "Tentáculo das Profundezas", description: "Você pode criar um tentáculo espectral que ataca seus inimigos" },
+            { level: 1, name: "Dádiva do Mar", description: "Você ganha velocidade de natação e pode respirar embaixo d'água" },
+            { level: 6, name: "Alma Oceânica", description: "Você ganha resistência a dano de frio e pode se comunicar com criaturas marinhas" },
+            { level: 6, name: "Guardião do Tentáculo", description: "Seu tentáculo pode proteger você ou outros" },
+            { level: 10, name: "Vórtice Escarranchado", description: "Você pode se teletransportar através de um vórtice de água" },
+            { level: 14, name: "Libertar o Profundo", description: "Você invoca uma manifestação do seu patrono" },
+        ],
+        benefits: [
+            { type: 'spell', value: ['create-or-destroy-water', 'thunderwave'], level: 1, description: 'Magias expandidas de 1º nível' },
+            { type: 'resistance', value: 'cold', level: 6, description: 'Resistência a dano de frio' },
+        ],
+    },
 ];
 
 // ============================================================================
